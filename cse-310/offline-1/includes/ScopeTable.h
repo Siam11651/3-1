@@ -29,5 +29,6 @@ public:
     SymbolInfo *LookUp(const std::string &symbolName);
     bool Delete(const std::string &symbolName);
     void Print();
+    ScopeTable *GetParent();
     ~ScopeTable();
 };

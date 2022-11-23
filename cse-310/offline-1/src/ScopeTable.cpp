@@ -103,6 +103,11 @@ void ScopeTable::Print()
     }
 }
 
+ScopeTable *ScopeTable::GetParent()
+{
+    return parent;
+}
+
 ScopeTable::~ScopeTable()
 {
     delete[] buckets;
