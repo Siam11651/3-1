@@ -6,6 +6,7 @@
 class ScopeTable
 {
 private:
+    size_t id;
     size_t numberOfBuckets;
     SymbolInfo **buckets;
     ScopeTable *parent;
@@ -23,7 +24,7 @@ private:
         return hash;
     }
 public:
-    ScopeTable(size_t numberOfBuckets, ScopeTable* parent);
+    ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent);
     bool Insert(SymbolInfo &symbol);
     SymbolInfo *LookUp(const std::string &symbolName);
     bool Delete(const std::string &symbolName);
