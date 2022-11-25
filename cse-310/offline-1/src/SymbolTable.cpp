@@ -1,24 +1,39 @@
-#include <SymbolTable.h>
+#include "SymbolTable.h"
 
-SymbolTable::SymbolTable(size_t numberOfBuckets)
+SymbolTable::SymbolTable(size_t numberOfBuckets, std::ostream *output = NULL)
 {
     scopeCount = 1;
     this->numberOfBuckets = numberOfBuckets;
     currentScope = new ScopeTable(scopeCount, numberOfBuckets, NULL);
+    this->output = output;
 }
 
 void SymbolTable::EnterScope()
 {
     ++scopeCount;
-    ScopeTable *newScope = new ScopeTable(scopeCount, numberOfBuckets, currentScope);
+    ScopeTable *newScope = new ScopeTable(scopeCount, numberOfBuckets, currentScope, output);
     currentScope = newScope;
 }
 
 void SymbolTable::ExitScope()
 {
-    ScopeTable *toDelete = currentScope;
-    currentScope = currentScope->GetParent();
-    --scopeCount;
+    if(scopeCount == 0)
+    {
+        if(output != NULL)
+        {
+            *output << "ScopeTable# 1 cannot be removed" << std::endl;
+        }
+        else
+        {
+            std::cout << "ScopeTable# 1 cannot be removed" << std::endl;
+        }
+    }
+    else
+    {
+        ScopeTable *toDelete = currentScope;
+        currentScope = currentScope->GetParent();
+        --scopeCount;
+    }
 }
 
 bool SymbolTable::Insert(SymbolInfo &symbol)
@@ -52,6 +67,11 @@ SymbolInfo *SymbolTable::LookUp(const std::string &symbolName)
         }
     }
 
+    if(toReturn == NULL && output != NULL)
+    {
+        *output << "\'" << symbolName << "\' not found in any of the ScopeTables" << std::endl;
+    }
+
     return toReturn;
 }
 
@@ -75,6 +95,11 @@ void SymbolTable::PrintAllScope()
 
         next = next->GetParent();
     }
+}
+
+size_t SymbolTable::GetScopeCount()
+{
+    return scopeCount;
 }
 
 SymbolTable::~SymbolTable()

@@ -1,7 +1,8 @@
 #pragma once
 
+#include <iostream>
 #include <string>
-#include <SymbolInfo.h>
+#include "SymbolInfo.h"
 
 class ScopeTable
 {
@@ -10,6 +11,8 @@ private:
     size_t numberOfBuckets;
     SymbolInfo **buckets;
     ScopeTable *parent;
+    size_t *bucketSizes;
+    std::ostream *output;
 
     size_t Hash(const std::string &symbolName)
     {
@@ -24,11 +27,12 @@ private:
         return hash;
     }
 public:
-    ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent);
+    ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent, std::ostream *ouput = NULL);
     bool Insert(SymbolInfo &symbol);
     SymbolInfo *LookUp(const std::string &symbolName);
     bool Delete(const std::string &symbolName);
     void Print();
     ScopeTable *GetParent();
+    size_t GetID();
     ~ScopeTable();
 };

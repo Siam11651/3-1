@@ -4,4 +4,3 @@ project(offline-1 VERSION 0.1.0)
 file(GLOB SRC "src/*.cpp")
 
 add_executable(offline-1 ${SRC})
-target_include_directories(offline-1 PRIVATE "includes/")
