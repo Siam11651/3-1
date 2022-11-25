@@ -31,6 +31,30 @@ bool SymbolTable::Delete(const std::string &symbolName)
     return currentScope->Delete(symbolName);
 }
 
+SymbolInfo *SymbolTable::LookUp(const std::string &symbolName)
+{
+    ScopeTable *thisScope = currentScope;
+    SymbolInfo *toReturn = NULL;
+
+    while(thisScope != NULL)
+    {
+        SymbolInfo *symbolInfo = thisScope->LookUp(symbolName);
+
+        if(symbolInfo == NULL)
+        {
+            thisScope = thisScope->GetParent();
+        }
+        else
+        {
+            toReturn = symbolInfo;
+
+            break;
+        }
+    }
+
+    return toReturn;
+}
+
 void SymbolTable::PrintScope(ScopeTable *scope)
 {
     scope->Print();
