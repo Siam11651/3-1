@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include "ScopeTable.h"
+#include "1905039_ScopeTable.h"
 
 class SymbolTable
 {

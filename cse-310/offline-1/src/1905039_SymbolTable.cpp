@@ -1,4 +1,4 @@
-#include "SymbolTable.h"
+#include "1905039_SymbolTable.h"
 
 SymbolTable::SymbolTable(size_t numberOfBuckets, std::ostream *output)
 {

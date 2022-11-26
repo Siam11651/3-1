@@ -3,8 +3,8 @@
 #include <string>
 #include <sstream>
 #include <cstring>
-#include "SymbolTable.h"
-#include "StringTokens.h"
+#include "1905039_SymbolTable.h"
+#include "1905039_StringTokens.h"
 
 #define FILEIO
 

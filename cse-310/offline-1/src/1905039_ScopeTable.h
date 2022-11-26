@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <string>
-#include "SymbolInfo.h"
+#include "1905039_SymbolInfo.h"
 
 class ScopeTable
 {

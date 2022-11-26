@@ -1,4 +1,4 @@
-#include "SymbolInfo.h"
+#include "1905039_SymbolInfo.h"
 
 SymbolInfo::SymbolInfo(const std::string &name, const std::string &type)
 {
