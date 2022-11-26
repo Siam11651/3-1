@@ -7,6 +7,7 @@ class SymbolTable
 {
 private:
     size_t scopeCount;
+    size_t maxScopeCount;
     size_t numberOfBuckets;
     ScopeTable *currentScope;
     std::ostream *output;

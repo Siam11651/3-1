@@ -12,13 +12,14 @@ ScopeTable::ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent, st
     for(size_t i = 0; i < numberOfBuckets; ++i)
     {
         bucketSizes[i] = 0;
+        buckets[i] = NULL;
     }
 
     this->output = output;
 
     if(output != NULL)
     {
-        *output << "ScopeTable# "<< id << " created" << std::endl;
+        *output << "\tScopeTable# "<< id << " created" << std::endl;
     }
 }
 
@@ -45,7 +46,7 @@ bool ScopeTable::Insert(const SymbolInfo &symbol)
     {
         if(output != NULL)
         {
-            *output << "\'" << symbol.GetName() << "\' already exists in the current ScopeTable" << std::endl;
+            *output << "\t\'" << symbol.GetName() << "\' already exists in the current ScopeTable" << std::endl;
         }
 
         return false;
@@ -58,7 +59,7 @@ bool ScopeTable::Insert(const SymbolInfo &symbol)
 
     if(output != NULL)
     {
-        *output << "Inserted in ScopeTable# " << id << " at position " << index + 1 << ", " << bucketSizes[index] << std::endl;
+        *output << "\tInserted in ScopeTable# " << id << " at position " << index + 1 << ", " << bucketSizes[index] << std::endl;
     }
 
     return true;
@@ -77,7 +78,7 @@ SymbolInfo *ScopeTable::LookUp(const std::string &symbolName)
         {
             if(output != NULL)
             {
-                *output << "\'" << symbolName << "\' found in ScopeTable# " << id << " at position " << index + 1 << ", " << position << std::endl;
+                *output << "\t\'" << symbolName << "\' found in ScopeTable# " << id << " at position " << index + 1 << ", " << position << std::endl;
             }
 
             return next;
@@ -95,6 +96,16 @@ bool ScopeTable::Delete(const std::string &symbolName)
     size_t hash = Hash(symbolName);
     size_t index = hash % numberOfBuckets;
 
+    if(buckets[index] == NULL)
+    {
+        if(output != NULL)
+        {
+            *output << "\tNot found in the current ScopeTable" << std::endl;
+        }
+
+        return false;
+    }
+
     if(buckets[index]->GetName() == symbolName)
     {
         SymbolInfo *toDelete = buckets[index];
@@ -104,7 +115,7 @@ bool ScopeTable::Delete(const std::string &symbolName)
 
         if(output != NULL)
         {
-            *output << "Deleted \'" << symbolName << "\' from ScopeTable# " << id << " at position " << index + 1 << ", " << bucketSizes[index] << std::endl; 
+            *output << "\tDeleted \'" << symbolName << "\' from ScopeTable# " << id << " at position " << index + 1 << ", " << bucketSizes[index] << std::endl; 
         }
 
         --bucketSizes[index];
@@ -128,7 +139,7 @@ bool ScopeTable::Delete(const std::string &symbolName)
 
                 if(output != NULL)
                 {
-                    *output << "Deleted \'" << symbolName << "\' from ScopeTable# " << id << " at position " << index + 1 << ", " << position - 1 << std::endl; 
+                    *output << "\tDeleted \'" << symbolName << "\' from ScopeTable# " << id << " at position " << index + 1 << ", " << position - 1 << std::endl; 
                 }
 
                 --bucketSizes[index];
@@ -142,7 +153,7 @@ bool ScopeTable::Delete(const std::string &symbolName)
 
         if(output != NULL)
         {
-            *output << "Not found in the current ScopeTable" << std::endl;
+            *output << "\tNot found in the current ScopeTable" << std::endl;
         }
         
         return false;
@@ -153,17 +164,17 @@ void ScopeTable::Print()
 {
     if(output == NULL)
     {
-        std::cout << "ScopeTable# " << id << std::endl;
+        std::cout << "\tScopeTable# " << id << std::endl;
 
         for(size_t i = 0; i < numberOfBuckets; ++i)
         {
-            std::cout << (i + 1) << "--> ";
+            std::cout << "\t" << (i + 1) << "--> ";
 
             SymbolInfo *next = buckets[i];
 
             while(next != NULL)
             {
-                std::cout << '<' << next->GetName() << ',' << next->GetType() << '>';
+                std::cout << '<' << next->GetName() << ',' << next->GetType() << "> ";
 
                 next = next->GetNext();
             }
@@ -173,17 +184,17 @@ void ScopeTable::Print()
     }
     else
     {
-        *output << "ScopeTable# " << id << std::endl;
+        *output << "\tScopeTable# " << id << std::endl;
 
         for(size_t i = 0; i < numberOfBuckets; ++i)
         {
-            *output << (i + 1) << "--> ";
+            *output << "\t" << (i + 1) << "--> ";
 
             SymbolInfo *next = buckets[i];
 
             while(next != NULL)
             {
-                *output << '<' << next->GetName() << ',' << next->GetType() << '>';
+                *output << '<' << next->GetName() << ',' << next->GetType() << "> ";
 
                 next = next->GetNext();
             }
@@ -210,6 +221,6 @@ ScopeTable::~ScopeTable()
 
     if(output != NULL)
     {
-        *output << "ScopeTable# " << id << " removed" << std::endl;
+        *output << "\tScopeTable# " << id << " removed" << std::endl;
     }
 }

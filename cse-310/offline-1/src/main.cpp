@@ -4,6 +4,7 @@
 #include <sstream>
 #include <cstring>
 #include "SymbolTable.h"
+#include "StringTokens.h"
 
 #define FILEIO
 
@@ -27,7 +28,7 @@ int main()
 
     ss >> numberOfBuckets;
 
-    SymbolTable symbolTable(numberOfBuckets, &output);
+    SymbolTable *symbolTable = new SymbolTable(numberOfBuckets, &output);
 
     size_t count = 0;
 
@@ -37,101 +38,108 @@ int main()
 
         std::getline(input, line);
 
+        if(line.back() == '\r')
+        {
+            line = line.substr(0, line.size() - 1);
+        }
+
         output << "Cmd " << count <<  ": " << line << std::endl;
 
-        std::string command(std::strtok(line.data(), " "));
+        StringTokens stringTokens(line);
 
-        if(command == "I")
+        if(stringTokens.GetToken(0) == "I")
         {
-            std::string name(std::strtok(line.data(), " "));
-            std::string type(std::strtok(line.data(), " "));
-
-            if(std::strtok(line.data(), " ") == NULL)
+            if(stringTokens.GetCount() != 3)
             {
-                output << "Number of parameters mismatch for the command " << command << std::endl;
+                output << "\tNumber of parameters mismatch for the command " << stringTokens.GetToken(0) << std::endl;
             }
             else
             {
-                symbolTable.Insert(SymbolInfo(name, type));
+                std::string name(stringTokens.GetToken(1));
+                std::string type(stringTokens.GetToken(2));
+
+                symbolTable->Insert(SymbolInfo(name, type));
             }
         }
-        else if(command == "L")
+        else if(stringTokens.GetToken(0) == "L")
         {
-            std::string name(std::strtok(line.data(), " "));
-
-            if(std::strtok(line.data(), " ") == NULL)
+            if(stringTokens.GetCount() != 2)
             {
-                output << "Number of parameters mismatch for the command " << command << std::endl;
+                output << "\tNumber of parameters mismatch for the command " << stringTokens.GetToken(0) << std::endl;
             }
             else
             {
-                symbolTable.LookUp(name);
+                std::string name(stringTokens.GetToken(1));
+
+                symbolTable->LookUp(name);
             }
         }
-        else if(command == "D")
+        else if(stringTokens.GetToken(0) == "D")
         {
-            std::string name(std::strtok(line.data(), " "));
-
-            if(std::strtok(line.data(), " ") == NULL)
+            if(stringTokens.GetCount() != 2)
             {
-                output << "Number of parameters mismatch for the command " << command << std::endl;
+                output << "\tNumber of parameters mismatch for the  command " << stringTokens.GetToken(0) << std::endl;
             }
             else
             {
-                symbolTable.Delete(name);
+                std::string name(stringTokens.GetToken(1));
+
+                symbolTable->Delete(name);
             }
         }
-        else if(command == "P")
+        else if(stringTokens.GetToken(0) == "P")
         {
-            std::string type(std::strtok(line.data(), " "));
-
-            if(std::strtok(line.data(), " ") == NULL)
+            if(stringTokens.GetCount() != 2)
             {
-                output << "Number of parameters mismatch for the command " << command << std::endl;
+                output << "\tNumber of parameters mismatch for the command " << stringTokens.GetToken(0) << std::endl;
             }
             else
             {
+                std::string type(stringTokens.GetToken(1));
+
                 if(type == "A")
                 {
-                    symbolTable.PrintAllScope();
+                    symbolTable->PrintAllScope();
                 }
                 else
                 {
-                    symbolTable.PrintCurrentScope();
+                    symbolTable->PrintCurrentScope();
                 }
             }
         }
-        else if(command == "S")
+        else if(stringTokens.GetToken(0) == "S")
         {
-            if(std::strtok(line.data(), " ") == NULL)
+            if(stringTokens.GetCount() != 1)
             {
-                output << "Number of parameters mismatch for the command " << command << std::endl;
+                output << "\tNumber of parameters mismatch for the command " << stringTokens.GetToken(0) << std::endl;
             }
             else
             {
-                symbolTable.EnterScope();
+                symbolTable->EnterScope();
             }
         }
-        else if(command == "E")
+        else if(stringTokens.GetToken(0) == "E")
         {
-            if(std::strtok(line.data(), " ") == NULL)
+            if(stringTokens.GetCount() != 1)
             {
-                output << "Number of parameters mismatch for the command " << command << std::endl;
+                output << "\tNumber of parameters mismatch for the command " << stringTokens.GetToken(0) << std::endl;
             }
             else
             {
-                symbolTable.ExitScope();
+                symbolTable->ExitScope();
             }
         }
-        else if(command == "Q")
+        else if(stringTokens.GetToken(0) == "Q")
         {
-            if(std::strtok(line.data(), " ") == NULL)
+            if(stringTokens.GetCount() != 1)
             {
-                output << "Number of parameters mismatch for the command " << command << std::endl;
+                output << "\tNumber of parameters mismatch for the command " << stringTokens.GetToken(0) << std::endl;
             }
             else
             {
+                delete symbolTable;
 
+                break;
             }
         }
         else
