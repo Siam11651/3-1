@@ -1,7 +1,7 @@
 #include <iostream>
 #include "ScopeTable.h"
 
-ScopeTable::ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent, std::ostream *output = NULL)
+ScopeTable::ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent, std::ostream *output)
 {
     this->id = id;
     this->numberOfBuckets = numberOfBuckets;

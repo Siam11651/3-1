@@ -1,6 +1,6 @@
 #include "SymbolTable.h"
 
-SymbolTable::SymbolTable(size_t numberOfBuckets, std::ostream *output = NULL)
+SymbolTable::SymbolTable(size_t numberOfBuckets, std::ostream *output)
 {
     scopeCount = 1;
     this->numberOfBuckets = numberOfBuckets;

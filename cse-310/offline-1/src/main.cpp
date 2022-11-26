@@ -1,10 +1,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <cstring>
 #include "SymbolTable.h"
 
-// #define FILEIO
+#define FILEIO
 
 int main()
 {
@@ -17,18 +18,26 @@ int main()
     std::istream &input = std::cin;
     std::ostream &output = std::cout;
 #endif
-
     size_t numberOfBuckets;
-    
-    input >> numberOfBuckets;
+    std::string line;
+
+    std::getline(input, line);
+
+    std::stringstream ss(line);
+
+    ss >> numberOfBuckets;
 
     SymbolTable symbolTable(numberOfBuckets, &output);
 
+    size_t count = 0;
+
     while(true)
     {
-        std::string line;
+        ++count;
 
         std::getline(input, line);
+
+        output << "Cmd " << count <<  ": " << line << std::endl;
 
         std::string command(std::strtok(line.data(), " "));
 
@@ -122,7 +131,7 @@ int main()
             }
             else
             {
-                
+
             }
         }
         else
