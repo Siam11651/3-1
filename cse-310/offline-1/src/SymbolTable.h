@@ -17,7 +17,7 @@ public:
     ScopeTable *GetCurrentScope();
     void EnterScope();
     void ExitScope();
-    bool Insert(SymbolInfo &symbol);
+    bool Insert(const SymbolInfo &symbol);
     bool Delete(const std::string &symbolName);
     SymbolInfo *LookUp(const std::string &symbolName);
     void PrintCurrentScope();

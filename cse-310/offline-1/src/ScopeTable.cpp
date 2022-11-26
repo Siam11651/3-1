@@ -1,5 +1,5 @@
-#include "ScopeTable.h"
 #include <iostream>
+#include "ScopeTable.h"
 
 ScopeTable::ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent, std::ostream *output = NULL)
 {
@@ -22,7 +22,7 @@ ScopeTable::ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent, st
     }
 }
 
-bool ScopeTable::Insert(SymbolInfo &symbol)
+bool ScopeTable::Insert(const SymbolInfo &symbol)
 {
     size_t hash = Hash(symbol.GetName());
     size_t index = hash % numberOfBuckets;
@@ -207,4 +207,9 @@ ScopeTable::~ScopeTable()
 {
     delete[] buckets;
     delete[] bucketSizes;
+
+    if(output != NULL)
+    {
+        *output << "ScopeTable# " << id << " removed" << std::endl;
+    }
 }

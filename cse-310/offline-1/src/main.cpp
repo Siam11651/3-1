@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <cstring>
 #include "SymbolTable.h"
 
 // #define FILEIO
@@ -17,67 +19,117 @@ int main()
 #endif
 
     size_t numberOfBuckets;
-
+    
     input >> numberOfBuckets;
 
-    SymbolTable symbolTable(numberOfBuckets);
-
-    output << "ScopeTable# " << symbolTable.GetCurrentScope()->GetID() << " created" << std::endl;
-
-    size_t commandCount = 0;
+    SymbolTable symbolTable(numberOfBuckets, &output);
 
     while(true)
     {
-        char command;
+        std::string line;
 
-        input >> command;
+        std::getline(input, line);
 
-        ++commandCount;
+        std::string command(std::strtok(line.data(), " "));
 
-        if(command == 'I')
+        if(command == "I")
         {
-            std::string symbolName, symbolType;
+            std::string name(std::strtok(line.data(), " "));
+            std::string type(std::strtok(line.data(), " "));
 
-            std::cin >> symbolName >> symbolType;
-
-            output << "Cmd " << commandCount << ": " << command << ' ' << symbolName << ' ' << symbolType << std::endl;
-
-            SymbolInfo symbolInfo(symbolName, symbolType);
-
-            symbolTable.Insert(symbolInfo);
-
-            
+            if(std::strtok(line.data(), " ") == NULL)
+            {
+                output << "Number of parameters mismatch for the command " << command << std::endl;
+            }
+            else
+            {
+                symbolTable.Insert(SymbolInfo(name, type));
+            }
         }
-        else if(command == 'L')
+        else if(command == "L")
         {
+            std::string name(std::strtok(line.data(), " "));
 
+            if(std::strtok(line.data(), " ") == NULL)
+            {
+                output << "Number of parameters mismatch for the command " << command << std::endl;
+            }
+            else
+            {
+                symbolTable.LookUp(name);
+            }
         }
-        else if(command == 'D')
+        else if(command == "D")
         {
+            std::string name(std::strtok(line.data(), " "));
 
+            if(std::strtok(line.data(), " ") == NULL)
+            {
+                output << "Number of parameters mismatch for the command " << command << std::endl;
+            }
+            else
+            {
+                symbolTable.Delete(name);
+            }
         }
-        else if(command == 'P')
+        else if(command == "P")
         {
+            std::string type(std::strtok(line.data(), " "));
 
+            if(std::strtok(line.data(), " ") == NULL)
+            {
+                output << "Number of parameters mismatch for the command " << command << std::endl;
+            }
+            else
+            {
+                if(type == "A")
+                {
+                    symbolTable.PrintAllScope();
+                }
+                else
+                {
+                    symbolTable.PrintCurrentScope();
+                }
+            }
         }
-        else if(command == 'S')
+        else if(command == "S")
         {
-
+            if(std::strtok(line.data(), " ") == NULL)
+            {
+                output << "Number of parameters mismatch for the command " << command << std::endl;
+            }
+            else
+            {
+                symbolTable.EnterScope();
+            }
         }
-        else if(command == 'E')
+        else if(command == "E")
         {
-
+            if(std::strtok(line.data(), " ") == NULL)
+            {
+                output << "Number of parameters mismatch for the command " << command << std::endl;
+            }
+            else
+            {
+                symbolTable.ExitScope();
+            }
         }
-        else if(command == 'Q')
+        else if(command == "Q")
         {
-
+            if(std::strtok(line.data(), " ") == NULL)
+            {
+                output << "Number of parameters mismatch for the command " << command << std::endl;
+            }
+            else
+            {
+                
+            }
         }
         else
         {
-            
+
         }
     }
-    
 
 #if defined FILEIO
     inputFileStream.close();

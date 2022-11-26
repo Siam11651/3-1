@@ -36,7 +36,7 @@ void SymbolTable::ExitScope()
     }
 }
 
-bool SymbolTable::Insert(SymbolInfo &symbol)
+bool SymbolTable::Insert(const SymbolInfo &symbol)
 {
     return currentScope->Insert(symbol);
 }

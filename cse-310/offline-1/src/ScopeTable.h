@@ -28,7 +28,7 @@ private:
     }
 public:
     ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent, std::ostream *ouput = NULL);
-    bool Insert(SymbolInfo &symbol);
+    bool Insert(const SymbolInfo &symbol);
     SymbolInfo *LookUp(const std::string &symbolName);
     bool Delete(const std::string &symbolName);
     void Print();
