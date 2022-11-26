@@ -144,7 +144,7 @@ int main()
         }
         else
         {
-
+            std::cout << "\tWrong command" << std::endl;
         }
     }
 
