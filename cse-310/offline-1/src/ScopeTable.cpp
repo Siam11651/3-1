@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string>
+#include <sstream>
 #include "ScopeTable.h"
 
 ScopeTable::ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent, std::ostream *output)
@@ -171,15 +173,38 @@ void ScopeTable::Print()
             std::cout << "\t" << (i + 1) << "--> ";
 
             SymbolInfo *next = buckets[i];
+            std::string *symbols = new std::string[bucketSizes[i]];
+
+            size_t j = 0;
 
             while(next != NULL)
             {
-                std::cout << '<' << next->GetName() << ',' << next->GetType() << "> ";
+                std::stringstream ss("");
+
+                ss << '<' << next->GetName() << ',' << next->GetType() << "> ";
+
+                symbols[j] = ss.str();
 
                 next = next->GetNext();
+                ++j;
+            }
+
+            if(bucketSizes[i] > 0)
+            {
+                for(size_t j = bucketSizes[i] - 1; ; --j)
+                {
+                    std::cout << symbols[j];
+
+                    if(j == 0)
+                    {
+                        break;
+                    }
+                }
             }
 
             std::cout << std::endl;
+
+            delete[] symbols;
         }
     }
     else
@@ -191,15 +216,37 @@ void ScopeTable::Print()
             *output << "\t" << (i + 1) << "--> ";
 
             SymbolInfo *next = buckets[i];
+            std::string *symbols = new std::string[bucketSizes[i]];
+            size_t j = 0;
 
             while(next != NULL)
             {
-                *output << '<' << next->GetName() << ',' << next->GetType() << "> ";
+                std::stringstream ss("");
+
+                ss << '<' << next->GetName() << ',' << next->GetType() << "> ";
+
+                symbols[j] = ss.str();
 
                 next = next->GetNext();
+                ++j;
+            }
+
+            if(bucketSizes[i] > 0)
+            {
+                for(size_t j = bucketSizes[i] - 1; ; --j)
+                {
+                    *output << symbols[j];
+
+                    if(j == 0)
+                    {
+                        break;
+                    }
+                }
             }
 
             *output << std::endl;
+
+            delete[] symbols;
         }
     }
 }
