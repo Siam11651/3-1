@@ -6,4 +6,5 @@ class DVD : public Part
 {
 public:
     DVD();
+    std::string Print();
 };

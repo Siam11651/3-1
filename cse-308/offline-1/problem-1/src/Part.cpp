@@ -1,16 +1,11 @@
 #include "Part.h"
 
-uint64_t Part::GetPrice()
+uint64_t Part::GetPrice() const
 {
     return price;
 }
 
-std::string Part::GetPartType()
+std::string Part::GetPartType() const
 {
     return partType;
-}
-
-std::string Part::Print()
-{
-    return "";
 }
