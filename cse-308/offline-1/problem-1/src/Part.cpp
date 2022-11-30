@@ -9,3 +9,8 @@ std::string Part::GetPartType()
 {
     return partType;
 }
+
+std::string Part::Print()
+{
+    return "";
+}
