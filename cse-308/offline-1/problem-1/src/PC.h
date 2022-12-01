@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <map>
+#include "PCBuilder.h"
 #include "Processor.h"
 #include "RAM.h"
 #include "HDD.h"
@@ -11,15 +12,17 @@
 
 class PC
 {
-private:
-    static const size_t MAX_PROCESSORS = 1;
-    static const size_t MAX_RAMS = 4;
-    static const size_t MAX_HDDS = 3;
-    static const size_t MAX_DVDS = 1;
-    static const size_t MAX_GPUS = 2;
-    std::vector<Part *> parts;
-    std::map<std::string, size_t> partTypeCount;
+protected:
+    size_t maxProcessors;
+    size_t maxRAMs;
+    size_t maxHDDs;
+    size_t maxDVDs;
+    size_t maxCoolers;
+    size_t maxGraphicsCards;
+    uint64_t basePrice;
+    std::vector<Part> parts;
+
+    PC();
 public:
-    int64_t AddPart(const Part &part);
-    ~PC();
+    PC(PCBuilder *pcBuilder);
 };
