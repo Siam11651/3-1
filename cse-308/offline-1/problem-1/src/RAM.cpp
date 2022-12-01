@@ -9,7 +9,7 @@ std::string RAM::Print()
 {
     std::stringstream stringStream("");
 
-    stringStream << "8 GB DDR4 " << speed << " MHz";
+    stringStream << volume << " GB DDR" << ddr << ' ' << speed << " MHz";
 
     return stringStream.str();
 }
