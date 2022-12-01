@@ -236,7 +236,5 @@ size_t PCBuilder::GetMaxGraphicsCardsCount() const
 
 PC *PCBuilder::GetBuiltPCPointer()
 {
-    pc = new PC(this);
-
-    return pc;
+    return new PC(this);
 }

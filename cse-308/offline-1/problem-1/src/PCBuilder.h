@@ -7,7 +7,6 @@
 class PCBuilder : public PC
 {
 protected:
-    PC* pc;
     size_t maxProcessors;
     size_t maxRAMs;
     size_t maxHDDs;

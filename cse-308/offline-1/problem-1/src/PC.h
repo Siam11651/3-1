@@ -21,6 +21,7 @@ protected:
     size_t maxGraphicsCards;
     uint64_t basePrice;
     std::vector<Part> parts;
+    std::map<std::string, size_t> partTypeCount;
 
     PC();
 public:
