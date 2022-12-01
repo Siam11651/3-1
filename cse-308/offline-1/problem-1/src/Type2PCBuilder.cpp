@@ -1,6 +1,6 @@
-#include "GamingPCBuilder.h"
+#include "Type2PCBuilder.h"
 
-GamingPCBuilder::GamingPCBuilder()
+Type2PCBuilder::Type2PCBuilder()
 {
     maxProcessors = 1;
     maxRAMs = 4;
@@ -9,6 +9,7 @@ GamingPCBuilder::GamingPCBuilder()
     maxCoolers = maxProcessors;
     maxGraphicsCards = 2;
 
-    AddProcessor(AMD_Ryzen7_5700X());
+    AddProcessor(Intel11GenCore_i7());
     AddHDD(HDD1TB());
+    AddCooler(LiquidCooler());
 }
