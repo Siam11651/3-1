@@ -15,3 +15,37 @@ std::string Utilities::ToLower(const std::string &string)
 
     return newString;
 }
+
+std::string Utilities::FormatNewLine()
+{
+    std::string line;
+
+    std::getline(std::cin, line);
+
+    return ToLower(line);
+}
+
+bool Utilities::IsInteger(const std::string &string)
+{
+    for(size_t i = 0; i < string.size(); ++i)
+    {
+        if(!('0' <= string[i] && string[i] <= '9'))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+uint64_t Utilities::ParseItem(const std::string &string)
+{
+    uint64_t toReturn;
+    std::stringstream stringStream;
+
+    stringStream.str(string);
+
+    stringStream >> toReturn;
+
+    return toReturn;
+}

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 
 #include "Part.h"
 #include "PC.h"
@@ -48,7 +49,12 @@
 #include "GraphicsCard4GB.h"
 // end gpus
 
+#define INVALID_INPUT_MESSAGE "Invalid input, try again..."
+
 namespace Utilities
 {
     std::string ToLower(const std::string &string);
+    std::string FormatNewLine();
+    bool IsInteger(const std::string);
+    uint64_t ParseItem(const std::string &string);
 } // namespace Utilities
