@@ -1,5 +1,53 @@
 #include "Utilities.h"
 
+void AddProcessorReturnHandler(int64_t returnValue)
+{
+    if(returnValue == 1)
+    {
+        std::cout << "All processor slots used" << std::endl;
+    }
+}
+
+void AddRAMReturnHandler(int64_t returnValue)
+{
+    if(returnValue == 1)
+    {
+        std::cout << "All RAM slots used" << std::endl;
+    }
+}
+
+void AddHDDReturnHandler(int64_t returnValue)
+{
+    if(returnValue == 1)
+    {
+        std::cout << "All HDD slots used" << std::endl;
+    }
+}
+
+void AddDVDReturnHandler(int64_t returnValue)
+{
+    if(returnValue == 1)
+    {
+        std::cout << "All DVD slots used" << std::endl;
+    }
+}
+
+void AddCoolerReturnHandler(int64_t returnValue)
+{
+    if(returnValue == 1)
+    {
+        std::cout << "All cooler slots used" << std::endl;
+    }
+}
+
+void AddGraphicsCardReturnHandler(int64_t returnValue)
+{
+    if(returnValue == 1)
+    {
+        std::cout << "All graphics card slots used" << std::endl;
+    }
+}
+
 void AddPart(bool &orderRunning, PCBuilder &pcBuilder)
 {
     while(orderRunning)
@@ -85,38 +133,34 @@ void AddProcessor(bool &orderRunning, PCBuilder &pcBuilder)
         else if(Utilities::IsInteger(line))
         {
             uint64_t item = Utilities::ParseItem(line);
+            bool validItem = true;
 
             if(item == 1)
             {
-                pcBuilder.AddProcessor(AMD_Ryzen7_5700X());
-
-                break;
+                AddProcessorReturnHandler(pcBuilder.AddProcessor(AMD_Ryzen7_5700X()));
             }
             else if(item == 2)
             {
-                pcBuilder.AddProcessor(Intel11GenCore_i5());
-
-                break;
+                AddProcessorReturnHandler(pcBuilder.AddProcessor(Intel11GenCore_i5()));
             }
             else if(item == 3)
             {
-                pcBuilder.AddProcessor(Intel11GenCore_i7());
-
-                break;
+                AddProcessorReturnHandler(pcBuilder.AddProcessor(Intel11GenCore_i7()));
             }
             else if(item == 4)
             {
-                pcBuilder.AddProcessor(Intel11GenCore_i9());
-
-                break;
+                AddProcessorReturnHandler(pcBuilder.AddProcessor(Intel11GenCore_i9()));
             }
-            else if(item == 0)
-            {
-                break;
-            }
-            else
+            else if(item != 0)
             {
                 std::cout << INVALID_INPUT_MESSAGE << std::endl;
+
+                validItem = false;
+            }
+            
+            if(validItem)
+            {
+                break;
             }
         }
         else
@@ -148,13 +192,13 @@ void AddRAM(bool &orderRunning, PCBuilder &pcBuilder)
 
             if(item == 1)
             {
-                pcBuilder.AddRAM(RAM8GB2666MHzDDR4());
+                AddRAMReturnHandler(pcBuilder.AddRAM(RAM8GB2666MHzDDR4()));
 
                 break;
             }
             else if(item == 2)
             {
-                pcBuilder.AddRAM(RAM8GB3200MHzDDR4());
+                AddRAMReturnHandler(pcBuilder.AddRAM(RAM8GB3200MHzDDR4()));
 
                 break;
             }
@@ -195,7 +239,7 @@ void AddHDD(bool &orderRunning, PCBuilder &pcBuilder)
 
             if(item == 1)
             {
-                pcBuilder.AddHDD(HDD1TB());
+                AddHDDReturnHandler(pcBuilder.AddHDD(HDD1TB()));
 
                 break;
             }
@@ -232,11 +276,11 @@ void AddDVD(bool &orderRunning, PCBuilder &pcBuilder)
         }
         else if(line == "y")
         {
-            pcBuilder.AddDVD(DVD());
+            AddDVDReturnHandler(pcBuilder.AddDVD(DVD()));
 
             break;
         }
-        else if(line == "n")
+        else if(line != "n")
         {
             break;
         }
@@ -266,26 +310,26 @@ void AddCooler(bool &orderRunning, PCBuilder &pcBuilder)
         else if(Utilities::IsInteger(line))
         {
             uint64_t item = Utilities::ParseItem(line);
+            bool validItem = true;
 
             if(item == 1)
             {
-                pcBuilder.AddCooler(CPUCooler());
-
-                break;
+                AddCoolerReturnHandler(pcBuilder.AddCooler(CPUCooler()));
             }
             else if(item == 2)
             {
-                pcBuilder.AddCooler(LiquidCooler());
-
-                break;
+                AddCoolerReturnHandler(pcBuilder.AddCooler(LiquidCooler()));
             }
-            else if(item == 0)
-            {
-                break;
-            }
-            else
+            else if(item != 0)
             {
                 std::cout << INVALID_INPUT_MESSAGE << std::endl;
+
+                validItem = false;
+            }
+
+            if(validItem)
+            {
+                break;
             }
         }
         else
@@ -314,27 +358,27 @@ void AddGraphicsCard(bool &orderRunning, PCBuilder &pcBuilder)
         else if(Utilities::IsInteger(line))
         {
             uint64_t item = Utilities::ParseItem(line);
+            bool validItem = true;
 
             if(item == 1)
             {
-                pcBuilder.AddGraphicsCard(GraphicsCard2GB());
-
-                break;
+                AddGraphicsCardReturnHandler(pcBuilder.AddGraphicsCard(GraphicsCard2GB()));
             }
             else if(item == 2)
             {
-                pcBuilder.AddGraphicsCard(GraphicsCard4GB());
-
-                break;
+                AddGraphicsCardReturnHandler(pcBuilder.AddGraphicsCard(GraphicsCard4GB()));
             }
-            else if(item == 0)
-            {
-                break;
-            }
-            else
+            else if(item != 0)
             {
                 std::cout << INVALID_INPUT_MESSAGE << std::endl;
+
+                validItem = false;
             }
+
+            if(validItem)
+            {
+                break;
+            }            
         }
         else
         {
@@ -356,11 +400,7 @@ int main()
         std::cout << "[o] Create new order" << std::endl;
         std::cout << "[q] Exit" << std::endl;
 
-        std::string line;
-
-        std::getline(std::cin, line);
-
-        line == Utilities::ToLower(line);
+        std::string line = Utilities::FormatNewLine();
 
         if(line == "o")
         {
@@ -372,33 +412,50 @@ int main()
                 std::cout << "[3] Type 2" << std::endl;
                 std::cout << "[4] Type 3" << std::endl;
                 std::cout << "[5] Custom" << std::endl;
-                std::cout << "[o] Close order" << std::endl;
+                std::cout << "[e] Close order" << std::endl;
 
-                std::getline(std::cin, line);
+                line = Utilities::FormatNewLine();
 
-                if(line == "1")
-                {
-                    pcBuilder = new GamingPCBuilder();
-                }
-                else if(line == "2")
-                {
-                    pcBuilder = new Type1PCBuilder();
-                }
-                else if(line == "3")
-                {
-                    pcBuilder = new Type2PCBuilder();
-                }
-                else if(line == "4")
-                {
-                    pcBuilder = new Type3PCBuilder();
-                }
-                else if(line == "5")
-                {
-                    pcBuilder = new PCBuilder();
-                }
-                else if(line == "o")
+                if(line == "e")
                 {
                     orderRunning = false;
+                }
+                else if(Utilities::IsInteger(line))
+                {
+                    uint64_t item = Utilities::ParseItem(line);
+                    bool validItem = true;
+
+                    if(item == 1)
+                    {
+                        pcBuilder = new GamingPCBuilder();
+                    }
+                    else if(item == 2)
+                    {
+                        pcBuilder = new Type1PCBuilder();
+                    }
+                    else if(item == 3)
+                    {
+                        pcBuilder = new Type2PCBuilder();
+                    }
+                    else if(item == 4)
+                    {
+                        pcBuilder = new Type3PCBuilder();
+                    }
+                    else if(item == 5)
+                    {
+                        pcBuilder = new PCBuilder();
+                    }
+                    else
+                    {
+                        std::cout << INVALID_INPUT_MESSAGE << std::endl;
+
+                        validItem = false;
+                    }
+
+                    if(validItem)
+                    {
+                        AddPart(orderRunning, *pcBuilder);
+                    }
                 }
                 else
                 {
