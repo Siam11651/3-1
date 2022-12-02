@@ -1,14 +1,15 @@
 #pragma once
 
 #include <string>
+#include "Utilities.h"
 #include "Car.h"
-#include "Toyota.h"
-#include "BMW.h"
-#include "Tesla.h"
+#include "AsianCarFactory.h"
+#include "EuropeanCarFactory.h"
+#include "USACarFactory.h"
 
 class CarFactory
 {
 public:
-    static std::string ToLowerCase(const std::string &string);
-    static Car *GetNewCarPointerOnContinent(const std::string &continent);
+    virtual Car *GetNewCarPointer() = 0;
+    static CarFactory *GetFactoryPointerOnContinent(const std::string &continent);
 };

@@ -1,33 +1,20 @@
 #include "CarFactory.h"
 
-std::string CarFactory::ToLowerCase(const std::string &string)
+CarFactory *CarFactory::GetFactoryPointerOnContinent(const std::string &continent)
 {
-    std::string toReturn = string;
+    std::string lowered = Utilities::ToLower(continent);
 
-    for(size_t i = 0; i < toReturn.size(); ++i)
+    if(lowered == "asia")
     {
-        if('A' <= toReturn[i] && toReturn[i] <= 'Z')
-        {
-            toReturn[i] += 'a' - 'A';
-        }
+        return new AsianCarFactory();
     }
-
-    return toReturn;
-}
-
-Car *CarFactory::GetNewCarPointerOnContinent(const std::string &continent)
-{
-    if(ToLowerCase(continent) == "asia")
+    else if(lowered == "europe")
     {
-        return new Toyota();
+        return new EuropeanCarFactory();
     }
-    else if(ToLowerCase(continent) == "europe")
+    else if(lowered == "usa")
     {
-        return new BMW();
-    }
-    else if(ToLowerCase(continent) == "usa")
-    {
-        return new Tesla();
+        return new USACarFactory();
     }
     else
     {
