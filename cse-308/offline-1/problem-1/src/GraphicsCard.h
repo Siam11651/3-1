@@ -7,6 +7,7 @@ class GraphicsCard : public Part
 {
 protected:
     uint64_t vram;
+    std::string vramFactor;
 public:
     GraphicsCard();
     std::string Print();

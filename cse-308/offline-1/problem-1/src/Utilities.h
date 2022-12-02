@@ -13,7 +13,9 @@
 
 // processors
 #include "Processor.h"
+#include "AMD.h"
 #include "AMD_Ryzen7_5700X.h"
+#include "Intel.h"
 #include "Intel11GenCore_i5.h"
 #include "Intel11GenCore_i7.h"
 #include "Intel11GenCore_i9.h"

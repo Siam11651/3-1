@@ -5,12 +5,7 @@ Processor::Processor()
     partType = "PROCESSOR";
 }
 
-std::string Processor::GetModel()
+std::string Processor::GetBrand() const
 {
-    return model;
-}
-
-std::string Processor::Print()
-{
-    return model;
+    return brand;
 }

@@ -2,6 +2,8 @@
 
 Intel11GenCore_i9::Intel11GenCore_i9()
 {
-    model = "Intel 11th Gen Core i9";
+    model = "i9";
+    generation = 11;
+    subBrand = "Core";
     price = 65000;
 }

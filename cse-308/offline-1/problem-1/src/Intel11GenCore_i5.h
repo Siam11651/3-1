@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Processor.h"
+#include "Intel.h"
 
-class Intel11GenCore_i5 : public Processor
+class Intel11GenCore_i5 : public Intel
 {
 public:
     Intel11GenCore_i5();

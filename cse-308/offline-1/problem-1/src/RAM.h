@@ -7,7 +7,9 @@ class RAM : public Part
 {
 protected:
     uint64_t speed;
+    std::string speedFactor;
     uint64_t volume;
+    std::string volumeFactor;
     uint64_t ddr;
 public:
     RAM();

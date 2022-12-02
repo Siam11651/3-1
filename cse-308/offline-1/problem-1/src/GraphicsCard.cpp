@@ -9,7 +9,7 @@ std::string GraphicsCard::Print()
 {
     std::stringstream stringStream("");
 
-    stringStream << vram << " GB";
+    stringStream << vram << vramFactor << 'B' << std::endl;;
 
     return stringStream.str();
 }

@@ -5,9 +5,10 @@
 class Processor : public Part
 {
 protected:
+    std::string brand;
+    std::string subBrand;
     std::string model;
 public:
     Processor();
-    std::string GetModel();
-    std::string Print();
+    std::string GetBrand() const;
 };
