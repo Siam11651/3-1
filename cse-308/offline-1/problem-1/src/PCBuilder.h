@@ -32,6 +32,7 @@ public:
     virtual int64_t AddCooler(const Cooler &cooler);
     virtual int64_t AddGraphicsCard(const GraphicsCard &graphicsCard);
     std::vector<Part> GetParts() const;
+    size_t GetPartsCount() const;
     std::map<std::string, size_t> GetPartTypeCount() const;
     size_t GetMaxProcessorsCount() const;
     size_t GetMaxRAMsCount() const;

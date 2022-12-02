@@ -234,6 +234,11 @@ size_t PCBuilder::GetMaxGraphicsCardsCount() const
     return maxGraphicsCards;
 }
 
+size_t PCBuilder::GetPartsCount() const
+{
+    return parts.size();
+}
+
 PC *PCBuilder::GetBuiltPCPointer()
 {
     return new PC(this);

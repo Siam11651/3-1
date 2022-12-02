@@ -1,5 +1,19 @@
 #include "Utilities.h"
 
+void CloseOrder(bool &orderRunning, PCBuilder &pcBuilder)
+{
+    if(pcBuilder.GetPartsCount() > 0)
+    {
+        CloseOrder(orderRunning, pcBuilder);
+
+        std::cout << "Order closed" << std::endl;
+    }
+    else
+    {
+        std::cout << "Need atleast 1 part to close an order" << std::endl;
+    }
+}
+
 void AddProcessorReturnHandler(int64_t returnValue)
 {
     if(returnValue == 1)
@@ -66,7 +80,7 @@ void AddPart(bool &orderRunning, PCBuilder &pcBuilder)
 
         if(line == "e")
         {
-            orderRunning = false;
+            CloseOrder(orderRunning, pcBuilder);
         }
         else if(Utilities::IsInteger(line))
         {
@@ -98,7 +112,7 @@ void AddPart(bool &orderRunning, PCBuilder &pcBuilder)
             }
             else if(item == 0)
             {
-                orderRunning = false;
+                CloseOrder(orderRunning, pcBuilder);
             }
             else
             {
@@ -128,7 +142,7 @@ void AddProcessor(bool &orderRunning, PCBuilder &pcBuilder)
 
         if(line == "e")
         {
-            orderRunning = false;
+            CloseOrder(orderRunning, pcBuilder);
         }
         else if(Utilities::IsInteger(line))
         {
@@ -184,7 +198,7 @@ void AddRAM(bool &orderRunning, PCBuilder &pcBuilder)
 
         if(line == "e")
         {
-            orderRunning = false;
+            CloseOrder(orderRunning, pcBuilder);
         }
         else if(Utilities::IsInteger(line))
         {
@@ -231,7 +245,7 @@ void AddHDD(bool &orderRunning, PCBuilder &pcBuilder)
 
         if(line == "e")
         {
-            orderRunning = false;
+            CloseOrder(orderRunning, pcBuilder);
         }
         else if(Utilities::IsInteger(line))
         {
@@ -272,7 +286,7 @@ void AddDVD(bool &orderRunning, PCBuilder &pcBuilder)
 
         if(line == "e")
         {
-            orderRunning = false;
+            CloseOrder(orderRunning, pcBuilder);
         }
         else if(line == "y")
         {
@@ -305,7 +319,7 @@ void AddCooler(bool &orderRunning, PCBuilder &pcBuilder)
 
         if(line == "e")
         {
-            orderRunning = false;
+            CloseOrder(orderRunning, pcBuilder);
         }
         else if(Utilities::IsInteger(line))
         {
@@ -353,7 +367,7 @@ void AddGraphicsCard(bool &orderRunning, PCBuilder &pcBuilder)
 
         if(line == "e")
         {
-            orderRunning = false;
+            CloseOrder(orderRunning, pcBuilder);
         }
         else if(Utilities::IsInteger(line))
         {
@@ -418,7 +432,7 @@ int main()
 
                 if(line == "e")
                 {
-                    orderRunning = false;
+                    CloseOrder(orderRunning, *pcBuilder);
                 }
                 else if(Utilities::IsInteger(line))
                 {
