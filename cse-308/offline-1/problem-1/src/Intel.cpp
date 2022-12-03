@@ -2,5 +2,9 @@
 
 std::string Intel::Print()
 {
-    std::cout << brand << ' ' << generation << "th Gen " << subBrand << ' ' << model << std::endl;
+    std::stringstream sStream("");
+
+    sStream << brand << ' ' << generation << "th Gen " << subBrand << ' ' << model;
+
+    return sStream.str();
 }

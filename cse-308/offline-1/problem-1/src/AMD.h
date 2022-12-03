@@ -1,6 +1,7 @@
 #pragma once
 
-#include <iostream>
+#include <sstream>
+#include <string>
 #include "Processor.h"
 
 class AMD : public Processor

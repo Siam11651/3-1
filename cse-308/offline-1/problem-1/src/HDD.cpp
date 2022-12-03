@@ -9,7 +9,7 @@ std::string HDD::Print()
 {
     std::stringstream stringStream("");
 
-    stringStream << volume << " TB";
+    stringStream << volume << ' ' << volumeFactor <<  'B';
 
     return stringStream.str();
 }
