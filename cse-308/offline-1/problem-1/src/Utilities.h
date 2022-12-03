@@ -55,6 +55,6 @@ namespace Utilities
 {
     std::string ToLower(const std::string &string);
     std::string FormatNewLine();
-    bool IsInteger(const std::string);
+    bool IsInteger(const std::string &string);
     uint64_t ParseItem(const std::string &string);
 } // namespace Utilities

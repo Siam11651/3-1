@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <map>
+#include "PCBuilderDef.h"
+#include "PC.h"
 #include "Processor.h"
 #include "RAM.h"
 #include "HDD.h"
@@ -31,12 +33,6 @@ protected:
     GraphicsCard *graphicsCard;
 public:
     PCBuilder();
-    Processor *GetProcessor() const;
-    RAM *GetRAM() const;
-    HDD *GetHDD() const;
-    DVD *GetDVD() const;
-    Cooler *GetCooler() const;
-    GraphicsCard *GetGraphicsCard() const;
     PC *GetBuiltPCPointer() const;
     void SetProcessor(ProcessorEnum processorEnum);
     void SetRAM(RAMEnum ramEnum);
@@ -44,10 +40,4 @@ public:
     void SetDVD(DVDEnum dvdEnum);
     void SetCooler(CoolerEnum coolerEnum);
     void SetGraphicsCard(GraphicsCardEnum graphicsCardEnum);
-    void RemoveProcessor();
-    void RemoveRAM();
-    void RemoveHDD();
-    void RemoveDVD();
-    void RemoveCooler();
-    void RemoveGraphicsCard();
 };

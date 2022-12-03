@@ -4,7 +4,7 @@
 
 enum class DVDEnum
 {
-    DVD
+    NONE, DVD
 };
 
 class DVD : public Part

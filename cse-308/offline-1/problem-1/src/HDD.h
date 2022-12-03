@@ -5,7 +5,7 @@
 
 enum class HDDEnum
 {
-    HDD1TB
+    NONE, HDD1TB
 };
 
 class HDD : public Part

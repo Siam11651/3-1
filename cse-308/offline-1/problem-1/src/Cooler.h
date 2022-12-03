@@ -4,7 +4,7 @@
 
 enum class CoolerEnum
 {
-    CPU_COOLER, LIQUID_COOLER
+    NONE, CPU_COOLER, LIQUID_COOLER
 };
 
 class Cooler : public Part

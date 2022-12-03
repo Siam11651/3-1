@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <map>
+#include "PCBuilderDef.h"
 #include "PCBuilder.h"
 #include "Processor.h"
 #include "RAM.h"
@@ -22,6 +23,6 @@ protected:
 
     PC();
 public:
-    PC(PCBuilder *pcBuilder);
+    PC(const PCBuilder &pcBuilder);
     ~PC();
 };

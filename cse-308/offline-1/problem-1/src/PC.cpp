@@ -10,14 +10,14 @@ PC::PC()
     graphicsCard = NULL;
 }
 
-PC::PC(PCBuilder *pcBuilder)
+PC::PC(const PCBuilder &pcBuilder)
 {
-    processor = pcBuilder->GetProcessor();
-    ram = pcBuilder->GetRAM();
-    hdd = pcBuilder->GetHDD();
-    dvd = pcBuilder->GetDVD();
-    cooler = pcBuilder->GetCooler();
-    graphicsCard = pcBuilder->GetGraphicsCard();
+    processor = pcBuilder.GetProcessor();
+    ram = pcBuilder.GetRAM();
+    hdd = pcBuilder.GetHDD();
+    dvd = pcBuilder.GetDVD();
+    cooler = pcBuilder.GetCooler();
+    graphicsCard = pcBuilder.GetGraphicsCard();
 }
 
 PC::~PC()

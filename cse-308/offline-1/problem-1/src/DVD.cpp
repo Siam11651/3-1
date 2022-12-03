@@ -7,5 +7,5 @@ DVD::DVD()
 
 std::string DVD::Print()
 {
-    return "DVD Present";
+    return "DVD";
 }

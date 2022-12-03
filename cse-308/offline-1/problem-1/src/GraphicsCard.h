@@ -5,7 +5,7 @@
 
 enum class GraphicsCardEnum
 {
-    GRAPHICS_CARD_2GB, GRAPHICS_CARD_4GB
+    NONE, GRAPHICS_CARD_2GB, GRAPHICS_CARD_4GB
 };
 
 class GraphicsCard : public Part

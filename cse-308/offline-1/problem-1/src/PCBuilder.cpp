@@ -10,36 +10,6 @@ PCBuilder::PCBuilder()
     graphicsCard = NULL;
 }
 
-Processor *PCBuilder::GetProcessor() const
-{
-    return processor;
-}
-
-RAM *PCBuilder::GetRAM() const
-{
-    return ram;
-}
-
-HDD *PCBuilder::GetHDD() const
-{
-    return hdd;
-}
-
-DVD *PCBuilder::GetDVD() const
-{
-    return dvd;
-}
-
-Cooler *PCBuilder::GetCooler() const
-{
-    return cooler;
-}
-
-GraphicsCard *PCBuilder::GetGraphicsCard() const
-{
-    return graphicsCard;
-}
-
 void PCBuilder::SetProcessor(ProcessorEnum processorEnum)
 {
     delete processor;
@@ -60,6 +30,10 @@ void PCBuilder::SetProcessor(ProcessorEnum processorEnum)
     {
         processor = new Intel11GenCore_i9();
     }
+    else
+    {
+        processor == NULL;
+    }
 }
 
 void PCBuilder::SetRAM(RAMEnum ramEnum)
@@ -74,6 +48,10 @@ void PCBuilder::SetRAM(RAMEnum ramEnum)
     {
         ram = new RAM8GB3200MHzDDR4();
     }
+    else
+    {
+        ram = NULL;
+    }
 }
 
 void PCBuilder::SetHDD(HDDEnum hddEnum)
@@ -84,6 +62,10 @@ void PCBuilder::SetHDD(HDDEnum hddEnum)
     {
         hdd = new HDD1TB();
     }
+    else
+    {
+        hdd = NULL;
+    }
 }
 
 void PCBuilder::SetDVD(DVDEnum dvdEnum)
@@ -93,6 +75,10 @@ void PCBuilder::SetDVD(DVDEnum dvdEnum)
     if(dvdEnum == DVDEnum::DVD)
     {
         dvd = new DVD();
+    }
+    else
+    {
+        dvd = NULL;
     }
 }
 
@@ -108,6 +94,10 @@ void PCBuilder::SetCooler(CoolerEnum coolerEnum)
     {
         cooler = new LiquidCooler();
     }
+    else
+    {
+        cooler = NULL;
+    }
 }
 
 void PCBuilder::SetGraphicsCard(GraphicsCardEnum graphicsCradEnum)
@@ -122,46 +112,13 @@ void PCBuilder::SetGraphicsCard(GraphicsCardEnum graphicsCradEnum)
     {
         graphicsCard = new GraphicsCard4GB();
     }
+    else
+    {
+        graphicsCard = NULL;
+    }
 }
 
-void PCBuilder::RemoveProcessor()
+PC *PCBuilder::GetBuiltPCPointer() const
 {
-    delete processor;
-
-    processor = NULL;
-}
-
-void PCBuilder::RemoveRAM()
-{
-    delete ram;
-
-    ram = NULL;
-}
-
-void PCBuilder::RemoveHDD()
-{
-    delete hdd;
-
-    hdd = NULL;
-}
-
-void PCBuilder::RemoveDVD()
-{
-    delete dvd;
-
-    dvd = NULL;
-}
-
-void PCBuilder::RemoveCooler()
-{
-    delete cooler;
-
-    cooler = NULL;
-}
-
-void PCBuilder::RemoveGraphicsCard()
-{
-    delete graphicsCard;
-
-    graphicsCard = NULL;
+    return new PC(*this);
 }
