@@ -3,6 +3,11 @@
 #include <sstream>
 #include "Part.h"
 
+enum class GraphicsCardEnum
+{
+    GRAPHICS_CARD_2GB, GRAPHICS_CARD_4GB
+};
+
 class GraphicsCard : public Part
 {
 protected:

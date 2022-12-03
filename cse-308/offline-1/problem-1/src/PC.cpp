@@ -1,13 +1,31 @@
 #include "PC.h"
 
+PC::PC()
+{
+    processor = NULL;
+    ram = NULL;
+    hdd = NULL;
+    dvd = NULL;
+    cooler = NULL;
+    graphicsCard = NULL;
+}
+
 PC::PC(PCBuilder *pcBuilder)
 {
-    maxProcessors = pcBuilder->GetMaxProcessorsCount();
-    maxRAMs = pcBuilder->GetMaxRAMsCount();
-    maxHDDs = pcBuilder->GetMaxHDDsCount();
-    maxDVDs = pcBuilder->GetMaxDVDsCount();
-    maxCoolers = pcBuilder->GetMaxCoolersCount();
-    maxGraphicsCards = pcBuilder->GetMaxGraphicsCardsCount();
-    parts = pcBuilder->GetParts();
-    partTypeCount = pcBuilder->GetPartTypeCount();
+    processor = pcBuilder->GetProcessor();
+    ram = pcBuilder->GetRAM();
+    hdd = pcBuilder->GetHDD();
+    dvd = pcBuilder->GetDVD();
+    cooler = pcBuilder->GetCooler();
+    graphicsCard = pcBuilder->GetGraphicsCard();
+}
+
+PC::~PC()
+{
+    delete processor;
+    delete ram;
+    delete hdd;
+    delete dvd;
+    delete cooler;
+    delete graphicsCard;
 }

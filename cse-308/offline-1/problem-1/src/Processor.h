@@ -2,6 +2,11 @@
 
 #include "Part.h"
 
+enum class ProcessorEnum
+{
+    AMD_RYZEN7_5700X, INTEL11GEN_CORE_I5, INTEL11GEN_CORE_I7, INTEL11GEN_CORE_I9
+};
+
 class Processor : public Part
 {
 protected:

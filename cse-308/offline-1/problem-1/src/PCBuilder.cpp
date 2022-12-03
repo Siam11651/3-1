@@ -2,244 +2,166 @@
 
 PCBuilder::PCBuilder()
 {
-    maxProcessors = 0;
-    maxRAMs = 0;
-    maxHDDs = 0;
-    maxDVDs = 0;
-    maxCoolers = 0;
-    maxGraphicsCards = 0;
-    basePrice = 70000;
+    processor = NULL;
+    ram = NULL;
+    hdd = NULL;
+    dvd = NULL;
+    cooler = NULL;
+    graphicsCard = NULL;
 }
 
-int64_t PCBuilder::SetMaxProcessorsCount(const size_t &maxProcessors)
+Processor *PCBuilder::GetProcessor() const
 {
-    int64_t toReturn = 0;
-
-    if(this->maxProcessors > 0)
-    {
-        toReturn = 1; // had to reset build
-
-        ResetBuild();
-    }
-
-    this->maxProcessors = maxProcessors;
-
-    return toReturn;
+    return processor;
 }
 
-int64_t PCBuilder::SetMaxRAMsCount(const size_t &maxRAMs)
+RAM *PCBuilder::GetRAM() const
 {
-    int64_t toReturn = 0;
-
-    if(this->maxRAMs > 0)
-    {
-        toReturn = 1; // had to reset build
-
-        ResetBuild();
-    }
-
-    this->maxRAMs = maxRAMs;
-
-    return toReturn;
+    return ram;
 }
 
-int64_t PCBuilder::SetMaxHDDsCount(const size_t &maxHDDs)
+HDD *PCBuilder::GetHDD() const
 {
-    int64_t toReturn = 0;
-
-    if(this->maxHDDs > 0)
-    {
-        toReturn = 1; // had to reset build
-
-        ResetBuild();
-    }
-
-    this->maxHDDs = maxHDDs;
-
-    return toReturn;
+    return hdd;
 }
 
-int64_t PCBuilder::SetMaxDVDsCount(const size_t &maxDVDs)
+DVD *PCBuilder::GetDVD() const
 {
-    int64_t toReturn = 0;
-
-    if(this->maxDVDs > 0)
-    {
-        toReturn = 1; // had to reset build
-
-        ResetBuild();
-    }
-
-    this->maxDVDs = maxDVDs;
-
-    return toReturn;
+    return dvd;
 }
 
-int64_t PCBuilder::SetMaxCoolersCount(const size_t &maxCoolers)
+Cooler *PCBuilder::GetCooler() const
 {
-    int64_t toReturn = 0;
-
-    if(this->maxCoolers > 0)
-    {
-        toReturn = 1; // had to reset build
-
-        ResetBuild();
-    }
-
-    this->maxCoolers = maxCoolers;
-
-    return toReturn;
+    return cooler;
 }
 
-int64_t PCBuilder::SetMaxGraphicsCardsCount(const size_t &maxGraphicsCards)
+GraphicsCard *PCBuilder::GetGraphicsCard() const
 {
-    int64_t toReturn = 0;
-
-    if(this->maxGraphicsCards > 0)
-    {
-        toReturn = 1; // had to reset build
-
-        ResetBuild();
-    }
-
-    this->maxGraphicsCards = maxGraphicsCards;
-
-    return toReturn;
+    return graphicsCard;
 }
 
-int64_t PCBuilder::AddProcessor(const Processor &processor)
+void PCBuilder::SetProcessor(ProcessorEnum processorEnum)
 {
-    if(partTypeCount["PROCESSOR"] < maxProcessors)
+    delete processor;
+
+    if(processorEnum == ProcessorEnum::AMD_RYZEN7_5700X)
     {
-        parts.push_back(processor);
-
-        ++partTypeCount["PROCESSOR"];
-
-        return 0; // success
+        processor = new AMD_Ryzen7_5700X();
     }
-    else
+    else if(processorEnum == ProcessorEnum::INTEL11GEN_CORE_I5)
     {
-        return 1; // max limit of processors reached
+        processor = new Intel11GenCore_i5();
+    }
+    else if(processorEnum == ProcessorEnum::INTEL11GEN_CORE_I7)
+    {
+        processor = new Intel11GenCore_i7();
+    }
+    else if(processorEnum == ProcessorEnum::INTEL11GEN_CORE_I9)
+    {
+        processor = new Intel11GenCore_i9();
     }
 }
 
-int64_t PCBuilder::AddRAM(const RAM &ram)
+void PCBuilder::SetRAM(RAMEnum ramEnum)
 {
-    if(partTypeCount["RAM"] < maxRAMs)
-    {
-        parts.push_back(ram);
+    delete ram;
 
-        ++partTypeCount["RAM"];
-    }
-    else
+    if(ramEnum == RAMEnum::RAM8GB2666MHZ_DDR4)
     {
-        return 1; // max limit of rams reached
+        ram = new RAM8GB2666MHzDDR4();
     }
-}
-
-int64_t PCBuilder::AddHDD(const HDD &hdd)
-{
-    if(partTypeCount["HDD"] < maxHDDs)
+    else if(ramEnum == RAMEnum::RAM8GB3200MHZ_DDR4)
     {
-        parts.push_back(hdd);
-
-        ++partTypeCount["HDD"];
-    }
-    else
-    {
-        return 1; // max limit of hdds reached
+        ram = new RAM8GB3200MHzDDR4();
     }
 }
 
-int64_t PCBuilder::AddDVD(const DVD &dvd)
+void PCBuilder::SetHDD(HDDEnum hddEnum)
 {
-    if(partTypeCount["DVD"] < maxDVDs)
-    {
-        parts.push_back(dvd);
+    delete hdd;
 
-        ++partTypeCount["DVD"];
-    }
-    else
+    if(hddEnum == HDDEnum::HDD1TB)
     {
-        return 1; // max limit of dvds reached
+        hdd = new HDD1TB();
     }
 }
 
-int64_t PCBuilder::AddCooler(const Cooler &cooler)
+void PCBuilder::SetDVD(DVDEnum dvdEnum)
 {
-    if(partTypeCount["COOLER"] < maxCoolers)
-    {
-        parts.push_back(cooler);
+    delete dvd;
 
-        ++partTypeCount["COOLER"];
-    }
-    else
+    if(dvdEnum == DVDEnum::DVD)
     {
-        return 1; // max limit of coolers reached
+        dvd = new DVD();
     }
 }
 
-int64_t PCBuilder::AddGraphicsCard(const GraphicsCard &graphicsCard)
+void PCBuilder::SetCooler(CoolerEnum coolerEnum)
 {
-    if(partTypeCount["GRAPHICS_CARD"] < maxGraphicsCards)
+    delete cooler;
+
+    if(coolerEnum == CoolerEnum::CPU_COOLER)
     {
-        parts.push_back(graphicsCard);
-
-        ++partTypeCount["GRAPHICS_CARD"];
+        cooler = new CPUCooler();
     }
-    else
+    else if(coolerEnum == CoolerEnum::LIQUID_COOLER)
     {
-        return 1; // max limit of gpus reached
+        cooler = new LiquidCooler();
     }
 }
 
-std::vector<Part> PCBuilder::GetParts() const
+void PCBuilder::SetGraphicsCard(GraphicsCardEnum graphicsCradEnum)
 {
-    return parts;
+    delete graphicsCard;
+
+    if(graphicsCradEnum == GraphicsCardEnum::GRAPHICS_CARD_2GB)
+    {
+        graphicsCard = new GraphicsCard2GB();
+    }
+    else if(graphicsCradEnum == GraphicsCardEnum::GRAPHICS_CARD_4GB)
+    {
+        graphicsCard = new GraphicsCard4GB();
+    }
 }
 
-std::map<std::string, size_t> PCBuilder::GetPartTypeCount() const
+void PCBuilder::RemoveProcessor()
 {
-    return partTypeCount;
+    delete processor;
+
+    processor = NULL;
 }
 
-void PCBuilder::ResetBuild()
+void PCBuilder::RemoveRAM()
 {
-    parts.clear();
-    partTypeCount.clear();
+    delete ram;
+
+    ram = NULL;
 }
 
-size_t PCBuilder::GetMaxProcessorsCount() const
+void PCBuilder::RemoveHDD()
 {
-    return maxProcessors;
+    delete hdd;
+
+    hdd = NULL;
 }
 
-size_t PCBuilder::GetMaxRAMsCount() const
+void PCBuilder::RemoveDVD()
 {
-    return maxRAMs;
+    delete dvd;
+
+    dvd = NULL;
 }
 
-size_t PCBuilder::GetMaxDVDsCount() const
+void PCBuilder::RemoveCooler()
 {
-    return maxDVDs;
+    delete cooler;
+
+    cooler = NULL;
 }
 
-size_t PCBuilder::GetMaxCoolersCount() const
+void PCBuilder::RemoveGraphicsCard()
 {
-    return maxCoolers;
-}
+    delete graphicsCard;
 
-size_t PCBuilder::GetMaxGraphicsCardsCount() const
-{
-    return maxGraphicsCards;
-}
-
-size_t PCBuilder::GetPartsCount() const
-{
-    return parts.size();
-}
-
-PC *PCBuilder::GetBuiltPCPointer()
-{
-    return new PC(this);
+    graphicsCard = NULL;
 }

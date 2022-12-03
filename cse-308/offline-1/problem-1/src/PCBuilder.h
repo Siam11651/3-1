@@ -2,43 +2,52 @@
 
 #include <vector>
 #include <map>
-#include "PC.h"
+#include "Processor.h"
+#include "RAM.h"
+#include "HDD.h"
+#include "DVD.h"
+#include "Cooler.h"
+#include "GraphicsCard.h"
+#include "AMD_Ryzen7_5700X.h"
+#include "Intel11GenCore_i5.h"
+#include "Intel11GenCore_i7.h"
+#include "Intel11GenCore_i9.h"
+#include "RAM8GB2666MHzDDR4.h"
+#include "RAM8GB3200MHzDDR4.h"
+#include "HDD1TB.h"
+#include "CPUCooler.h"
+#include "LiquidCooler.h"
+#include "GraphicsCard2GB.h"
+#include "GraphicsCard4GB.h"
 
-class PCBuilder : public PC
+class PCBuilder
 {
 protected:
-    size_t maxProcessors;
-    size_t maxRAMs;
-    size_t maxHDDs;
-    size_t maxDVDs;
-    size_t maxCoolers;
-    size_t maxGraphicsCards;
-    uint64_t basePrice;
-    std::vector<Part> parts;
-    std::map<std::string, size_t> partTypeCount;
+    Processor *processor;
+    RAM *ram;
+    HDD *hdd;
+    DVD *dvd;
+    Cooler *cooler;
+    GraphicsCard *graphicsCard;
 public:
     PCBuilder();
-    void ResetBuild();
-    virtual int64_t SetMaxProcessorsCount(const size_t &maxProcessors);
-    virtual int64_t SetMaxRAMsCount(const size_t &maxRAMs);
-    virtual int64_t SetMaxHDDsCount(const size_t &maxHDDs);
-    virtual int64_t SetMaxDVDsCount(const size_t &maxDVDs);
-    virtual int64_t SetMaxCoolersCount(const size_t &maxCoolers);
-    virtual int64_t SetMaxGraphicsCardsCount(const size_t &maxGraphicsCards);
-    virtual int64_t AddProcessor(const Processor &processor);
-    virtual int64_t AddRAM(const RAM &ram);
-    virtual int64_t AddHDD(const HDD &hdd);
-    virtual int64_t AddDVD(const DVD &dvd);
-    virtual int64_t AddCooler(const Cooler &cooler);
-    virtual int64_t AddGraphicsCard(const GraphicsCard &graphicsCard);
-    std::vector<Part> GetParts() const;
-    size_t GetPartsCount() const;
-    std::map<std::string, size_t> GetPartTypeCount() const;
-    size_t GetMaxProcessorsCount() const;
-    size_t GetMaxRAMsCount() const;
-    size_t GetMaxHDDsCount() const;
-    size_t GetMaxDVDsCount() const;
-    size_t GetMaxCoolersCount() const;
-    size_t GetMaxGraphicsCardsCount() const;
-    PC *GetBuiltPCPointer();
+    Processor *GetProcessor() const;
+    RAM *GetRAM() const;
+    HDD *GetHDD() const;
+    DVD *GetDVD() const;
+    Cooler *GetCooler() const;
+    GraphicsCard *GetGraphicsCard() const;
+    PC *GetBuiltPCPointer() const;
+    void SetProcessor(ProcessorEnum processorEnum);
+    void SetRAM(RAMEnum ramEnum);
+    void SetHDD(HDDEnum hddEnum);
+    void SetDVD(DVDEnum dvdEnum);
+    void SetCooler(CoolerEnum coolerEnum);
+    void SetGraphicsCard(GraphicsCardEnum graphicsCardEnum);
+    void RemoveProcessor();
+    void RemoveRAM();
+    void RemoveHDD();
+    void RemoveDVD();
+    void RemoveCooler();
+    void RemoveGraphicsCard();
 };

@@ -3,6 +3,11 @@
 #include <sstream>
 #include "Part.h"
 
+enum class HDDEnum
+{
+    HDD1TB
+};
+
 class HDD : public Part
 {
 protected:

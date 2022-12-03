@@ -3,6 +3,11 @@
 #include <sstream>
 #include "Part.h"
 
+enum class RAMEnum
+{
+    RAM8GB2666MHZ_DDR4, RAM8GB3200MHZ_DDR4
+};
+
 class RAM : public Part
 {
 protected:

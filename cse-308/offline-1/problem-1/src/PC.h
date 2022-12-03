@@ -13,17 +13,15 @@
 class PC
 {
 protected:
-    size_t maxProcessors;
-    size_t maxRAMs;
-    size_t maxHDDs;
-    size_t maxDVDs;
-    size_t maxCoolers;
-    size_t maxGraphicsCards;
-    uint64_t basePrice;
-    std::vector<Part> parts;
-    std::map<std::string, size_t> partTypeCount;
+    Processor *processor;
+    RAM *ram;
+    HDD *hdd;
+    DVD *dvd;
+    Cooler *cooler;
+    GraphicsCard *graphicsCard;
 
     PC();
 public:
     PC(PCBuilder *pcBuilder);
+    ~PC();
 };
