@@ -12,14 +12,10 @@ protected:
     DVDEnum dvdEnum;
     CoolerEnum coolerEnum;
     GraphicsCardEnum graphicsCardEnum;
+    MotherboardEnum motherboardEnum;
+    CPUEnum cpuEnum;
 public:
     Director(const PCBuilder &pcBuilder);
-    Processor *GetProcessor() const;
-    RAM *GetRAM() const;
-    HDD *GetHDD() const;
-    DVD *GetDVD() const;
-    Cooler *GetCooler() const;
-    GraphicsCard *GetGraphicsCard() const;
     void Build();
     void SetProcessor(ProcessorEnum processorEnum);
     void SetRAM(RAMEnum ramEnum);
@@ -27,5 +23,7 @@ public:
     void SetDVD(DVDEnum dvdEnum);
     void SetCooler(CoolerEnum coolerEnum);
     void SetGraphicsCard(GraphicsCardEnum graphicsCardEnum);
+    void SetMotherMoard(MotherboardEnum motherboardEnum);
+    void SetCPU(CPUEnum cpuEnum);
     ~Director();
 };

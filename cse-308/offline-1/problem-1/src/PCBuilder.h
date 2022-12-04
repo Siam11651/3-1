@@ -10,6 +10,8 @@
 #include "DVD.h"
 #include "Cooler.h"
 #include "GraphicsCard.h"
+#include "Motherboard.h"
+#include "CPU.h"
 #include "AMD_Ryzen7_5700X.h"
 #include "Intel11GenCore_i5.h"
 #include "Intel11GenCore_i7.h"
@@ -31,8 +33,18 @@ protected:
     DVD *dvd;
     Cooler *cooler;
     GraphicsCard *graphicsCard;
+    Motherboard *motherboard;
+    CPU *cpu;
 public:
     PCBuilder();
+    Processor *GetProcessor() const;
+    RAM *GetRAM() const;
+    HDD *GetHDD() const;
+    DVD *GetDVD() const;
+    Cooler *GetCooler() const;
+    GraphicsCard *GetGraphicsCard() const;
+    Motherboard *GetMotherboard() const;
+    CPU *GetCPU() const;
     PC *GetBuiltPCPointer() const;
     void SetProcessor(ProcessorEnum processorEnum);
     void SetRAM(RAMEnum ramEnum);
@@ -40,4 +52,6 @@ public:
     void SetDVD(DVDEnum dvdEnum);
     void SetCooler(CoolerEnum coolerEnum);
     void SetGraphicsCard(GraphicsCardEnum graphicsCardEnum);
+    void SetMotherboard(MotherboardEnum motherboardEnum);
+    void SetCPU(CPUEnum cpuEnum);
 };

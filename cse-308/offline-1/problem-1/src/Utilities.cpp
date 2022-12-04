@@ -22,6 +22,11 @@ std::string Utilities::FormatNewLine()
 
     std::getline(std::cin, line);
 
+    if(line.back() == '\r')
+    {
+        line.pop_back();
+    }
+
     return ToLower(line);
 }
 

@@ -9,6 +9,8 @@ Director::Director(const PCBuilder &pcBuilder)
     dvdEnum = DVDEnum::NONE;
     coolerEnum = CoolerEnum::NONE;
     graphicsCardEnum = GraphicsCardEnum::NONE;
+    motherboardEnum = MotherboardEnum::NONE;
+    cpuEnum = CPUEnum::NONE;
 }
 
 void Director::SetProcessor(ProcessorEnum processorEnum)
@@ -39,6 +41,16 @@ void Director::SetCooler(CoolerEnum coolerEnum)
 void Director::SetGraphicsCard(GraphicsCardEnum graphicsCradEnum)
 {
     this->graphicsCardEnum = graphicsCardEnum;
+}
+
+void Director::SetMotherMoard(MotherboardEnum motherboardEnum)
+{
+    this->motherboardEnum = motherboardEnum;
+}
+
+void Director::SetCPU(CPUEnum cpuEnum)
+{
+    this->cpuEnum = cpuEnum;
 }
 
 void Director::Build()

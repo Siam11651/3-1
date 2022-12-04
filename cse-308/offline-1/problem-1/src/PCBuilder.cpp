@@ -10,6 +10,41 @@ PCBuilder::PCBuilder()
     graphicsCard = NULL;
 }
 
+Processor *PCBuilder::GetProcessor() const
+{
+    return processor;
+}
+
+RAM *PCBuilder::GetRAM() const
+{
+    return ram;
+}
+
+HDD *PCBuilder::GetHDD() const
+{
+    return hdd;
+}
+
+DVD *PCBuilder::GetDVD() const
+{
+    return dvd;
+}
+
+GraphicsCard *PCBuilder::GetGraphicsCard() const
+{
+    return graphicsCard;
+}
+
+Motherboard *PCBuilder::GetMotherboard() const
+{
+    return motherboard;
+}
+
+CPU *PCBuilder::GetCPU() const
+{
+    return cpu;
+}
+
 void PCBuilder::SetProcessor(ProcessorEnum processorEnum)
 {
     delete processor;
@@ -115,6 +150,34 @@ void PCBuilder::SetGraphicsCard(GraphicsCardEnum graphicsCradEnum)
     else
     {
         graphicsCard = NULL;
+    }
+}
+
+void PCBuilder::SetMotherboard(MotherboardEnum motherboardEnum)
+{
+    delete motherboard;
+
+    if(motherboardEnum == MotherboardEnum::MOTHERBOARD)
+    {
+        motherboard = new Motherboard();
+    }
+    else
+    {
+        motherboard = NULL;
+    }
+}
+
+void PCBuilder::SetCPU(CPUEnum cpuEnum)
+{
+    delete cpu;
+
+    if(cpuEnum == CPUEnum::CPU)
+    {
+        cpu = new CPU();
+    }
+    else
+    {
+        cpu = NULL;
     }
 }
 

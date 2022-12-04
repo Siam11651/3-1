@@ -8,6 +8,8 @@ PC::PC()
     dvd = NULL;
     cooler = NULL;
     graphicsCard = NULL;
+    motherboard = NULL;
+    cpu = NULL;
 }
 
 PC::PC(const PCBuilder &pcBuilder)
@@ -18,6 +20,8 @@ PC::PC(const PCBuilder &pcBuilder)
     dvd = pcBuilder.GetDVD();
     cooler = pcBuilder.GetCooler();
     graphicsCard = pcBuilder.GetGraphicsCard();
+    motherboard = pcBuilder.GetMotherboard();
+    cpu = pcBuilder.GetCPU();
 }
 
 PC::~PC()
@@ -28,4 +32,6 @@ PC::~PC()
     delete dvd;
     delete cooler;
     delete graphicsCard;
+    delete motherboard;
+    delete cpu;
 }

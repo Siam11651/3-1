@@ -20,6 +20,8 @@ protected:
     DVD *dvd;
     Cooler *cooler;
     GraphicsCard *graphicsCard;
+    Motherboard *motherboard;
+    CPU *cpu;
 
     PC();
 public:

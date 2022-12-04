@@ -11,6 +11,7 @@
 #include "Type1PCBuilder.h"
 #include "Type2PCBuilder.h"
 #include "Type3PCBuilder.h"
+#include "Director.h"
 
 // processors
 #include "Processor.h"
