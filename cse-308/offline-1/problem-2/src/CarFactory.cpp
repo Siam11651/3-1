@@ -1,23 +1,17 @@
 #include "CarFactory.h"
 
-CarFactory *CarFactory::GetFactoryPointerOnContinent(const std::string &continent)
+CarFactory *CarFactory::GetFactoryPointerOnContinent(ContinentEnum continentEnum)
 {
-    std::string lowered = Utilities::ToLower(continent);
-
-    if(lowered == "asia")
+    if(continentEnum == ContinentEnum::ASIA)
     {
         return new AsianCarFactory();
     }
-    else if(lowered == "europe")
+    else if(continentEnum == ContinentEnum::EUROPE)
     {
         return new EuropeanCarFactory();
     }
-    else if(lowered == "usa")
+    else if(continentEnum == ContinentEnum::USA)
     {
         return new USACarFactory();
-    }
-    else
-    {
-        return NULL;
     }
 }

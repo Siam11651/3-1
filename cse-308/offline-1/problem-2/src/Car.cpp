@@ -5,7 +5,7 @@ Car::Car()
     name = "";
     color = NULL;
     engine = NULL;
-    wheelType = NULL;
+    driveTrain = NULL;
 }
 
 std::string Car::GetName()
@@ -23,14 +23,14 @@ Engine *Car::GetEngine()
     return engine;
 }
 
-WheelType *Car::GetWheelType()
+DriveTrain *Car::GetDriveTrain()
 {
-    return wheelType;
+    return driveTrain;
 }
 
 Car::~Car()
 {
     delete color;
     delete engine;
-    delete wheelType;
+    delete driveTrain;
 }

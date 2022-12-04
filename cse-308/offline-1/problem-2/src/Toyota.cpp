@@ -5,5 +5,5 @@ Toyota::Toyota()
     name = "Toyota";
     color = new Red();
     engine = new HydrogenFuelCell();
-    wheelType = new RearWheel();
+    driveTrain = new RearWheel();
 }

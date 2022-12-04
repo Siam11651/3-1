@@ -5,5 +5,5 @@ Tesla::Tesla()
     name = "Tesla";
     color = new White();
     engine = new Electric();
-    wheelType = new AllWheel();
+    driveTrain = new AllWheel();
 }

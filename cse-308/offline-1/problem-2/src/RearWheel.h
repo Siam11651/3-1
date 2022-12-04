@@ -1,8 +1,8 @@
 #pragma once
 
-#include "WheelType.h"
+#include "DriveTrain.h"
 
-class RearWheel : public WheelType
+class RearWheel : public DriveTrain
 {
 public:
     std::string GetName();

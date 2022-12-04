@@ -2,7 +2,7 @@
 
 #include <string>
 
-class WheelType
+class DriveTrain
 {
 public:
     virtual std::string GetName() = 0;

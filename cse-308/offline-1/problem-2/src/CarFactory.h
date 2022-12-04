@@ -1,15 +1,20 @@
 #pragma once
 
 #include <string>
-#include "Utilities.h"
 #include "Car.h"
-#include "AsianCarFactory.h"
-#include "EuropeanCarFactory.h"
-#include "USACarFactory.h"
+
+enum class ContinentEnum
+{
+    ASIA, EUROPE, USA
+};
 
 class CarFactory
 {
 public:
     virtual Car *GetNewCarPointer() = 0;
-    static CarFactory *GetFactoryPointerOnContinent(const std::string &continent);
+    static CarFactory *GetFactoryPointerOnContinent(ContinentEnum continentEnum);
 };
+
+#include "AsianCarFactory.h"
+#include "EuropeanCarFactory.h"
+#include "USACarFactory.h"
