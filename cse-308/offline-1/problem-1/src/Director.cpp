@@ -1,8 +1,8 @@
 #include "Director.h"
 
-Director::Director(const PCBuilder &pcBuilder)
+Director::Director(PCBuilder *pcBuilder)
 {
-    this->pcBuilder = new PCBuilder(pcBuilder);
+    this->pcBuilder = pcBuilder;
     processorEnum = ProcessorEnum::NONE;
     ramEnum = RAMEnum::NONE;
     hddEnum = HDDEnum::NONE;

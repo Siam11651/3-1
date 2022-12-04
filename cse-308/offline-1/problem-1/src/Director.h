@@ -15,7 +15,7 @@ protected:
     MotherboardEnum motherboardEnum;
     CPUEnum cpuEnum;
 public:
-    Director(const PCBuilder &pcBuilder);
+    Director(PCBuilder *pcBuilder);
     void Build();
     void SetProcessor(ProcessorEnum processorEnum);
     void SetRAM(RAMEnum ramEnum);
