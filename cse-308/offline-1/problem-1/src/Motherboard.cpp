@@ -3,6 +3,7 @@
 Motherboard::Motherboard()
 {
     price = 0;
+    partType = "MOTHERBOARD";
 }
 
 std::string Motherboard::Print()

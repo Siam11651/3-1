@@ -3,6 +3,7 @@
 DVD::DVD()
 {
     price = 6000;
+    partType = "DVD";
 }
 
 std::string DVD::Print()

@@ -55,6 +55,8 @@ void Director::SetCPU(CPUEnum cpuEnum)
 
 void Director::Build()
 {
+    pcBuilder->SetCPU(cpuEnum);
+    pcBuilder->SetMotherboard(motherboardEnum);
     pcBuilder->SetProcessor(processorEnum);
     pcBuilder->SetRAM(ramEnum);
     pcBuilder->SetHDD(hddEnum);

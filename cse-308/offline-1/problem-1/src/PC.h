@@ -14,17 +14,20 @@
 class PC
 {
 protected:
-    Processor *processor;
-    RAM *ram;
-    HDD *hdd;
-    DVD *dvd;
-    Cooler *cooler;
-    GraphicsCard *graphicsCard;
-    Motherboard *motherboard;
-    CPU *cpu;
+    std::vector<Part *> parts;
+    uint64_t basePrice;
 
     PC();
 public:
     PC(const PCBuilder &pcBuilder);
+    std::vector<Part *> GetParts() const;
+    Processor *GetProcessor() const;
+    RAM *GetRAM() const;
+    HDD *GetHDD() const;
+    DVD *GetDVD() const;
+    Cooler *GetCooler() const;
+    GraphicsCard *GetGraphicsCard() const;
+    Motherboard *GetMotherBoard() const;
+    CPU *GetCPU() const;
     ~PC();
 };

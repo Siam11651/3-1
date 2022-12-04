@@ -450,6 +450,9 @@ int main()
 
                 if(line == "1")
                 {
+                    delete pcBuilder;
+                    delete director;
+
                     pcBuilder = new GamingPCBuilder();
                     director = new Director(pcBuilder);
 
@@ -500,6 +503,12 @@ int main()
                     director->Build();
 
                     PC *pc = pcBuilder->GetBuiltPCPointer();
+
+                    // print pc
+
+                    delete pc;
+                    delete pcBuilder;
+                    delete director;
                 }
                 else
                 {

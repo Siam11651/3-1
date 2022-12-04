@@ -2,36 +2,136 @@
 
 PC::PC()
 {
-    processor = NULL;
-    ram = NULL;
-    hdd = NULL;
-    dvd = NULL;
-    cooler = NULL;
-    graphicsCard = NULL;
-    motherboard = NULL;
-    cpu = NULL;
+    basePrice = 70000;
 }
 
 PC::PC(const PCBuilder &pcBuilder)
 {
-    processor = pcBuilder.GetProcessor();
-    ram = pcBuilder.GetRAM();
-    hdd = pcBuilder.GetHDD();
-    dvd = pcBuilder.GetDVD();
-    cooler = pcBuilder.GetCooler();
-    graphicsCard = pcBuilder.GetGraphicsCard();
-    motherboard = pcBuilder.GetMotherboard();
-    cpu = pcBuilder.GetCPU();
+    basePrice = 70000;
+
+    parts.push_back(pcBuilder.GetCPU());
+    parts.push_back(pcBuilder.GetMotherboard());
+    parts.push_back(pcBuilder.GetProcessor());
+    parts.push_back(pcBuilder.GetRAM());
+    parts.push_back(pcBuilder.GetHDD());
+    parts.push_back(pcBuilder.GetDVD());
+    parts.push_back(pcBuilder.GetCooler());
+    parts.push_back(pcBuilder.GetGraphicsCard());
+}
+
+std::vector<Part *> PC::GetParts() const
+{
+    return parts;
+}
+
+Processor *PC::GetProcessor() const
+{
+    for(size_t i = 0; i < parts.size(); ++i)
+    {
+        if(parts[i]->GetPartType() == "PROCESSOR")
+        {
+            return (Processor *)parts[i];
+        }
+    }
+
+    return NULL;
+}
+
+RAM *PC::GetRAM() const
+{
+    for(size_t i = 0; i < parts.size(); ++i)
+    {
+        if(parts[i]->GetPartType() == "RAM")
+        {
+            return (RAM *)parts[i];
+        }
+    }
+
+    return NULL;
+}
+
+HDD *PC::GetHDD() const
+{
+    for(size_t i = 0; i < parts.size(); ++i)
+    {
+        if(parts[i]->GetPartType() == "HDD")
+        {
+            return (HDD *)parts[i];
+        }
+    }
+
+    return NULL;
+}
+
+DVD *PC::GetDVD() const
+{
+    for(size_t i = 0; i < parts.size(); ++i)
+    {
+        if(parts[i]->GetPartType() == "DVD")
+        {
+            return (DVD *)parts[i];
+        }
+    }
+
+    return NULL;
+}
+
+Cooler *PC::GetCooler() const
+{
+    for(size_t i = 0; i < parts.size(); ++i)
+    {
+        if(parts[i]->GetPartType() == "COOLER")
+        {
+            return (Cooler *)parts[i];
+        }
+    }
+
+    return NULL;
+}
+
+GraphicsCard *PC::GetGraphicsCard() const
+{
+    for(size_t i = 0; i < parts.size(); ++i)
+    {
+        if(parts[i]->GetPartType() == "GRAPHICS_CARD")
+        {
+            return (GraphicsCard *)parts[i];
+        }
+    }
+
+    return NULL;
+}
+
+Motherboard *PC::GetMotherBoard() const
+{
+    for(size_t i = 0; i < parts.size(); ++i)
+    {
+        if(parts[i]->GetPartType() == "MOTHERBOARD")
+        {
+            return (Motherboard *)parts[i];
+        }
+    }
+
+    return NULL;
+}
+
+CPU *PC::GetCPU() const
+{
+    for(size_t i = 0; i < parts.size(); ++i)
+    {
+        if(parts[i]->GetPartType() == "CPU")
+        {
+            return (CPU *)parts[i];
+        }
+    }
+
+    return NULL;
 }
 
 PC::~PC()
 {
-    delete processor;
-    delete ram;
-    delete hdd;
-    delete dvd;
-    delete cooler;
-    delete graphicsCard;
-    delete motherboard;
-    delete cpu;
+    for(size_t i = 0; i < parts.size(); ++i)
+    {
+        delete parts[i];
+    }
 }
