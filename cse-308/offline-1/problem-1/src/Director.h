@@ -13,5 +13,4 @@ public:
     void Build();
     void SetRAM(RAMEnum ramEnum);
     void SetGraphicsCard(GraphicsCardEnum graphicsCardEnum);
-    ~Director();
 };

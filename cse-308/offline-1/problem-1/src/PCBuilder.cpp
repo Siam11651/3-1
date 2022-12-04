@@ -17,13 +17,13 @@ void PCBuilder::SetHDD()
     parts.push_back(new HDD1TB());
 }
 
-void PCBuilder::SetGraphicsCard(GraphicsCardEnum graphicsCradEnum)
+void PCBuilder::SetGraphicsCard(GraphicsCardEnum graphicsCardEnum)
 {
-    if(graphicsCradEnum == GraphicsCardEnum::GRAPHICS_CARD_2GB)
+    if(graphicsCardEnum == GraphicsCardEnum::GRAPHICS_CARD_2GB)
     {
         parts.push_back(new GraphicsCard2GB());
     }
-    else if(graphicsCradEnum == GraphicsCardEnum::GRAPHICS_CARD_4GB)
+    else if(graphicsCardEnum == GraphicsCardEnum::GRAPHICS_CARD_4GB)
     {
         parts.push_back(new GraphicsCard4GB());
     }
@@ -37,6 +37,11 @@ void PCBuilder::SetMotherboard()
 void PCBuilder::SetCPU()
 {
     parts.push_back(new CPU());
+}
+
+std::vector<Part *> PCBuilder::GetParts() const
+{
+    return parts;
 }
 
 PC *PCBuilder::GetBuiltPCPointer() const

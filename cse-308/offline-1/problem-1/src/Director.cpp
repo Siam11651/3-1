@@ -12,7 +12,7 @@ void Director::SetRAM(RAMEnum ramEnum)
     this->ramEnum = ramEnum;
 }
 
-void Director::SetGraphicsCard(GraphicsCardEnum graphicsCradEnum)
+void Director::SetGraphicsCard(GraphicsCardEnum graphicsCardEnum)
 {
     this->graphicsCardEnum = graphicsCardEnum;
 }

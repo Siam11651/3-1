@@ -16,7 +16,7 @@ int main()
         {
             Car *car = carFactory->GetNewCarPointer();
 
-            std::cout << "Name: " << car->GetName() << std::endl;
+            std::cout << "Brand: " << car->GetName() << std::endl;
             std::cout << "Color: " << car->GetColor()->GetName() << std::endl;
             std::cout << "Engine: " << car->GetEngine()->GetName() << std::endl;
             std::cout << "Drive Train: " << car->GetDriveTrain()->GetName() << std::endl;
