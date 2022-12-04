@@ -502,13 +502,29 @@ int main()
 
                     director->Build();
 
-                    PC *pc = pcBuilder->GetBuiltPCPointer();
+                    bool atleastOne = pcBuilder->GetProcessor() != NULL;
+                    atleastOne |= pcBuilder->GetRAM() != NULL;
+                    atleastOne |= pcBuilder->GetHDD() != NULL;
+                    atleastOne |= pcBuilder->GetDVD() != NULL;
+                    atleastOne |= pcBuilder->GetCooler() != NULL;
+                    atleastOne |= pcBuilder->GetGraphicsCard() != NULL;
+                    atleastOne |= pcBuilder->GetMotherboard() != NULL;
+                    atleastOne |= pcBuilder->GetCPU() != NULL;
 
-                    // print pc
+                    if(atleastOne)
+                    {
+                        PC *pc = pcBuilder->GetBuiltPCPointer();
 
-                    delete pc;
-                    delete pcBuilder;
-                    delete director;
+                        // print pc
+
+                        delete pc;
+                        delete pcBuilder;
+                        delete director;
+                    }
+                    else
+                    {
+                        std::cout << "Atleast one part needed to close an order" << std::endl;
+                    }
                 }
                 else
                 {

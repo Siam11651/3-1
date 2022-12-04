@@ -53,16 +53,32 @@ void Director::SetCPU(CPUEnum cpuEnum)
     this->cpuEnum = cpuEnum;
 }
 
-void Director::Build()
+int64_t Director::Build()
 {
-    pcBuilder->SetCPU(cpuEnum);
-    pcBuilder->SetMotherboard(motherboardEnum);
-    pcBuilder->SetProcessor(processorEnum);
-    pcBuilder->SetRAM(ramEnum);
-    pcBuilder->SetHDD(hddEnum);
-    pcBuilder->SetDVD(dvdEnum);
-    pcBuilder->SetCooler(coolerEnum);
-    pcBuilder->SetGraphicsCard(graphicsCardEnum);
+    if(cpuEnum == CPUEnum::NONE)
+    {
+        return 1; // no cpu
+    }
+    else
+    {
+        if(motherboardEnum == MotherboardEnum::NONE)
+        {
+            return 2; // no motherboard
+        }
+        else
+        {
+            pcBuilder->SetCPU(cpuEnum);
+            pcBuilder->SetMotherboard(motherboardEnum);
+            pcBuilder->SetProcessor(processorEnum);
+            pcBuilder->SetRAM(ramEnum);
+            pcBuilder->SetHDD(hddEnum);
+            pcBuilder->SetDVD(dvdEnum);
+            pcBuilder->SetCooler(coolerEnum);
+            pcBuilder->SetGraphicsCard(graphicsCardEnum);
+
+            return 0; // success
+        }
+    }
 }
 
 Director::~Director()

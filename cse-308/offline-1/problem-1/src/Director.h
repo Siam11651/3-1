@@ -16,7 +16,7 @@ protected:
     CPUEnum cpuEnum;
 public:
     Director(PCBuilder *pcBuilder);
-    void Build();
+    int64_t Build();
     void SetProcessor(ProcessorEnum processorEnum);
     void SetRAM(RAMEnum ramEnum);
     void SetHDD(HDDEnum hddEnum);
