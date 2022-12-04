@@ -9,14 +9,7 @@ PC::PC(const PCBuilder &pcBuilder)
 {
     basePrice = 70000;
 
-    parts.push_back(pcBuilder.GetCPU());
-    parts.push_back(pcBuilder.GetMotherboard());
-    parts.push_back(pcBuilder.GetProcessor());
-    parts.push_back(pcBuilder.GetRAM());
-    parts.push_back(pcBuilder.GetHDD());
-    parts.push_back(pcBuilder.GetDVD());
-    parts.push_back(pcBuilder.GetCooler());
-    parts.push_back(pcBuilder.GetGraphicsCard());
+    parts = pcBuilder.GetParts();
 }
 
 std::vector<Part *> PC::GetParts() const
@@ -126,6 +119,23 @@ CPU *PC::GetCPU() const
     }
 
     return NULL;
+}
+
+uint64_t PC::GetBasePrice() const
+{
+    return basePrice;
+}
+
+uint64_t PC::GetTotalPrice() const
+{
+    uint64_t totalPrice = basePrice;
+
+    for(size_t i = 0; i < parts.size(); ++i)
+    {
+        totalPrice += parts[i]->GetPrice();
+    }
+
+    return totalPrice;
 }
 
 PC::~PC()

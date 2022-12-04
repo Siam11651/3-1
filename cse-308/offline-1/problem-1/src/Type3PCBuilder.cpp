@@ -1,10 +1,16 @@
 #include "Type3PCBuilder.h"
 
-Type3PCBuilder::Type3PCBuilder()
+void Type3PCBuilder::SetProcessor()
 {
-    processor = new Intel11GenCore_i9();
-    hdd = new HDD1TB();
-    dvd = new DVD();
-    motherboard = new Motherboard();
-    cpu = new CPU();
+    parts.push_back(new Intel11GenCore_i9());
+}
+
+void Type3PCBuilder::SetCooler()
+{
+
+}
+
+void Type3PCBuilder::SetDVD()
+{
+    parts.push_back(new DVD());
 }

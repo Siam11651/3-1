@@ -1,9 +1,16 @@
 #include "GamingPCBuilder.h"
 
-GamingPCBuilder::GamingPCBuilder()
+void GamingPCBuilder::SetProcessor()
 {
-    processor = new AMD_Ryzen7_5700X();
-    hdd = new HDD1TB();
-    motherboard = new Motherboard();
-    cpu = new CPU();
+    parts.push_back(new AMD_Ryzen7_5700X());
+}
+
+void GamingPCBuilder::SetCooler()
+{
+
+}
+
+void GamingPCBuilder::SetDVD()
+{
+    
 }

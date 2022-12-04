@@ -1,42 +1,14 @@
 #include "Utilities.h"
 
-// processor
-AMD_Ryzen7_5700X SAMPLE_AMD_RYZEN7_5700X;
-Intel11GenCore_i5 SAMPLE_INTEL11GEN_CORE_I5;
-Intel11GenCore_i7 SAMPLE_INTEL11GEN_CORE_I7;
-Intel11GenCore_i9 SAMPLE_INTEL11GEN_CORE_I9;
-// end processor
-
 // ram
 RAM8GB2666MHzDDR4 SAMPLE_RAM8GB2666MHZ_DDR4;
 RAM8GB3200MHzDDR4 SAMPLE_RAM8GB3200MHZ_DDR4;
 // end ram
 
-// hdd
-HDD1TB SAMPLE_HDD1TB;
-// end hdd
-
-// dvd
-DVD SAMPLE_DVD;
-// end dvd
-
-// cooler
-CPUCooler SAMPLE_CPU_COOLER;
-LiquidCooler SAMPLE_LIQUID_COOLER;
-// end coolder
-
 // gpu
 GraphicsCard2GB SAMPLE_GRAPHICS_CARD_2GB;
 GraphicsCard4GB SAMPLE_GRAPHICS_CARD_4GB;
 // end gpu
-
-// motherboard
-Motherboard SAMPLE_MOTHERBOARD;
-// end motherboard
-
-// cpu
-CPU SAMPLE_CPU;
-// end cpu
 
 std::string ShowPrice(uint64_t price)
 {
@@ -54,6 +26,7 @@ std::string ShowPrice(uint64_t price)
     }
 }
 
+/*
 void SetProcessor(Director &director)
 {
     while(true)
@@ -390,24 +363,80 @@ void SetPart(Director &director)
         }
     }
 }
+*/
 
 void DirectBuild(Director &director)
 {
     while(true)
     {
-        std::cout << "Choose command:" << std::endl;
-        std::cout << "[1] Set part" << std::endl;
-        std::cout << "[e] Close order" << std::endl;
+        std::cout << "Set RAM:" << std::endl;
+        std::cout << "[1] " << SAMPLE_RAM8GB2666MHZ_DDR4.Print() << "; Price: " << ShowPrice(SAMPLE_RAM8GB2666MHZ_DDR4.GetPrice()) << std::endl;
+        std::cout << "[2] " << SAMPLE_RAM8GB3200MHZ_DDR4.Print() << "; Price: " << ShowPrice(SAMPLE_RAM8GB3200MHZ_DDR4.GetPrice()) << std::endl;
+        std::cout << "[0] Do not add" << std::endl;
 
-        std::string line = Utilities::FormatNewLine();
+        std::string line;
 
         if(Utilities::IsInteger(line))
         {
             uint64_t item = Utilities::ParseItem(line);
-            
-            if(item == 1)
+
+            if(item == 0)
             {
-                SetPart(director);
+                director.SetRAM(RAMEnum::NONE);
+
+                break;
+            }
+            else if(item == 1)
+            {
+                director.SetRAM(RAMEnum::RAM8GB2666MHZ_DDR4);
+
+                break;
+            }
+            else if(item == 2)
+            {
+                director.SetRAM(RAMEnum::RAM8GB3200MHZ_DDR4);
+
+                break;
+            }
+            else
+            {
+                std::cout << INVALID_INPUT_MESSAGE << std::endl;
+            }
+        }
+        else
+        {
+            std::cout << INVALID_INPUT_MESSAGE << std::endl;
+        }
+    }
+
+    while(true)
+    {
+        std::cout << "Set Graphics Card:" << std::endl;
+        std::cout << "[1] " << SAMPLE_GRAPHICS_CARD_2GB.Print() << "; Price: " << ShowPrice(SAMPLE_GRAPHICS_CARD_2GB.GetPrice()) << std::endl;
+        std::cout << "[2] " << SAMPLE_GRAPHICS_CARD_4GB.Print() << "; Price: " << ShowPrice(SAMPLE_GRAPHICS_CARD_4GB.GetPrice()) << std::endl;
+        std::cout << "[0] Do not add" << std::endl;
+
+        std::string line;
+
+        if(Utilities::IsInteger(line))
+        {
+            uint64_t item = Utilities::ParseItem(line);
+
+            if(item == 0)
+            {
+                director.SetGraphicsCard(GraphicsCardEnum::NONE);
+
+                break;
+            }
+            else if(item == 1)
+            {
+                director.SetGraphicsCard(GraphicsCardEnum::GRAPHICS_CARD_2GB);
+
+                break;
+            }
+            else if(item == 2)
+            {
+                director.SetGraphicsCard(GraphicsCardEnum::GRAPHICS_CARD_4GB);
 
                 break;
             }
@@ -425,40 +454,34 @@ void DirectBuild(Director &director)
 
 int main()
 {
-    PCBuilder *pcBuilder = NULL;
-    Director *director = NULL;
-
     while(true)
     {
         std::string line = Utilities::FormatNewLine();
 
         if(line == "o")
         {
-            bool orderRunning = true;
+            std::vector<PC *> pcs;
 
-            while(orderRunning)
+            while(true)
             {
                 std::cout << "Choose build type:" << std::endl;
                 std::cout << "[1] Gaming Build" << std::endl;
                 std::cout << "[2] Type 1 Build" << std::endl;
                 std::cout << "[3] Type 2 Build" << std::endl;
                 std::cout << "[4] Type 3 Build" << std::endl;
-                std::cout << "[5] Custom" << std::endl;
                 std::cout << "[e] Close order" << std::endl;
 
                 std::string line = Utilities::FormatNewLine();
+                PCBuilder *pcBuilder = NULL;
+                Director *director = NULL;
 
                 if(line == "1")
                 {
-                    delete pcBuilder;
-                    delete director;
-
                     pcBuilder = new GamingPCBuilder();
                     director = new Director(pcBuilder);
 
                     DirectBuild(*director);
-
-                    orderRunning = false;
+                    pcs.push_back(pcBuilder->GetBuiltPCPointer());
                 }
                 else if(line == "2")
                 {
@@ -466,8 +489,7 @@ int main()
                     director = new Director(pcBuilder);
 
                     DirectBuild(*director);
-
-                    orderRunning = false;
+                    pcs.push_back(pcBuilder->GetBuiltPCPointer());
                 }
                 else if(line == "3")
                 {
@@ -475,8 +497,7 @@ int main()
                     director = new Director(pcBuilder);
 
                     DirectBuild(*director);
-
-                    orderRunning = false;
+                    pcs.push_back(pcBuilder->GetBuiltPCPointer());
                 }
                 else if(line == "4")
                 {
@@ -484,52 +505,85 @@ int main()
                     director = new Director(pcBuilder);
 
                     DirectBuild(*director);
-
-                    orderRunning = false;
-                }
-                else if(line == "5")
-                {
-                    pcBuilder = new PCBuilder();
-                    director = new Director(pcBuilder);
-
-                    DirectBuild(*director);
-
-                    orderRunning = false;
+                    pcs.push_back(pcBuilder->GetBuiltPCPointer());
                 }
                 else if(line == "e")
                 {
-                    orderRunning = false;
-
-                    director->Build();
-
-                    bool atleastOne = pcBuilder->GetProcessor() != NULL;
-                    atleastOne |= pcBuilder->GetRAM() != NULL;
-                    atleastOne |= pcBuilder->GetHDD() != NULL;
-                    atleastOne |= pcBuilder->GetDVD() != NULL;
-                    atleastOne |= pcBuilder->GetCooler() != NULL;
-                    atleastOne |= pcBuilder->GetGraphicsCard() != NULL;
-                    atleastOne |= pcBuilder->GetMotherboard() != NULL;
-                    atleastOne |= pcBuilder->GetCPU() != NULL;
-
-                    if(atleastOne)
+                    if(pcs.size() > 0)
                     {
-                        PC *pc = pcBuilder->GetBuiltPCPointer();
+                        for(size_t i = 0; i < pcs.size(); ++i)
+                        {
+                            std::cout << "PC " << i + 1 << ':' << std::endl;
+                            std::cout << "Processor: " << pcs[i]->GetProcessor()->Print() << std::endl;
+                            std::cout << "\tPrice: " << ShowPrice(pcs[i]->GetProcessor()->GetPrice()) << std::endl;
 
-                        // print pc
+                            if(pcs[i]->GetRAM() != NULL)
+                            {
+                                std::cout << "RAM: " << pcs[i]->GetRAM()->Print() << std::endl;
+                                std::cout << "\tPrice: " << ShowPrice(pcs[i]->GetRAM()->GetPrice()) << std::endl;
+                            }
+                            else
+                            {
+                                std::cout << "RAM: None" << std::endl;
+                            }
 
-                        delete pc;
+                            std::cout << "HDD: " << pcs[i]->GetHDD()->Print() << std::endl;
+                            std::cout << "\tPrice: " << ShowPrice(pcs[i]->GetHDD()->GetPrice()) << std::endl;
+                            
+                            if(pcs[i]->GetCooler() != NULL)
+                            {
+                                std::cout << "Cooler: " << pcs[i]->GetCooler()->Print() << std::endl;
+                                std::cout << "\tPrice: " << ShowPrice(pcs[i]->GetCooler()->GetPrice()) << std::endl;
+                            }
+                            else
+                            {
+                                std::cout << "Cooler: None" << std::endl;
+                            }
+
+                            if(pcs[i]->GetDVD() != NULL)
+                            {
+                                std::cout << "DVD: Present" << std::endl;
+                                std::cout << "\tPrice: " << ShowPrice(pcs[i]->GetCooler()->GetPrice()) << std::endl;
+                            }
+                            else
+                            {
+                                std::cout << "DVD: None" << std::endl;
+                            }
+
+                            if(pcs[i]->GetGraphicsCard() != NULL)
+                            {
+                                std::cout << "Graphics Card: " << pcs[i]->GetGraphicsCard()->Print() << std::endl;
+                                std::cout << "\tPrice: " << ShowPrice(pcs[i]->GetGraphicsCard()->GetPrice()) << std::endl;
+                            }
+                            else
+                            {
+                                std::cout << "Graphics Card: None" << std::endl;
+                            }
+
+                            std::cout << "Base Price: " << pcs[i]->GetBasePrice() << std::endl;
+                            std::cout << "Total Price: " << pcs[i]->GetTotalPrice() << std::endl;
+                        }
+
+                        for(size_t i = 0; i < pcs.size(); ++i)
+                        {
+                            delete pcs[i];
+                        }
+
                         delete pcBuilder;
                         delete director;
-                    }
-                    else
-                    {
-                        std::cout << "Atleast one part needed to close an order" << std::endl;
+
+                        break;
                     }
                 }
                 else
                 {
                     std::cout << INVALID_INPUT_MESSAGE << std::endl;
                 }
+
+                for(size_t i = 0; i < pcs.size(); ++i);
+
+                delete pcBuilder;
+                delete director;
             }
         }
         else if(line == "q")

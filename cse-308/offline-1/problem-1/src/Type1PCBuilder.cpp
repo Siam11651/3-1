@@ -1,10 +1,16 @@
 #include "Type1PCBuilder.h"
 
-Type1PCBuilder::Type1PCBuilder()
+void Type1PCBuilder::SetProcessor()
 {
-    processor = new Intel11GenCore_i5();
-    hdd = new HDD1TB();
-    cooler = new CPUCooler();
-    motherboard = new Motherboard();
-    cpu = new CPU();
+    parts.push_back(new Intel11GenCore_i5());
+}
+
+void Type1PCBuilder::SetCooler()
+{
+    parts.push_back(new CPUCooler());
+}
+
+void Type1PCBuilder::SetDVD()
+{
+    
 }

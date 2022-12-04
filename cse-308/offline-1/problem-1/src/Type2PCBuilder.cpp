@@ -1,10 +1,16 @@
 #include "Type2PCBuilder.h"
 
-Type2PCBuilder::Type2PCBuilder()
+void Type2PCBuilder::SetProcessor()
 {
-    processor = new Intel11GenCore_i7();
-    hdd = new HDD1TB();
-    cooler = new LiquidCooler();
-    motherboard = new Motherboard();
-    cpu = new CPU();
+    parts.push_back(new Intel11GenCore_i7());
+}
+
+void Type2PCBuilder::SetCooler()
+{
+    parts.push_back(new LiquidCooler());
+}
+
+void Type2PCBuilder::SetDVD()
+{
+    
 }

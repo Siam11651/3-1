@@ -10,6 +10,8 @@
 #include "DVD.h"
 #include "Cooler.h"
 #include "GraphicsCard.h"
+#include "Motherboard.h"
+#include "CPU.h"
 
 class PC
 {
@@ -29,5 +31,7 @@ public:
     GraphicsCard *GetGraphicsCard() const;
     Motherboard *GetMotherBoard() const;
     CPU *GetCPU() const;
+    uint64_t GetBasePrice() const;
+    uint64_t GetTotalPrice() const;
     ~PC();
 };

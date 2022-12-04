@@ -6,24 +6,12 @@ class Director
 {
 protected:
     PCBuilder *pcBuilder;
-    ProcessorEnum processorEnum;
     RAMEnum ramEnum;
-    HDDEnum hddEnum;
-    DVDEnum dvdEnum;
-    CoolerEnum coolerEnum;
     GraphicsCardEnum graphicsCardEnum;
-    MotherboardEnum motherboardEnum;
-    CPUEnum cpuEnum;
 public:
     Director(PCBuilder *pcBuilder);
-    int64_t Build();
-    void SetProcessor(ProcessorEnum processorEnum);
+    void Build();
     void SetRAM(RAMEnum ramEnum);
-    void SetHDD(HDDEnum hddEnum);
-    void SetDVD(DVDEnum dvdEnum);
-    void SetCooler(CoolerEnum coolerEnum);
     void SetGraphicsCard(GraphicsCardEnum graphicsCardEnum);
-    void SetMotherMoard(MotherboardEnum motherboardEnum);
-    void SetCPU(CPUEnum cpuEnum);
     ~Director();
 };

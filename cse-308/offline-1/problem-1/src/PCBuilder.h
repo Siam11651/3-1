@@ -27,31 +27,16 @@
 class PCBuilder
 {
 protected:
-    Processor *processor;
-    RAM *ram;
-    HDD *hdd;
-    DVD *dvd;
-    Cooler *cooler;
-    GraphicsCard *graphicsCard;
-    Motherboard *motherboard;
-    CPU *cpu;
+    std::vector<Part *> parts;
 public:
-    PCBuilder();
-    Processor *GetProcessor() const;
-    RAM *GetRAM() const;
-    HDD *GetHDD() const;
-    DVD *GetDVD() const;
-    Cooler *GetCooler() const;
-    GraphicsCard *GetGraphicsCard() const;
-    Motherboard *GetMotherboard() const;
-    CPU *GetCPU() const;
+    std::vector<Part *> GetParts() const;
     PC *GetBuiltPCPointer() const;
-    void SetProcessor(ProcessorEnum processorEnum);
+    virtual void SetProcessor() = 0;
     void SetRAM(RAMEnum ramEnum);
-    void SetHDD(HDDEnum hddEnum);
-    void SetDVD(DVDEnum dvdEnum);
-    void SetCooler(CoolerEnum coolerEnum);
+    void SetHDD();
+    virtual void SetDVD() = 0;
+    virtual void SetCooler() = 0;
     void SetGraphicsCard(GraphicsCardEnum graphicsCardEnum);
-    void SetMotherboard(MotherboardEnum motherboardEnum);
-    void SetCPU(CPUEnum cpuEnum);
+    void SetMotherboard();
+    void SetCPU();
 };
