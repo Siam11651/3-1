@@ -234,6 +234,7 @@ int main()
 
                             std::cout << "Base Price: " << pcs[i]->GetBasePrice() << std::endl;
                             std::cout << "Total Price: " << pcs[i]->GetTotalPrice() << std::endl;
+                            std::cout << std::endl;
                         }
 
                         for(size_t i = 0; i < pcs.size(); ++i)
