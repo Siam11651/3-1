@@ -10,24 +10,7 @@ int main()
 
         continent = Utilities::ToLower(continent);
 
-        CarFactory *carFactory = NULL;
-
-        if(continent == "asia")
-        {
-            carFactory = CarFactory::GetFactoryPointerOnContinent(ContinentEnum::ASIA);
-        }
-        else if(continent == "europe")
-        {
-            carFactory = CarFactory::GetFactoryPointerOnContinent(ContinentEnum::EUROPE);
-        }
-        else if(continent == "usa")
-        {
-            carFactory = CarFactory::GetFactoryPointerOnContinent(ContinentEnum::USA);
-        }
-        else
-        {
-            std::cout << "Invalid continent name" << std::endl;
-        }
+        CarFactory *carFactory = CarFactory::GetFactoryPointerOnContinent(continent);
 
         if(carFactory != NULL)
         {

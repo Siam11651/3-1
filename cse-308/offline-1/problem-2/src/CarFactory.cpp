@@ -1,17 +1,21 @@
 #include "CarFactory.h"
 
-CarFactory *CarFactory::GetFactoryPointerOnContinent(ContinentEnum continentEnum)
+CarFactory *CarFactory::GetFactoryPointerOnContinent(const std::string &continent)
 {
-    if(continentEnum == ContinentEnum::ASIA)
+    if(continent == "asia")
     {
         return new AsianCarFactory();
     }
-    else if(continentEnum == ContinentEnum::EUROPE)
+    else if(continent == "europe")
     {
         return new EuropeanCarFactory();
     }
-    else if(continentEnum == ContinentEnum::USA)
+    else if(continent == "usa")
     {
         return new USACarFactory();
+    }
+    else
+    {
+        return NULL;
     }
 }

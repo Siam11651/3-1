@@ -3,16 +3,11 @@
 #include <string>
 #include "Car.h"
 
-enum class ContinentEnum
-{
-    ASIA, EUROPE, USA
-};
-
 class CarFactory
 {
 public:
     virtual Car *GetNewCarPointer() = 0;
-    static CarFactory *GetFactoryPointerOnContinent(ContinentEnum continentEnum);
+    static CarFactory *GetFactoryPointerOnContinent(const std::string &continent);
 };
 
 #include "AsianCarFactory.h"
