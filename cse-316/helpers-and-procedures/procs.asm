@@ -37,7 +37,7 @@ input:
     mov ah, 1
     int 21h
     cmp al, 13
-    je pre_exit
+    je pre_exit_return
     cmp al, ' '
     je pre_exit
     mov ch, al
@@ -50,6 +50,8 @@ input:
     mov al, ch
     add dx, ax
     jmp input
+pre_exit_return:
+    call line_break
 pre_exit:
     cmp cl, 1
     jne exit
@@ -74,7 +76,7 @@ signed_output proc
     and dl, 80h
     cmp dl, 80h
     je set_negative
-    jmp push_stack
+    jmp pre_push_stack
 set_negative:
     push ax
     mov ah, 2
@@ -83,6 +85,13 @@ set_negative:
     pop ax
     call twos_comp
     mov ax, dx
+pre_push_stack:
+    cmp ax, 0
+    jne push_stack
+    mov ah, 2
+    mov dl, '0'
+    int 21h
+    jmp end_push
 push_stack:
     cmp ax, 0
     je end_push
@@ -118,13 +127,13 @@ unsigned_input proc
     xor bx, bx
     xor cx, cx
     xor dx, dx
-input:
+unsigned_input_loop:
     mov ah, 1
     int 21h
     cmp al, 13
-    je end_input
+    je end_unsigned_input_loop_return
     cmp al, ' '
-    je end_input
+    je end_unsigned_input_loop
     mov ch, al
     mov ax, dx
     mov bx, 10
@@ -134,8 +143,10 @@ input:
     xor ax, ax
     mov al, ch
     add dx, ax
-    jmp input
-end_input:
+    jmp unsigned_input_loop
+end_unsigned_input_loop_return:
+    call line_break
+end_unsigned_input_loop:
     pop cx
     pop bx
     pop ax
@@ -150,6 +161,12 @@ unsigned_output proc
     xor bx, bx
     xor cx, cx
     xor dx, dx
+    cmp ax, 0
+    jne push_stack
+    mov ah, 2
+    mov dl, '0'
+    int 21h
+    jmp end_push
 push_stack:
     cmp ax, 0
     je end_push
