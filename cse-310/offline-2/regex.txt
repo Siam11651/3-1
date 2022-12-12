@@ -1,0 +1,10 @@
+char: ([^\\\'\"]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0)
+chars: ([^\\\'\"]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0)* --> {char}*
+char_literal: '([^\\\'\"]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0)' --> '{char}'
+string_literal: "([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0|\\[\r]?\n)*"
+digit: \d
+digits: (\d)* --> {digit}+
+integer: (\d)* --> {digits}
+float: ((\d)*.(\d)+|(\d)+)([Ee][+-]?(\d)+)? --> ({digit}*.{digits}|{digits})([Ee][+-]?{digits})?
+single_line_comment: \/\/[^\r\n]*(\n|\r\n|$)
+multiline_comment_1: \/\/([^\r\n\\]|\\[\r]?\n)*(\n|\r\n|$)
