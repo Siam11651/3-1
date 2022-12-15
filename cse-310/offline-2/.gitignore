@@ -5,3 +5,5 @@ test.cpp
 build/
 Token.txt
 log.txt
+test/
+input_*.txt

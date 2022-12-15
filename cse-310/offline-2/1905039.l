@@ -115,7 +115,7 @@ SINGLELINE_STRING_LITERAL \"([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\
 MULTILINE_STRING_LITERAL \"([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0|\\[\r]?\n)*\"
 SINGLE_LINE_COMMENT \/\/[^\r\n]*(\n|\r\n|$)
 MULTILINE_COMMENT_1 \/\/([^\r\n\\]|\\[\r]?\n)*(\n|\r\n|$)
-MULTILINE_COMMENT_2 \/\*(.|)([^\*][^\/]|[\*][^\/]|[^\*][\/])*\*\/
+MULTILINE_COMMENT_2 \/\*([^\*]|\*[^\/])*\*\/
 ID ({LETTER}|_)({LETTER}|{DIGIT}|_)*
 TOO_MANY_DECIMAL_POINTS {DIGIT}*\.{DIGIT}+(\.{DIGIT}*)+
 ILLFORMED_NUMBER {DIGIT}+(\.{DIGIT}+)*[Ee][+-]?{DIGIT}+(\.{DIGIT}*)+
@@ -124,7 +124,7 @@ MULTICHAR_CONST_CHAR \'{CHAR}{CHAR}+\'
 EMPTY_CONST_CHAR \'\'
 UNFINISHED_CONST_CHAR \'{CHAR}*
 UNFINISHED_STRING \"([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0|\\[\r]?\n)*
-UNFINISHED_COMMENT \/\*(.|)([^\*][^\/]|[\*][^\/]|[^\*][\/])*
+UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 
 %%
 
@@ -133,7 +133,7 @@ UNFINISHED_COMMENT \/\*(.|)([^\*][^\/]|[\*][^\/]|[^\*][\/])*
             }
 
 {WHITESPACES}   {
-
+                    
                 }
 
 "if"	{
@@ -361,9 +361,9 @@ UNFINISHED_COMMENT \/\*(.|)([^\*][^\/]|[\*][^\/]|[^\*][\/])*
                                 fprintf(tokenout, "<MULTI LINE STRING, %s>\n", name.c_str());
                                 fprintf(logout, "Line# %d: Token <MULTI LINE STRING> Lexeme %s found\n", lineCount, yytextStr.c_str());
 
-                                for(size_t i = 0; i < name.size(); ++i)
+                                for(size_t i = 0; i < yytextStr.size(); ++i)
                                 {
-                                    if(name[i] == '\n')
+                                    if(yytextStr[i] == '\n')
                                     {
                                         ++lineCount;
                                     }
@@ -545,12 +545,17 @@ int main(int argc, char** argv)
 		
         return 0;
 	}
-	
+
 	logout = fopen("log.txt", "w");
 	tokenout = fopen("Token.txt", "w");
 	yyin= fin;
 
+    std::clog << "Starting..." << std::endl;
+
 	yylex();
+
+    std::clog << "Ended..." << std::endl;
+
 	symbolTablePrinter.str("");
     st.PrintAllScope();
     fprintf(logout, "%s", symbolTablePrinter.str().c_str());
