@@ -1,12 +1,25 @@
-char: ([^\\\'\"]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0)
-chars: ([^\\\'\"]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0)+ --> {char}+
-char_literal: '([^\\\'\"]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0)' --> '{char}'
-string_literal: "([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0|\\[\r]?\n)*"
-digit: \d
-digits: (\d)+ --> {digit}+
-integer: \d+ --> {digits}
-float: (\d*\.\d+([Ee][+-]?(\d)+)?|\d+([Ee][+-]?\d+)) --> ({digit}*\.{digits}([Ee][+-]?{digits})?|{digits}([Ee][+-]?{digits}))
-single_line_comment: \/\/[^\r\n]*(\n|\r\n|$)
-multiline_comment_1: \/\/([^\r\n\\]|\\[\r]?\n)*(\n|\r\n|$)
-multiline_comment_2: \/\*([^\\\'\"]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0)*\*\/ --> \/\*{chars}\*\/
-delim: \s
+WHITESPACE [ \t\f\r\v]
+WHITESPACES {WHITESPACE}+
+NEWLINE \n
+DELIM ({NEWLINE}|{WHITESPACE})
+LETTER [a-zA-Z]
+DIGIT [0-9]
+CHAR ([^\\\'\"\r\n]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0|\\[\r]?\n)
+CHARS {CHAR}+
+CHAR_LITERAL \'{CHAR}\'
+INTEGER {DIGIT}+
+FLOAT ({DIGIT}*\.{DIGIT}+([Ee][+-]?{DIGIT}+)?|{DIGIT}+[Ee][+-]?{DIGIT}+)
+SINGLELINE_STRING_LITERAL \"([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0)*\"
+MULTILINE_STRING_LITERAL \"([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0|\\[\r]?\n)*\"
+SINGLE_LINE_COMMENT \/\/[^\r\n]*(\n|\r\n|$)
+MULTILINE_COMMENT_1 \/\/([^\r\n\\]|\\[\r]?\n)*(\n|\r\n|$)
+MULTILINE_COMMENT_2 \/\*([^\*]|\*[^\/])*\*\/
+ID ({LETTER}|_)({LETTER}|{DIGIT}|_)*
+TOO_MANY_DECIMAL_POINTS {DIGIT}*\.{DIGIT}+(\.{DIGIT}*)+
+ILLFORMED_NUMBER {DIGIT}+(\.{DIGIT}+)*[Ee][+-]?{DIGIT}+(\.{DIGIT}*)+
+INVALID_ID_SUFFIX_NUM_PREFIX ({FLOAT}|{INTEGER}){ID}
+MULTICHAR_CONST_CHAR \'{CHAR}{CHAR}+\'
+EMPTY_CONST_CHAR \'\'
+UNFINISHED_CONST_CHAR \'{CHAR}*
+UNFINISHED_STRING \"([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0|\\[\r]?\n)*
+UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
