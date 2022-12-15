@@ -106,7 +106,7 @@ NEWLINE \n
 DELIM ({NEWLINE}|{WHITESPACE})
 LETTER [a-zA-Z]
 DIGIT [0-9]
-CHAR ([^\\\'\"]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0)
+CHAR ([^\\\'\"\r\n]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0|\\[\r]?\n)
 CHARS {CHAR}+
 CHAR_LITERAL \'{CHAR}\'
 INTEGER {DIGIT}+
@@ -115,12 +115,26 @@ SINGLELINE_STRING_LITERAL \"([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\
 MULTILINE_STRING_LITERAL \"([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0|\\[\r]?\n)*\"
 SINGLE_LINE_COMMENT \/\/[^\r\n]*(\n|\r\n|$)
 MULTILINE_COMMENT_1 \/\/([^\r\n\\]|\\[\r]?\n)*(\n|\r\n|$)
-MULTILINE_COMMENT_2 \/\*([^\\\'\"]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0)*\*\/
+MULTILINE_COMMENT_2 \/\*(.|)([^\*][^\/]|[\*][^\/]|[^\*][\/])*\*\/
 ID ({LETTER}|_)({LETTER}|{DIGIT}|_)*
+TOO_MANY_DECIMAL_POINTS {DIGIT}*\.{DIGIT}+(\.{DIGIT}*)+
+ILLFORMED_NUMBER {DIGIT}+(\.{DIGIT}+)*[Ee][+-]?{DIGIT}+(\.{DIGIT}*)+
+INVALID_ID_SUFFIX_NUM_PREFIX ({FLOAT}|{INTEGER}){ID}
+MULTICHAR_CONST_CHAR \'{CHAR}{CHAR}+\'
+EMPTY_CONST_CHAR \'\'
+UNFINISHED_CONST_CHAR \'{CHAR}*
+UNFINISHED_STRING \"([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0|\\[\r]?\n)*
+UNFINISHED_COMMENT \/\*(.|)([^\*][^\/]|[\*][^\/]|[^\*][\/])*
 
 %%
 
-{NEWLINE} {lineCount++;}
+{NEWLINE}   {
+                lineCount++;
+            }
+
+{WHITESPACES}   {
+
+                }
 
 "if"	{
 			fprintf(tokenout, "<IF, if>\n");
@@ -437,6 +451,80 @@ ID ({LETTER}|_)({LETTER}|{DIGIT}|_)*
                                 }
                             }
                         }
+
+{TOO_MANY_DECIMAL_POINTS}   {
+                                fprintf(logout, "Error at line# %d: TOO_MANY_DECIMAL_POINTS %s\n", lineCount, yytext);
+
+                                ++errorCount;
+                            }
+
+{ILLFORMED_NUMBER}  {
+                        fprintf(logout, "Error at line# %d: ILLFORMED_NUMBER %s\n", lineCount, yytext);
+
+                        ++errorCount;
+                    }
+
+{INVALID_ID_SUFFIX_NUM_PREFIX}  {
+                                    fprintf(logout, "Error at line# %d: INVALID_ID_SUFFIX_NUM_PREFIX %s\n", lineCount, yytext);
+
+                                    ++errorCount;
+                                }
+
+{UNFINISHED_CONST_CHAR} {
+                            fprintf(logout, "Error at line# %d: UNFINISHED_CONST_CHAR %s\n", lineCount, yytext);
+
+                            ++errorCount;
+                        }
+
+{MULTICHAR_CONST_CHAR}  {
+                            fprintf(logout, "Error at line# %d: MULTICHAR_CONST_CHAR %s\n", lineCount, yytext);
+
+                            ++errorCount;
+                        }
+
+{EMPTY_CONST_CHAR}  {
+                        fprintf(logout, "Error at line# %d: EMPTY_CONST_CHAR %s\n", lineCount, yytext);
+
+                        ++errorCount;
+                    }
+
+{UNFINISHED_STRING} {
+                        std::string yytextStr = yytext;
+
+                        for(size_t i = 0; i < yytextStr.size(); ++i)
+                        {
+                            if(yytextStr[i] == '\n')
+                            {
+                                ++lineCount;
+                            }
+                        }
+
+                        fprintf(logout, "Error at line# %d: UNFINISHED_STRING %s\n", lineCount, yytext);
+
+                        ++errorCount;
+                    }
+                    
+{UNFINISHED_COMMENT}    {
+                            std::string yytextStr = yytext;
+
+                            for(size_t i = 0; i < yytextStr.size(); ++i)
+                            {
+                                if(yytextStr[i] == '\n')
+                                {
+                                    ++lineCount;
+                                }
+                            }
+
+                            fprintf(logout, "Error at line# %d: UNFINISHED_COMMENT %s\n", lineCount, yytext);
+
+                            ++errorCount;
+                        } 
+
+.   {
+        fprintf(logout, "Error at line# %d: UNRECOGNIZED_CHAR %s\n", lineCount, yytext);
+
+        ++errorCount;
+    }
 
 %%
 
