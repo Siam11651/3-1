@@ -551,8 +551,8 @@ int main(int argc, char** argv)
         return 0;
 	}
 
-	logout = fopen("log.txt", "w");
-	tokenout = fopen("Token.txt", "w");
+	logout = fopen("1905039_log.txt", "w");
+	tokenout = fopen("1905039_token.txt", "w");
 	yyin= fin;
 
     std::clog << "Starting..." << std::endl;

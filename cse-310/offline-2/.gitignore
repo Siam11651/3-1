@@ -3,7 +3,7 @@ main
 lex.yy.c
 test.cpp
 build/
-Token.txt
-log.txt
+*_token.txt
+*_log.txt
 test/
 input*.txt
