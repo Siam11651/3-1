@@ -6,4 +6,4 @@ build/
 Token.txt
 log.txt
 test/
-input_*.txt
+input*.txt
