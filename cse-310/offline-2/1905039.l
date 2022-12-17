@@ -113,8 +113,8 @@ INTEGER {DIGIT}+
 FLOAT ({DIGIT}*\.{DIGIT}+([Ee][+-]?{DIGIT}+)?|{DIGIT}+\.?[Ee][+-]?{DIGIT}+)
 SINGLELINE_STRING_LITERAL \"([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0)*\"
 MULTILINE_STRING_LITERAL \"([^\\\'\"\n\r]|\\n|\\t|\\\"|\\\'|\\\\|\\a|\\f|\\r|\\b|\\v|\\0|\\[\r]?\n)*\"
-SINGLE_LINE_COMMENT \/\/[^\r\n]*[\r]?\n
-MULTILINE_COMMENT_1 \/\/([^\r\n\\]|\\[ ]*[\r]?\n)*[\r]?\n
+SINGLE_LINE_COMMENT \/\/[^\r\n]*([\r]?\n|$)
+MULTILINE_COMMENT_1 \/\/([^\r\n\\]|\\[ \t]*[\r]?\n)*([\r]?\n|$)
 MULTILINE_COMMENT_2 \/\*([^\*]|\*[^\/])*\*\/
 ID ({LETTER}|_)({LETTER}|{DIGIT}|_)*
 TOO_MANY_DECIMAL_POINTS {DIGIT}*\.{DIGIT}+(\.{DIGIT}*)+
