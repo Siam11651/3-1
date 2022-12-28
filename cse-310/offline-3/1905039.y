@@ -28,7 +28,16 @@ std::stack<ParseTreeNode> parseTreeStack;
 
 void PrintParseTree(ParseTreeNode &parseTreeNode, size_t depth)
 {
-	if(!parseTreeNode.terminal)
+	if(parseTreeNode.terminal)
+	{
+		for(size_t i = 0; i < depth; ++i)
+		{
+			std::cout << ' ';
+		}
+
+		std::cout << parseTreeNode.name << std::endl;
+	}
+	else
 	{
 		for(size_t i = 0; i < depth; ++i)
 		{
@@ -60,6 +69,8 @@ void PrintParseTree(ParseTreeNode &parseTreeNode, size_t depth)
 }
 
 %token IF ELSE FOR WHILE DO BREAK INT CHAR FLOAT DOUBLE VOID RETURN SWITCH CASE DEFAULT CONTINUE ADDOP MULOP INCOP RELOP ASSIGNOP LOGICOP BITOP NOT LPAREN RPAREN LCURL RCURL LSQUARE RSQUARE COMMA SEMICOLON CONST_INT CONST_FLOAT CONST_CHAR CONST_STRING ID
+%nonassoc RPAREN
+%nonassoc ELSE
 
 %%
 
@@ -157,11 +168,13 @@ func_declaration    :   type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 
 						parseTreeStack.pop();
 
-						parseTreeNode id_node = {"ID", true, {}};
+						ParseTreeNode id_node = {"ID", true, {}};
 						ParseTreeNode lparen_node = {"LPAREN", true, {}};
 						ParseTreeNode rparen_node = {"RPAREN", true, {}};
 						ParseTreeNode semicolon_node = {"SEMICOLON", true, {}};
 						ParseTreeNode func_declaration_node = {"func_declaration", false, {type_specifier_node, id_node, lparen_node, rparen_node, semicolon_node}};
+
+						parseTreeStack.push(func_declaration_node);
 					}
 		            ;
 		 
@@ -259,8 +272,26 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 				}
  				;
 
-compound_statement  :   LCURL statements RCURL
+compound_statement	:	LCURL statements RCURL
+					{
+						ParseTreeNode statements_node = parseTreeStack.top();
+
+						parseTreeStack.pop();
+
+						ParseTreeNode lcurl_node = {"LCURL", true, {}};
+						ParseTreeNode rcurl_node = {"RCURL", true, {}};
+						ParseTreeNode compound_statement_node = {"compound_statement", false, {lcurl_node, statements_node, rcurl_node}};
+
+						parseTreeStack.push(compound_statement_node);
+					}
  		            |	LCURL RCURL
+					{
+						ParseTreeNode lcurl_node = {"LCURL", true, {}};
+						ParseTreeNode rcurl_node = {"RCURL", true, {}};
+						ParseTreeNode compound_statement_node = {"compound_statement", false, {lcurl_node, rcurl_node}};
+
+						parseTreeStack.push(compound_statement_node);
+					}
  		            ;
  		    
 var_declaration :   type_specifier declaration_list SEMICOLON
@@ -286,8 +317,6 @@ type_specifier  :   INT
 					ParseTreeNode type_specifier_node = {"type_specifier", false, {int_node}};
 					
 					parseTreeStack.push(type_specifier_node);
-
-					std::cout << "int found" << std::endl;
 				}
  		        |   FLOAT
 				{
@@ -295,8 +324,6 @@ type_specifier  :   INT
 					ParseTreeNode type_specifier_node = {"type_specifier", false, {float_node}};
 					
 					parseTreeStack.push(type_specifier_node);
-
-					std::cout << "float found" << std::endl;
 				}
  		        |   VOID
 				{
@@ -318,14 +345,37 @@ declaration_list    :   declaration_list COMMA ID
 						parseTreeStack.push(declaration_list_node);
 					}
  		            |   declaration_list COMMA ID LSQUARE CONST_INT RSQUARE
+					{
+						ParseTreeNode declaration_list_node_child = parseTreeStack.top();
+
+						parseTreeStack.pop();
+
+						ParseTreeNode comma_node = {"COMMA", true, {}};
+						ParseTreeNode id_node = {"ID", true, {}};
+						ParseTreeNode lsquare_node = {"LSQUARE", true, {}};
+						ParseTreeNode const_int_node = {"CONST_INT", true, {}};
+						ParseTreeNode rsquare_node = {"RSQUARE", true, {}};
+						ParseTreeNode declaration_list_node = {"declaration_list", false, {declaration_list_node_child, comma_node, id_node, lsquare_node, const_int_node, rsquare_node}};
+
+						parseTreeStack.push(declaration_list_node);
+					}
  		            |   ID
 					{
 						ParseTreeNode id_node = {"ID", true, {}};
-						ParseTreeNode declaration_list_node = {"type_specifier", false, {id_node}};
+						ParseTreeNode declaration_list_node = {"declaration_list", false, {id_node}};
 						
 						parseTreeStack.push(declaration_list_node);
 					}
  		            |   ID LSQUARE CONST_INT RSQUARE
+					{
+						ParseTreeNode id_node = {"ID", true, {}};
+						ParseTreeNode lsquare_node = {"LSQUARE", true, {}};
+						ParseTreeNode const_int_node = {"CONST_INT", true, {}};
+						ParseTreeNode rsquare_node = {"RSQUARE", true, {}};
+						ParseTreeNode declaration_list_node = {"declaration_list", false, {id_node, lsquare_node, const_int_node, rsquare_node}};
+
+						parseTreeStack.push(declaration_list_node);
+					}
  		            ;
  		  
 statements  :   statement
@@ -334,7 +384,7 @@ statements  :   statement
 
 				parseTreeStack.pop();
 
-				ParseTreeNode statements_node = {"statements", false, {statement}};
+				ParseTreeNode statements_node = {"statements", false, {statement_node}};
 
 				parseTreeStack.push(statements_node);
 			}
@@ -354,188 +404,130 @@ statements  :   statement
 			}
 	        ;
 
-statement   :   open_statement
+statement	:   var_declaration
 			{
-				ParseTreeNode open_statement_node = parseTreeStack.top();
+				ParseTreeNode var_declaration_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
 
-				ParseTreeNode statement_node = {"statement", false, {open_statement_node}};
+				ParseTreeNode statement_node = {"statement", false, {var_declaration_node}};
 
 				parseTreeStack.push(statement_node);
 			}
-            |   closed_statement
+			|   expression_statement
 			{
-				ParseTreeNode closed_statement_node = parseTreeStack.top();
+				ParseTreeNode expression_statement_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
 
-				ParseTreeNode statement_node = {"statement", false, {closed_statement_node}};
+				ParseTreeNode statement_node = {"statement", false, {expression_statement_node}};
 
 				parseTreeStack.push(statement_node);
 			}
-            ;
+			|   compound_statement
+			{
+				ParseTreeNode compound_statement_node = parseTreeStack.top();
 
-open_statement	:	IF LPAREN expression RPAREN statement
-				{
-					ParseTreeNode statement_node = parseTreeStack.top();
+				parseTreeStack.pop();
 
-					parseTreeStack.pop();
+				ParseTreeNode statement_node = {"statement", false, {compound_statement_node}};
 
-					ParseTreeNode expression_node = parseTreeNode.top();
+				parseTreeStack.push(statement_node);
+			}
+			|   FOR LPAREN expression_statement expression_statement expression RPAREN statement
+			{
+				ParseTreeNode statement_node_child = parseTreeStack.top();
 
-					parseTreeStack.pop();
+				parseTreeStack.pop();
 
-					ParseTreeNode if_node = {"IF", true, {}};
-					ParseTreeNode lparen_node = {"LPAREN", false, {}};
-					ParseTreeNode rparen_node = {"RPAREN", false, {}};
-					ParseTreeNode open_statement_node = {"open_statement", false, {if_node, lparen_node, expression_node, rparen_node, statement_node}};
+				ParseTreeNode expression_node = parseTreeStack.top();
 
-					parseTreeStack.push(open_statement_node);
-				}
-				|	IF LPAREN expression RPAREN closed_statement ELSE open_statement
-				{
-					ParseTreeNode open_statement_node = parseTreeStack.top();
+				parseTreeStack.pop();
 
-					parseTreeStack.pop();
+				ParseTreeNode expression_statement_node2 = parseTreeStack.top();
 
-					ParseTreeNode closed_statement_node = parseTreeStack.top();
+				parseTreeStack.pop();
 
-					parseTreeStack.pop();
+				ParseTreeNode expression_statement_node1 = parseTreeStack.top();
 
-					ParseTreeNode expression_node = parseTreeStack.top();
+				parseTreeStack.pop();
 
-					parseTreeStack.pop();
+				ParseTreeNode for_node = {"FOR", true, {}};
+				ParseTreeNode lparen_node = {"LPAREN", true, {}};
+				ParseTreeNode rparen_node = {"RPAREN", true, {}};
+				ParseTreeNode statement_node = {"statement", false, {for_node, lparen_node, expression_statement_node1, expression_statement_node2, expression_node, rparen_node, statement_node_child}};
 
-					ParseTreeNode if_node = {"IF", false, {}};
-					ParseTreeNode lparen_node = {"LPAREN", false, {}};
-					ParseTreeNode rparen_node = {"RPAREN", false, {}};
-					ParseTreeNode else_node = {"ELSE", true, {}};
-					ParseTreeNode open_statement_node = {"open_statement", false, {if_node, lparen_node, expression_node, rparen_node, closed_statement_node, else_node, open_statement_node}};
+				parseTreeStack.push(statement_node);
+			}
+			|   WHILE LPAREN expression RPAREN statement
+			{
+				ParseTreeNode statement_node_child = parseTreeStack.top();
 
-					parseTreeNode.push(open_statement_node);
-				}
-				;
+				parseTreeStack.pop();
 
-closed_statement	:	other_statement
-					{
-						ParseTreeNode other_statement_node = parseTreeStack.top();
+				ParseTreeNode expression_node = parseTreeStack.top();
 
-						parseTreeStack.pop();
+				parseTreeStack.pop();
 
-						ParseTreeNode closed_statement_node = {"closed_statement", false, {other_statement_node}};
+				ParseTreeNode while_node = {"WHILE", true, {}};
+				ParseTreeNode lparen_node = {"LPAREN", true, {}};
+				ParseTreeNode rparen_node = {"RPAREN", true, {}};
+				ParseTreeNode statement_node = {"statement", false, {while_node, lparen_node, expression_node, rparen_node, statement_node_child}};
 
-						parseTreeStack.push(closed_statement_node);
-					}
-					|	IF LPAREN expression RPAREN closed_statement ELSE closed_statement
-					{
-						ParseTreeNode closed_statement_node_child2 = parseTreeStack.top();
+				parseTreeStack.push(statement_node);
+			}
+			|   RETURN expression SEMICOLON
+			{
+				ParseTreeNode expression_node = parseTreeStack.top();
 
-						parseTreeStack.pop();
+				parseTreeStack.pop();
 
-						ParseTreeNode closed_statement_node_child1 = parseTreeStack.top();
+				ParseTreeNode return_node = {"RETURN", true, {}};
+				ParseTreeNode semicolon_node = {"SEMICOLON", true, {}};
+				ParseTreeNode statement_node = {"statement", false, {return_node, expression_node, semicolon_node}};
 
-						parseTreeStack.pop();
+				parseTreeStack.push(statement_node);
+			}
+			| IF LPAREN expression RPAREN statement
+			{
+				ParseTreeNode statement_node_child = parseTreeStack.top();
 
-						ParseTreeNode expression_node = parseTreeStack.top();
+				parseTreeStack.pop();
 
-						parseTreeStack.pop();
+				ParseTreeNode expression_node = parseTreeStack.top();
 
-						ParseTreeNode if_node = {"IF", false, {}};
-						ParseTreeNode lparen_node = {"LPAREN", false, {}};
-						ParseTreeNode rparen_node = {"RPAREN", false, {}};
-						ParseTreeNode else_node = {"ELSE", true, {}};
-						ParseTreeNode closed_statement_node = {"closed_statement", false, {if_node, lparen_node, expression_node, rparen_node, closed_statement_node_child1, else_node, closed_statement_node_child2}};
+				parseTreeStack.pop();
 
-						parseTreeNode.push(closed_statement_node);
-					}
-					;
+				ParseTreeNode if_node = {"IF", true, {}};
+				ParseTreeNode lparen_node = {"LPAREN", true, {}};
+				ParseTreeNode rparen_node = {"RPAREN", true, {}};
+				ParseTreeNode statement_node = {"statement", false, {if_node, lparen_node, expression_node, rparen_node, statement_node_child}};
 
-other_statement :   var_declaration
-				{
-					ParseTreeNode var_declaration_node = parseTreeStack.top();
+				parseTreeStack.push(statement_node);
+			}
+	  		| IF LPAREN expression RPAREN statement ELSE statement
+			{
+				ParseTreeNode statement_node2 = parseTreeStack.top();
 
-					parseTreeStack.pop();
+				parseTreeStack.pop();
 
-					ParseTreeNode other_statement_node = {"other_statement", false, {var_declaration_node}};
+				ParseTreeNode statement_node1 = parseTreeStack.top();
 
-					parseTreeStack.push(other_statement_node);
-				}
-	            |   expression_statement
-				{
-					ParseTreeNode expression_statement_node = parseTreeStack.top();
+				parseTreeStack.pop();
 
-					parseTreeStack.pop();
+				ParseTreeNode expression_node = parseTreeStack.top();
 
-					ParseTreeNode other_statement_node = {"other_statement", false, {expression_statement_node}};
+				parseTreeStack.pop();
 
-					parseTreeStack.push(other_statement_node);
-				}
-	            |   compound_statement
-				{
-					ParseTreeNode compound_statement_node = parseTreeStack.top();
+				ParseTreeNode if_node = {"IF", true, {}};
+				ParseTreeNode lparen_node = {"LPAREN", true, {}};
+				ParseTreeNode rparen_node = {"RPAREN", true, {}};
+				ParseTreeNode else_node = {"ELSE", true, {}};
+				ParseTreeNode statement_node = {"statement", false, {if_node, lparen_node, expression_node, rparen_node, statement_node1, else_node, statement_node2}};
 
-					parseTreeStack.pop();
-
-					ParseTreeNode other_statement_node = {"other_statement", false, {compound_statement_node}};
-
-					parseTreeStack.push(other_statement_node);
-				}
-	            |   FOR LPAREN expression_statement expression_statement expression RPAREN statement
-				{
-					ParseTreeNode statement_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode expression_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode expression_statement_node2 = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode expression_statement_node1 = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode for_node = {"FOR", true, {}};
-					ParseTreeNode lparen_node = {"LPAREN", true, {}};
-					ParseTreeNode rparen_node = {"RPAREN", true, {}};
-					ParseTreeNode other_statement_node = {"other_statement", false, {for_node, lparen_node, expression_statement_node1, expression_statement_node2, expression_node, rparen_node, statement_node}};
-
-					parseTreeStack.push(other_statement_node);
-				}
-	            |   WHILE LPAREN expression RPAREN statement
-				{
-					ParseTreeNode statements_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode expression_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode while_node = {"WHILE", true, {}};
-					ParseTreeNode lparen_node = {"LPAREN", true, {}};
-					ParseTreeNode rparen_node = {"RPAREN", true, {}};
-					ParseTreeNode other_statement_node = {"other_statement", false, {while_node, lparen_node, expression_node, rparen_node, statement_node}};
-
-					parseTreeStack.push(other_statement_node);
-				}
-	            |   RETURN expression SEMICOLON
-				{
-					ParseTreeNode expression_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode return_node = {"RETURN", true, {}};
-					ParseTreeNode semicolon_node = {"SEMICOLOD", true, {}};
-					ParseTreeNode other_statement_node = {"other_statement", false, {return_node, expression_node, semicolon_node}};
-
-					parseTreeStack.push(other_statement_node);
-				}
-	            ;
+				parseTreeStack.push(statement_node);
+			}
+			;
 	  
 expression_statement    :   SEMICOLON
 						{
@@ -560,7 +552,7 @@ expression_statement    :   SEMICOLON
 variable    :   ID
 			{
 				ParseTreeNode id_node = {"ID", true, {}};
-				ParseTreeNode variable_node = {"variable", true, {id_node}};
+				ParseTreeNode variable_node = {"variable", false, {id_node}};
 
 				parseTreeStack.push(variable_node);
 			}
@@ -612,7 +604,7 @@ logic_expression    :   rel_expression
 
 						parseTreeStack.pop();
 
-						ParseTreeNode logic_expression_node = {"logic_expressison", false, {rel_expression_node}};
+						ParseTreeNode logic_expression_node = {"logic_expression", false, {rel_expression_node}};
 
 						parseTreeStack.push(logic_expression_node);
 					}
@@ -639,7 +631,7 @@ rel_expression  :   simple_expression
 
 					parseTreeStack.pop();
 
-					ParseTreeNode rel_expression_node = {"rel_expression", false, {simple_expression}};
+					ParseTreeNode rel_expression_node = {"rel_expression", false, {simple_expression_node}};
 
 					parseTreeStack.push(rel_expression_node);
 				}
@@ -703,12 +695,12 @@ term    :	unary_expression
 
 			parseTreeStack.pop();
 
-			ParseTreeNode term_node = parseTreeStack.top();
+			ParseTreeNode term_node_child = parseTreeStack.top();
 
 			parseTreeStack.pop();
 
 			ParseTreeNode mulop_node = {"MULOP", true, {}};
-			ParseTreeNode term_node = {"term", false, {term_node, mulop_node, unary_expression_node}};
+			ParseTreeNode term_node = {"term", false, {term_node_child, mulop_node, unary_expression_node}};
 
 			parseTreeStack.push(term_node);
 		}
@@ -756,7 +748,7 @@ factor  :   variable
 
 			ParseTreeNode factor_node = {"factor", false, {variable_node}};
 
-			parseTreeStack.push(variable_node);
+			parseTreeStack.push(factor_node);
 		}
 	    |   ID LPAREN argument_list RPAREN
 		{
