@@ -7,10 +7,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include "y.tab.h"
 #include "1905039_SymbolTable.h"
 
 using namespace std;
 
+extern YYSTYPE yylval;
 size_t lineCount = 1;
 size_t errorCount = 0;
 FILE *logout;
@@ -138,81 +140,113 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 "if"	{
 			fprintf(tokenout, "<IF, if>\n");
 			fprintf(logout, "Line# %d: Token <IF> Lexeme %s found\n", lineCount, yytext);
+
+            return IF;
 		}
 		
 "else"	{
 			fprintf(tokenout, "<ELSE, else>\n");
 			fprintf(logout, "Line# %d: Token <ELSE> Lexeme %s found\n", lineCount, yytext);
+
+            return ELSE;
 		}
 
 "for"   {
             fprintf(tokenout, "<FOR, for>\n");
 			fprintf(logout, "Line# %d: Token <FOR> Lexeme %s found\n", lineCount, yytext);
+
+            return FOR;
         }
 
 "while" {
             fprintf(tokenout, "<WHILE, while>\n");
 			fprintf(logout, "Line# %d: Token <WHILE> Lexeme %s found\n", lineCount, yytext);
+
+            return WHILE;
         }
 
 "do"    {
             fprintf(tokenout, "<DO, do>\n");
 			fprintf(logout, "Line# %d: Token <DO> Lexeme %s found\n", lineCount, yytext);
+
+            return DO;
         }
 
 "break" {
             fprintf(tokenout, "<BREAK, break>\n");
 			fprintf(logout, "Line# %d: Token <BREAK> Lexeme %s found\n", lineCount, yytext);
+
+            return BREAK;
         }
 
 "int"   {
             fprintf(tokenout, "<INT, int>\n");
 			fprintf(logout, "Line# %d: Token <INT> Lexeme %s found\n", lineCount, yytext);
+
+            return INT;
         }
 
 "char"  {
             fprintf(tokenout, "<CHAR, char>\n");
 			fprintf(logout, "Line# %d: Token <CHAR> Lexeme %s found\n", lineCount, yytext);
+
+            return CHAR;
         }
 
 "float" {
             fprintf(tokenout, "<FLOAT, float>\n");
 			fprintf(logout, "Line# %d: Token <FLOAT> Lexeme %s found\n", lineCount, yytext);
+
+            return FLOAT;
         }
 
 "double"    {
                 fprintf(tokenout, "<DOUBLE, double>\n");
                 fprintf(logout, "Line# %d: Token <DOUBLE> Lexeme %s found\n", lineCount, yytext);
+
+                return DOUBLE;
             }
 
 "void"  {
             fprintf(tokenout, "<VOID, void>\n");
 			fprintf(logout, "Line# %d: Token <VOID> Lexeme %s found\n", lineCount, yytext);
+
+            return VOID;
         }
 
 "return"    {
                 fprintf(tokenout, "<RETURN, return>\n");
                 fprintf(logout, "Line# %d: Token <RETURN> Lexeme %s found\n", lineCount, yytext);
+
+                return RETURN;
             }
 
 "switch"    {
                 fprintf(tokenout, "<SWITCH, switch>\n");
                 fprintf(logout, "Line# %d: Token <SWITCH> Lexeme %s found\n", lineCount, yytext);
+
+                return SWITCH;
             }
 
 "case"  {
             fprintf(tokenout, "<CASE, case>\n");
 			fprintf(logout, "Line# %d: Token <CASE> Lexeme %s found\n", lineCount, yytext);
+
+            return CASE;
         }
 
 "default"   {
                 fprintf(tokenout, "<DEFAULT, default>\n");
                 fprintf(logout, "Line# %d: Token <DEFAULT> Lexeme %s found\n", lineCount, yytext);
+
+                return DEFAULT;
             }
 
 "continue"  {
                 fprintf(tokenout, "<CONTINUE, continue>\n");
                 fprintf(logout, "Line# %d: Token <CONTINUE> Lexeme %s found\n", lineCount, yytext);
+
+                return CONTINUE;
             }
 
 "+"		|
@@ -220,8 +254,11 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 "-"		{
 			fprintf(tokenout, "<ADDOP, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <ADDOP> Lexeme %s found\n", lineCount, yytext);
-			//insert in symbol table and print symbol table content(only non empty buckets)
-			// There is a '|' in "+"'s rule, this means match execute the action for following rule
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "ADDOP");
+            yylval = (YYSTYPE)symbolInfo;
+
+            return ADDOP;
 		}
 
 "*"     |
@@ -231,6 +268,11 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 "%"     {
 			fprintf(tokenout, "<MULOP, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <MULOP> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "MULOP");
+            yylval = (YYSTYPE)symbolInfo;
+
+            return MULOP;
 		}
 
 "++"    |
@@ -238,6 +280,11 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 "--"    {
 			fprintf(tokenout, "<INCOP, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <INCOP> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "INCOP");
+            yylval = (YYSTYPE)symbolInfo;
+
+            return INCOP;
 		}
 
 "<"     |
@@ -253,11 +300,18 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 "!="    {
 			fprintf(tokenout, "<RELOP, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <RELOP> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "RELOP");
+            yylval = (YYSTYPE)symbolInfo;
+
+            return RELOP;
 		}
 
 "="     {
 			fprintf(tokenout, "<ASSIGNOP, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <ASSIGNOP> Lexeme %s found\n", lineCount, yytext);
+
+            return ASSIGNOP;
 		}
 
 "&&"    |
@@ -265,6 +319,11 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 "||"    {
 			fprintf(tokenout, "<LOGICOP, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <LOGICOP> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "LOGICOP");
+            yylval = (YYSTYPE)symbolInfo;
+
+            return LOGICOP;
 		}
 
 "&"     |
@@ -278,64 +337,94 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 ">>"    {
 			fprintf(tokenout, "<BITOP, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <BITOP> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "BITOP");
+            yylval = (YYSTYPE)symbolInfo;
+
+            return BITOP;
 		}
 
 "!"     {
 			fprintf(tokenout, "<NOT, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <NOT> Lexeme %s found\n", lineCount, yytext);
+
+            return NOT;
 		}
 
 "("     {
 			fprintf(tokenout, "<LPAREN, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <LPAREN> Lexeme %s found\n", lineCount, yytext);
+
+            return LPAREN;
 		}
 
 ")"     {
 			fprintf(tokenout, "<RPAREN, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <RPAREN> Lexeme %s found\n", lineCount, yytext);
+
+            return RPAREN;
 		}
 
 "{"     {
             st.EnterScope();
 			fprintf(tokenout, "<LCURL, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <LCURL> Lexeme %s found\n", lineCount, yytext);
+
+            return LCURL;
 		}
 
 "}"     {
             st.ExitScope();
 			fprintf(tokenout, "<RCURL, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <RCURL> Lexeme %s found\n", lineCount, yytext);
+
+            return RCURL;
 		}
 
 "["     {
 			fprintf(tokenout, "<LSQUARE, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <LSQUARE> Lexeme %s found\n", lineCount, yytext);
+
+            return LSQUARE;
 		}
 
 "]"     {
 			fprintf(tokenout, "<RSQUARE, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <RSQUARE> Lexeme %s found\n", lineCount, yytext);
+
+            return RSQUARE;
 		}
 
 ","     {
 			fprintf(tokenout, "<COMMA, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <COMMA> Lexeme %s found\n", lineCount, yytext);
+
+            return COMMA;
 		}
 
 ";"     {
 			fprintf(tokenout, "<SEMICOLON, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <SEMICOLON> Lexeme %s found\n", lineCount, yytext);
+
+            return SEMICOLON;
 		}
 		
 {INTEGER} 	{
 				fprintf(tokenout, "<CONST_INT, %s>\n", yytext);
-				fprintf(logout, "Line# %d: Token <CONST_INT> Lexeme %s found\n",lineCount,yytext);
+				fprintf(logout, "Line# %d: Token <CONST_INT> Lexeme %s found\n", lineCount, yytext);
 				//insert in symbol table and print symbol table content(only non empty buckets)
+
+                SymbolInfo *symbolInfo = new SymbolInfo(std::string(yytext), "CONST_INT");
+                yylval = (YYSTYPE)symbolInfo;
+
+                return CONST_INT;
 			}
 
 {FLOAT}     {
 				fprintf(tokenout, "<CONST_FLOAT, %s>\n", yytext);
 				fprintf(logout, "Line# %d: Token <CONST_FLOAT> Lexeme %s found\n",lineCount,yytext);
+
+                return CONST_FLOAT;
 			}
 
 {CHAR_LITERAL}  {
@@ -343,6 +432,10 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 
                     fprintf(tokenout, "<CONST_CHAR, %s>\n", name.c_str());
                     fprintf(logout, "Line# %d: Token <CONST_CHAR> Lexeme %s found\n", lineCount, name.c_str());
+
+                    SymbolInfo* symbolInfo = new SymbolInfo(name, "CONST_CHAR");
+
+                    return CONST_CHAR;
                 }
 
 {SINGLELINE_STRING_LITERAL} {
@@ -351,6 +444,11 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 
                                 fprintf(tokenout, "<SINGLE LINE STRING, %s>\n", name.c_str());
                                 fprintf(logout, "Line# %d: Token <SINGLE LINE STRING> Lexeme %s found\n", lineCount, yytextStr.c_str());
+
+                                SymbolInfo* symbolInfo = new SymbolInfo(name, "CONST_STRING");
+                                yylval = (YYSTYPE)symbolInfo;
+
+                                return CONST_STRING;
                             }
 
 {MULTILINE_STRING_LITERAL} {
@@ -367,27 +465,21 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                                         ++lineCount;
                                     }
                                 }
+
+                                SymbolInfo* symbolInfo = new SymbolInfo(name, "CONST_STRING");
+                                yylval = (YYSTYPE)symbolInfo;
+
+                                return CONST_STRING;
                             }
 
 {ID}    {
             fprintf(tokenout, "<ID, %s>\n", yytext);
             fprintf(logout, "Line# %d: Token <ID> Lexeme %s found\n", lineCount, yytext);
 
-            SymbolInfo si(std::string(yytext), "ID");
-                        
-            bool inserted = st.Insert(si);
+            SymbolInfo* symbolInfo = new SymbolInfo(std::string(yytext), "ID");
+            yylval = (YYSTYPE)symbolInfo;
 
-            if(inserted)
-            {
-                symbolTablePrinter.str("");
-                st.PrintAllScope();
-
-                fprintf(logout, "%s", symbolTablePrinter.str().c_str());
-            }
-            else
-            {
-                fprintf(logout, "\t%s already exisits in the current ScopeTable\n", yytext);
-            }
+            return ID;
         }
 
 {SINGLE_LINE_COMMENT}   {
@@ -532,42 +624,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 
 %%
 
-int main(int argc, char** argv)
+int yywrap(void)
 {
-	if(argc != 2)
-    {
-		printf("Please provide input file name and try again\n");
-		
-        return 0;
-	}
-	
-	FILE *fin=fopen(argv[1], "r");
-
-	if(fin == NULL)
-    {
-		printf("Cannot open specified file\n");
-		
-        return 0;
-	}
-
-	logout = fopen("1905039_log.txt", "w");
-	tokenout = fopen("1905039_token.txt", "w");
-	yyin= fin;
-
-    std::clog << "Starting..." << std::endl;
-
-	yylex();
-
-    std::clog << "Ended..." << std::endl;
-
-	symbolTablePrinter.str("");
-    st.PrintAllScope();
-    fprintf(logout, "%s", symbolTablePrinter.str().c_str());
-    fprintf(logout, "Total lines: %llu\n", lineCount);
-    fprintf(logout, "Total errors: %llu\n", errorCount);
-	fclose(yyin);
-	fclose(tokenout);
-	fclose(logout);
-
-	return 0;
+	return 1;
 }
