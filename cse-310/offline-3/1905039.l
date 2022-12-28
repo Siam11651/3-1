@@ -7,18 +7,19 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include "y.tab.h"
+#include "1905039.tab.h"
 #include "1905039_SymbolTable.h"
 
 using namespace std;
 
+extern SymbolTable *st;
+// FILE *yyin;
 extern YYSTYPE yylval;
 size_t lineCount = 1;
 size_t errorCount = 0;
 FILE *logout;
 FILE *tokenout;
 std::stringstream symbolTablePrinter;
-SymbolTable st(10, &symbolTablePrinter);
 
 std::string FormatLiteral(const std::string yytext)
 {
@@ -256,7 +257,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <ADDOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "ADDOP");
-            yylval = (YYSTYPE)symbolInfo;
+            yylval = symbolInfo;
 
             return ADDOP;
 		}
@@ -270,7 +271,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <MULOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "MULOP");
-            yylval = (YYSTYPE)symbolInfo;
+            yylval = symbolInfo;
 
             return MULOP;
 		}
@@ -282,7 +283,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <INCOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "INCOP");
-            yylval = (YYSTYPE)symbolInfo;
+            yylval = symbolInfo;
 
             return INCOP;
 		}
@@ -302,7 +303,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <RELOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "RELOP");
-            yylval = (YYSTYPE)symbolInfo;
+            yylval = symbolInfo;
 
             return RELOP;
 		}
@@ -321,7 +322,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <LOGICOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "LOGICOP");
-            yylval = (YYSTYPE)symbolInfo;
+            yylval = symbolInfo;
 
             return LOGICOP;
 		}
@@ -339,7 +340,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <BITOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "BITOP");
-            yylval = (YYSTYPE)symbolInfo;
+            yylval = symbolInfo;
 
             return BITOP;
 		}
@@ -366,7 +367,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 		}
 
 "{"     {
-            st.EnterScope();
+            st->EnterScope();
 			fprintf(tokenout, "<LCURL, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <LCURL> Lexeme %s found\n", lineCount, yytext);
 
@@ -374,7 +375,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 		}
 
 "}"     {
-            st.ExitScope();
+            st->ExitScope();
 			fprintf(tokenout, "<RCURL, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <RCURL> Lexeme %s found\n", lineCount, yytext);
 
@@ -415,7 +416,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 				//insert in symbol table and print symbol table content(only non empty buckets)
 
                 SymbolInfo *symbolInfo = new SymbolInfo(std::string(yytext), "CONST_INT");
-                yylval = (YYSTYPE)symbolInfo;
+                yylval = symbolInfo;
 
                 return CONST_INT;
 			}
@@ -446,7 +447,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                                 fprintf(logout, "Line# %d: Token <SINGLE LINE STRING> Lexeme %s found\n", lineCount, yytextStr.c_str());
 
                                 SymbolInfo* symbolInfo = new SymbolInfo(name, "CONST_STRING");
-                                yylval = (YYSTYPE)symbolInfo;
+                                yylval = symbolInfo;
 
                                 return CONST_STRING;
                             }
@@ -467,7 +468,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                                 }
 
                                 SymbolInfo* symbolInfo = new SymbolInfo(name, "CONST_STRING");
-                                yylval = (YYSTYPE)symbolInfo;
+                                yylval = symbolInfo;
 
                                 return CONST_STRING;
                             }
@@ -477,7 +478,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             fprintf(logout, "Line# %d: Token <ID> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(std::string(yytext), "ID");
-            yylval = (YYSTYPE)symbolInfo;
+            yylval = symbolInfo;
 
             return ID;
         }
@@ -623,8 +624,3 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
     }
 
 %%
-
-int yywrap(void)
-{
-	return 1;
-}

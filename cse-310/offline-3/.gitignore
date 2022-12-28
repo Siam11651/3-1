@@ -5,3 +5,6 @@ test.cpp
 build/
 sample_input/
 test/
+*.o
+1905039.tab.*
+*.txt
