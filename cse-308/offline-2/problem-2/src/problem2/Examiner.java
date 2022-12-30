@@ -5,16 +5,16 @@ import java.util.Vector;
 
 class Examiner
 {
-    private Controller controller;
     private Random random;
+    private Controller controller;
 
     public Examiner(Controller controller)
     {
-        this.controller = controller;
         random = new Random();
+        this.controller = controller;
     }
 
-    public void Examine(Vector<Student> students)
+    public void SetMarks(Vector<Student> students)
     {
         for(int i = 0; i < students.size(); ++i)
         {
