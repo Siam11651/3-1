@@ -33,8 +33,10 @@ public class Student
         return marks;
     }
 
-    public void Apply()
+    public void ReexamineRequest(int claim)
     {
+        System.out.println("Reexamine request sent to student id " + id);
 
+        controller.Reexamine(id, claim);
     }
 }

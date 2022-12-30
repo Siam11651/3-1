@@ -6,37 +6,51 @@ import java.util.Vector;
 class Examiner
 {
     private Random random;
+    private Vector<Script> scripts;
     private Controller controller;
 
-    public Examiner(Controller controller)
+    public Examiner(Controller controller, Vector<Script> scripts)
     {
         random = new Random();
         this.controller = controller;
+        this.scripts = scripts;
     }
 
-    public void SetMarks(Vector<Student> students)
+    public void Examine()
     {
-        for(int i = 0; i < students.size(); ++i)
+        for(int i = 0; i < scripts.size(); ++i)
         {
-            students.get(i).SetMarks(random.nextInt(101));
+            scripts.get(i).SetMarks(random.nextInt(101));
         }
     }
 
-    public int Reexamine(Student student, int claim)
+    public void Reexamine(int id, int claim)
     {
         int action = random.nextInt(5);
 
         if(action < 3)
         {
-            return claim;
+            for(int i = 0; i < scripts.size(); ++i)
+            {
+                if(scripts.get(i).GetID() == id)
+                {
+                    scripts.get(i).SetMarks(claim);
+
+                    break;
+                }
+            }
         }
         else if(action < 4)
         {
-            return -1; // no change
-        }
-        else
-        {
-            return random.nextInt(student.GetMarks());
+            for(int i = 0; i < scripts.size(); ++i)
+            {
+                if(scripts.get(i).GetID() == id)
+                {
+                    scripts.get(i).SetMarks(random.nextInt(scripts.get(i).GetMarks()));
+
+                    break;
+                }
+            }
         }
     }
 }

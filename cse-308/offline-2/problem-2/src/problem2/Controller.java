@@ -7,43 +7,14 @@ class Controller
 {
     private Examiner examiner;
     private Vector<Student> students;
+    private Vector<Script> scripts;
     private Random random;
 
-    public Controller()
+    public Controller(Vector<Student> students, Examiner examiner)
     {
-        examiner = new Examiner(this);
-        students = new Vector<>();
+        this.students = students;
+        this.examiner = examiner;
         random = new Random();
-    }
-
-    public boolean AddStudent(int id)
-    {
-        for(int i = 0; i < students.size(); ++i)
-        {
-            if(students.get(i).GetID() == id)
-            {
-                return false;
-            }
-        }
-
-        students.add(new Student(id, this));
-
-        return true;
-    }
-
-    public boolean RemoveStudent(int id)
-    {
-        for(int i = 0; i < students.size(); ++i)
-        {
-            if(students.get(i).GetID() == id)
-            {
-                students.remove(i);
-
-                return true;
-            }
-        }
-
-        return false;
     }
 
     Vector<Student> GetStudents()
@@ -51,13 +22,13 @@ class Controller
         return students;
     }
 
-    public void ExamineAndScrutinize()
+    public void SendToController(Vector<Script> scripts)
     {
-        examiner.SetMarks(students);
+        this.scripts = scripts;
 
         System.out.print("Script and marks of student id ");
 
-        for(int i = 0; i < students.size(); ++i)
+        for(int i = 0; i < scripts.size(); ++i)
         {
             if(i > 0)
             {
@@ -68,10 +39,13 @@ class Controller
         }
 
         System.out.println(" sent to exam controller office");
+    }
 
+    public void Scrutinize()
+    {
         Vector<Integer> mistakes = new Vector<>();
 
-        for(int i = 0; i < students.size(); ++i)
+        for(int i = 0; i < scripts.size(); ++i)
         {
             if(random.nextInt(100) < 55)
             {
@@ -81,7 +55,7 @@ class Controller
 
         if(mistakes.size() == 0)
         {
-            mistakes.add(random.nextInt(students.size()));
+            mistakes.add(random.nextInt(scripts.size()));
         }
 
         System.out.println("Mistakes:");
@@ -91,19 +65,46 @@ class Controller
             int index = mistakes.get(i);
             int corrected = random.nextInt(101);
 
-            System.out.println("id: " + students.get(index).GetID() + "; previous: " + students.get(index).GetMarks() + "; corrected: " + corrected);
+            System.out.println("id: " + scripts.get(index).GetID() + "; previous: " + scripts.get(index).GetMarks() + "; corrected: " + corrected);
 
-            students.get(index).SetMarks(corrected);
+            scripts.get(index).SetMarks(corrected);
         }
     }
 
-    public void Reexamine(Student student, int claim)
+    public void Publish()
     {
-        int reexamine = examiner.Reexamine(student, claim);
-
-        if(reexamine != -1)
+        for(int i = 0; i < scripts.size(); ++i)
         {
-            student.SetMarks(reexamine);
+            for(int j = 0; j < students.size(); ++j)
+            {
+                if(scripts.get(i).GetID() == students.get(j).GetID())
+                {
+                    students.get(j).SetMarks(scripts.get(i).GetMarks());
+                }
+            }
+        }
+
+        for(int i = 0; i < students.size(); ++i)
+        {
+            System.out.println("id: " +  students.get(i).GetID() + "; marks: " + students.get(i).GetMarks());
+        }
+    }
+
+    public void Reexamine(int id, int claim)
+    {
+        System.out.println("Reexamine request got from student id " + id);
+
+        examiner.Reexamine(id, claim);
+
+        for(int i = 0; i < scripts.size(); ++i)
+        {
+            for(int j = 0; j < students.size(); ++j)
+            {
+                if(scripts.get(i).GetID() == students.get(j).GetID())
+                {
+                    
+                }
+            }
         }
     }
 }
