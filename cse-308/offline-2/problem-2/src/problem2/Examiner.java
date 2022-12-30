@@ -16,6 +16,11 @@ class Examiner
         this.scripts = scripts;
     }
 
+    public void SendToController()
+    {
+        controller.SendToController(scripts);
+    }
+
     public void Examine()
     {
         for(int i = 0; i < scripts.size(); ++i)
