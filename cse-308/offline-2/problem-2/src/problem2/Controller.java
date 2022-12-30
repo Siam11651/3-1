@@ -27,4 +27,39 @@ class Controller
 
         return true;
     }
+
+    public boolean RemoveStudent(int id)
+    {
+        for(int i = 0; i < students.size(); ++i)
+        {
+            if(students.get(i).GetID() == id)
+            {
+                students.remove(i);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    Vector<Student> GetStudents()
+    {
+        return students;
+    }
+
+    public void Examine()
+    {
+        examiner.Examine(students);
+    }
+
+    public void Reexamine(Student student, int claim)
+    {
+        int reexamine = examiner.Reexamine(student, claim);
+
+        if(reexamine != -1)
+        {
+            student.SetMarks(reexamine);
+        }
+    }
 }
