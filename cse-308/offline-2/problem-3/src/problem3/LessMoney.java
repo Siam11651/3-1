@@ -1,7 +1,5 @@
 package problem3;
 
-import java.util.Scanner;
-
 class LessMoney extends State
 {
     private int money;
@@ -14,12 +12,12 @@ class LessMoney extends State
     }
 
     @Override
-    public void Next()
+    public void Simulate()
     {
         System.out.println("Money less by: " + money);
+        System.out.println("Add more money: ");
 
-        Scanner scanner = new Scanner(System.in);
-        int paid = scanner.nextInt();
+        int paid = Scanner.stdin.nextInt();
 
         if(paid > money)
         {
@@ -33,7 +31,5 @@ class LessMoney extends State
         {
             vendingMachine.SetState(new LessMoney(vendingMachine, money - paid));
         }
-
-        scanner.close();
     }
 }

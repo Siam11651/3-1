@@ -36,9 +36,12 @@ class VendingMachine
         return count;
     }
 
-    public void Next()
+    public void Simulate()
     {
-        state.Next();
+        while(true)
+        {
+            state.Simulate();
+        }
     }
 
     public void SetState(State state)

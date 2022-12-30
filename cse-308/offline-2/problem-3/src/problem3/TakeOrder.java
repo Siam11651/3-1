@@ -1,7 +1,5 @@
 package problem3;
 
-import java.util.Scanner;
-
 class TakeOrder extends State
 {
     public TakeOrder(VendingMachine vendingMachine)
@@ -10,24 +8,30 @@ class TakeOrder extends State
     }
 
     @Override
-    public void Next()
+    public void Simulate()
     {
-        Scanner scanner = new Scanner(System.in);
-        int money = scanner.nextInt();
+        System.out.println("Taking money: ");
 
-        if(money > vendingMachine.GetPrice())
+        int money = Scanner.stdin.nextInt();
+
+        if(vendingMachine.GetCount() > 0)
         {
-            vendingMachine.SetState(new MoreMoney(vendingMachine, money - vendingMachine.GetPrice()));
-        }
-        else if(money == vendingMachine.GetPrice())
-        {
-            vendingMachine.SetState(new Transaction(vendingMachine));
+            if(money > vendingMachine.GetPrice())
+            {
+                vendingMachine.SetState(new MoreMoney(vendingMachine, money - vendingMachine.GetPrice()));
+            }
+            else if(money == vendingMachine.GetPrice())
+            {
+                vendingMachine.SetState(new Transaction(vendingMachine));
+            }
+            else
+            {
+                vendingMachine.SetState(new LessMoney(vendingMachine, vendingMachine.GetPrice() - money));
+            }
         }
         else
         {
-            vendingMachine.SetState(new LessMoney(vendingMachine, vendingMachine.GetPrice() - money));
+            vendingMachine.SetState(new NoOrder(vendingMachine));
         }
-
-        scanner.close();
     }
 }

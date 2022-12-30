@@ -7,10 +7,12 @@ class MoreMoney extends State
     public MoreMoney(VendingMachine vendingMachine, int extra)
     {
         super(vendingMachine);
+
+        this.extra = extra;
     }
 
     @Override
-    public void Next()
+    public void Simulate()
     {
         System.out.println("Extra by: " + extra + ", returning...");
 
