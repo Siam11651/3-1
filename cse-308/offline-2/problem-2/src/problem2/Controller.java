@@ -10,11 +10,19 @@ class Controller
     private Vector<Script> scripts;
     private Random random;
 
-    public Controller(Vector<Student> students, Examiner examiner)
+    public Controller()
+    {
+        random = new Random();
+    }
+
+    public void SetExaminer(Examiner examiner)
+    {
+        this.examiner = examiner;
+    }
+
+    public void SetStudenst(Vector<Student> students)
     {
         this.students = students;
-        this.examiner = examiner;
-        random = new Random();
     }
 
     Vector<Student> GetStudents()
@@ -63,10 +71,14 @@ class Controller
         for(int i = 0; i < mistakes.size(); ++i)
         {
             int index = mistakes.get(i);
-            int corrected = random.nextInt(101);
+            int corrected = random.nextInt(100);
+
+            if(corrected >= scripts.get(index).GetMarks())
+            {
+                ++corrected;
+            }
 
             System.out.println("id: " + scripts.get(index).GetID() + "; previous: " + scripts.get(index).GetMarks() + "; corrected: " + corrected);
-
             scripts.get(index).SetMarks(corrected);
         }
     }
