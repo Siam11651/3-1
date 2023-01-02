@@ -142,12 +142,26 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(tokenout, "<IF, if>\n");
 			fprintf(logout, "Line# %d: Token <IF> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "IF");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return IF;
 		}
 		
 "else"	{
 			fprintf(tokenout, "<ELSE, else>\n");
 			fprintf(logout, "Line# %d: Token <ELSE> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "ELSE");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
 
             return ELSE;
 		}
@@ -156,12 +170,26 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             fprintf(tokenout, "<FOR, for>\n");
 			fprintf(logout, "Line# %d: Token <FOR> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "FOR");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return FOR;
         }
 
 "while" {
             fprintf(tokenout, "<WHILE, while>\n");
 			fprintf(logout, "Line# %d: Token <WHILE> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "WHILE");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
 
             return WHILE;
         }
@@ -170,12 +198,26 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             fprintf(tokenout, "<DO, do>\n");
 			fprintf(logout, "Line# %d: Token <DO> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "DO");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return DO;
         }
 
 "break" {
             fprintf(tokenout, "<BREAK, break>\n");
 			fprintf(logout, "Line# %d: Token <BREAK> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "BREAK");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
 
             return BREAK;
         }
@@ -184,12 +226,26 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             fprintf(tokenout, "<INT, int>\n");
 			fprintf(logout, "Line# %d: Token <INT> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "INT");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return INT;
         }
 
 "char"  {
             fprintf(tokenout, "<CHAR, char>\n");
 			fprintf(logout, "Line# %d: Token <CHAR> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "CHAR");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
 
             return CHAR;
         }
@@ -198,12 +254,26 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             fprintf(tokenout, "<FLOAT, float>\n");
 			fprintf(logout, "Line# %d: Token <FLOAT> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "FLOAT");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return FLOAT;
         }
 
 "double"    {
                 fprintf(tokenout, "<DOUBLE, double>\n");
                 fprintf(logout, "Line# %d: Token <DOUBLE> Lexeme %s found\n", lineCount, yytext);
+
+                SymbolInfo* symbolInfo = new SymbolInfo(yytext, "DOUBLE");
+
+                symbolInfo->SetSymbolStart(lineCount);
+                symbolInfo->SetSymbolEnd(lineCount);
+
+                yylval = symbolInfo;
 
                 return DOUBLE;
             }
@@ -212,12 +282,26 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             fprintf(tokenout, "<VOID, void>\n");
 			fprintf(logout, "Line# %d: Token <VOID> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "VOID");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return VOID;
         }
 
 "return"    {
                 fprintf(tokenout, "<RETURN, return>\n");
                 fprintf(logout, "Line# %d: Token <RETURN> Lexeme %s found\n", lineCount, yytext);
+
+                SymbolInfo* symbolInfo = new SymbolInfo(yytext, "RETURN");
+
+                symbolInfo->SetSymbolStart(lineCount);
+                symbolInfo->SetSymbolEnd(lineCount);
+
+                yylval = symbolInfo;
 
                 return RETURN;
             }
@@ -226,12 +310,26 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                 fprintf(tokenout, "<SWITCH, switch>\n");
                 fprintf(logout, "Line# %d: Token <SWITCH> Lexeme %s found\n", lineCount, yytext);
 
+                SymbolInfo* symbolInfo = new SymbolInfo(yytext, "SWITCH");
+
+                symbolInfo->SetSymbolStart(lineCount);
+                symbolInfo->SetSymbolEnd(lineCount);
+
+                yylval = symbolInfo;
+
                 return SWITCH;
             }
 
 "case"  {
             fprintf(tokenout, "<CASE, case>\n");
 			fprintf(logout, "Line# %d: Token <CASE> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "CASE");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
 
             return CASE;
         }
@@ -240,12 +338,26 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                 fprintf(tokenout, "<DEFAULT, default>\n");
                 fprintf(logout, "Line# %d: Token <DEFAULT> Lexeme %s found\n", lineCount, yytext);
 
+                SymbolInfo* symbolInfo = new SymbolInfo(yytext, "DEFAULT");
+
+                symbolInfo->SetSymbolStart(lineCount);
+                symbolInfo->SetSymbolEnd(lineCount);
+
+                yylval = symbolInfo;
+
                 return DEFAULT;
             }
 
 "continue"  {
                 fprintf(tokenout, "<CONTINUE, continue>\n");
                 fprintf(logout, "Line# %d: Token <CONTINUE> Lexeme %s found\n", lineCount, yytext);
+
+                SymbolInfo* symbolInfo = new SymbolInfo(yytext, "CONTINUE");
+
+                symbolInfo->SetSymbolStart(lineCount);
+                symbolInfo->SetSymbolEnd(lineCount);
+
+                yylval = symbolInfo;
 
                 return CONTINUE;
             }
@@ -257,6 +369,10 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <ADDOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "ADDOP");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
             yylval = symbolInfo;
 
             return ADDOP;
@@ -271,6 +387,10 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <MULOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "MULOP");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
             yylval = symbolInfo;
 
             return MULOP;
@@ -283,6 +403,10 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <INCOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "INCOP");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
             yylval = symbolInfo;
 
             return INCOP;
@@ -303,6 +427,10 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <RELOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "RELOP");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
             yylval = symbolInfo;
 
             return RELOP;
@@ -311,6 +439,13 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 "="     {
 			fprintf(tokenout, "<ASSIGNOP, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <ASSIGNOP> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "ASSIGNOP");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
 
             return ASSIGNOP;
 		}
@@ -322,6 +457,10 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <LOGICOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "LOGICOP");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
             yylval = symbolInfo;
 
             return LOGICOP;
@@ -340,6 +479,10 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(logout, "Line# %d: Token <BITOP> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "BITOP");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
             yylval = symbolInfo;
 
             return BITOP;
@@ -349,6 +492,13 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(tokenout, "<NOT, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <NOT> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "NOT");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return NOT;
 		}
 
@@ -356,12 +506,26 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(tokenout, "<LPAREN, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <LPAREN> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "LPAREN");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return LPAREN;
 		}
 
 ")"     {
 			fprintf(tokenout, "<RPAREN, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <RPAREN> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "RPAREN");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
 
             return RPAREN;
 		}
@@ -371,6 +535,13 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(tokenout, "<LCURL, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <LCURL> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "LCURL");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return LCURL;
 		}
 
@@ -379,12 +550,26 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(tokenout, "<RCURL, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <RCURL> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "RCURL");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return RCURL;
 		}
 
 "["     {
 			fprintf(tokenout, "<LSQUARE, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <LSQUARE> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "LSQUARE");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
 
             return LSQUARE;
 		}
@@ -393,6 +578,13 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(tokenout, "<RSQUARE, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <RSQUARE> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "RSQUARE");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return RSQUARE;
 		}
 
@@ -400,12 +592,26 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 			fprintf(tokenout, "<COMMA, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <COMMA> Lexeme %s found\n", lineCount, yytext);
 
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "COMMA");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
+
             return COMMA;
 		}
 
 ";"     {
 			fprintf(tokenout, "<SEMICOLON, %s>\n", yytext);
 			fprintf(logout, "Line# %d: Token <SEMICOLON> Lexeme %s found\n", lineCount, yytext);
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "SEMICOLON");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            yylval = symbolInfo;
 
             return SEMICOLON;
 		}
@@ -416,6 +622,10 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 				//insert in symbol table and print symbol table content(only non empty buckets)
 
                 SymbolInfo *symbolInfo = new SymbolInfo(std::string(yytext), "CONST_INT");
+
+                symbolInfo->SetSymbolStart(lineCount);
+                symbolInfo->SetSymbolEnd(lineCount);
+
                 yylval = symbolInfo;
 
                 return CONST_INT;
@@ -424,6 +634,13 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 {FLOAT}     {
 				fprintf(tokenout, "<CONST_FLOAT, %s>\n", yytext);
 				fprintf(logout, "Line# %d: Token <CONST_FLOAT> Lexeme %s found\n",lineCount,yytext);
+
+                SymbolInfo* symbolInfo = new SymbolInfo(yytext, "CONST_FLOAT");
+
+                symbolInfo->SetSymbolStart(lineCount);
+                symbolInfo->SetSymbolEnd(lineCount);
+
+                yylval = symbolInfo;
 
                 return CONST_FLOAT;
 			}
@@ -434,7 +651,12 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                     fprintf(tokenout, "<CONST_CHAR, %s>\n", name.c_str());
                     fprintf(logout, "Line# %d: Token <CONST_CHAR> Lexeme %s found\n", lineCount, name.c_str());
 
-                    SymbolInfo* symbolInfo = new SymbolInfo(name, "CONST_CHAR");
+                    SymbolInfo* symbolInfo = new SymbolInfo(yytext, "CONST_CHAR");
+
+                    symbolInfo->SetSymbolStart(lineCount);
+                    symbolInfo->SetSymbolEnd(lineCount);
+
+                    yylval = symbolInfo;
 
                     return CONST_CHAR;
                 }
@@ -446,7 +668,11 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                                 fprintf(tokenout, "<SINGLE LINE STRING, %s>\n", name.c_str());
                                 fprintf(logout, "Line# %d: Token <SINGLE LINE STRING> Lexeme %s found\n", lineCount, yytextStr.c_str());
 
-                                SymbolInfo* symbolInfo = new SymbolInfo(name, "CONST_STRING");
+                                SymbolInfo* symbolInfo = new SymbolInfo(yytext, "CONST_STRING");
+
+                                symbolInfo->SetSymbolStart(lineCount);
+                                symbolInfo->SetSymbolEnd(lineCount);
+
                                 yylval = symbolInfo;
 
                                 return CONST_STRING;
@@ -459,6 +685,10 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                                 fprintf(tokenout, "<MULTI LINE STRING, %s>\n", name.c_str());
                                 fprintf(logout, "Line# %d: Token <MULTI LINE STRING> Lexeme %s found\n", lineCount, yytextStr.c_str());
 
+                                SymbolInfo* symbolInfo = new SymbolInfo(yytext, "IF");
+
+                                symbolInfo->SetSymbolStart(lineCount);
+
                                 for(size_t i = 0; i < yytextStr.size(); ++i)
                                 {
                                     if(yytextStr[i] == '\n')
@@ -467,7 +697,8 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                                     }
                                 }
 
-                                SymbolInfo* symbolInfo = new SymbolInfo(name, "CONST_STRING");
+                                symbolInfo->SetSymbolEnd(lineCount);
+
                                 yylval = symbolInfo;
 
                                 return CONST_STRING;
@@ -478,6 +709,10 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             fprintf(logout, "Line# %d: Token <ID> Lexeme %s found\n", lineCount, yytext);
 
             SymbolInfo* symbolInfo = new SymbolInfo(std::string(yytext), "ID");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
             yylval = symbolInfo;
 
             return ID;

@@ -36,3 +36,23 @@ SymbolInfo *SymbolInfo::GetNext() const
 {
     return next;
 }
+
+void SymbolInfo::SetSymbolStart(size_t start)
+{
+    symbolStart = start;
+}
+
+void SymbolInfo::SetSymbolEnd(size_t end)
+{
+    symbolEnd = end;
+}
+
+size_t SymbolInfo::GetSymbolStart()
+{
+    return symbolStart;
+}
+
+size_t SymbolInfo::GetSymbolEnd()
+{
+    return symbolEnd;
+}

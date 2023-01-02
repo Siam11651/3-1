@@ -6,6 +6,7 @@ class SymbolInfo
 {
 private:
     std::string name, type;
+    size_t symbolStart, symbolEnd;
     SymbolInfo* next;
 public:
     SymbolInfo(const std::string &name, const std::string &type);
@@ -14,5 +15,9 @@ public:
     void SetNext(SymbolInfo *next);
     std::string GetName() const;
     std::string GetType() const;
+    void SetSymbolStart(size_t start);
+    void SetSymbolEnd(size_t end);
+    size_t GetSymbolStart();
+    size_t GetSymbolEnd();
     SymbolInfo *GetNext() const;
 };
