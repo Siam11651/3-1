@@ -18,10 +18,13 @@ public:
     std::string GetType() const;
     void SetSymbolStart(size_t start);
     void SetSymbolEnd(size_t end);
-    size_t GetSymbolStart();
-    size_t GetSymbolEnd();
+    size_t GetSymbolStart() const;
+    size_t GetSymbolEnd() const;
     void SetIDType(const std::string id_type);
     void SetDataType(const std::string data_type);
     void SetArray(bool array);
+    std::string GetIDType() const;
+    std::string GetDataType() const;
+    bool IsArray() const;
     SymbolInfo *GetNext() const;
 };

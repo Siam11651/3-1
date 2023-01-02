@@ -104,27 +104,6 @@ void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symb
 	}
 }
 
-void InsertIdFromParamList(ParseTreeNode &root, SymbolTable* st)
-{
-	std::vector<ParseTreeNode> &children = root.children;
-
-	if(children.size() > 1)
-	{
-		if(children[children.size() - 1].name == "ID")
-		{
-			children[children.size() - 1].symbolInfo->SetIDType("VARIABLE");
-			children[children.size() - 1].symbolInfo->SetDataType(children[children.size() - 2].name);
-			children[children.size() - 1].symbolInfo->SetArray(false);
-			st->Insert(*children[children.size() - 1].symbolInfo);
-
-			if(children.size() == 4)
-			{
-				InsertIdFromParamList(children[0], st);
-			}
-		}
-	}
-}
-
 %}
 
 %code requires
@@ -250,7 +229,7 @@ func_declaration    :   type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 					
 						SetLine(func_declaration_node);
 						parseTreeStack.push(func_declaration_node);
-						$2->SetDataType(type_specifier_node.name);
+						$2->SetDataType(type_specifier_node.children[0].name);
 						st->Insert(*$2);
 					}
 		            |   type_specifier ID LPAREN RPAREN SEMICOLON
@@ -272,18 +251,13 @@ func_declaration    :   type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 
 						SetLine(func_declaration_node);
 						parseTreeStack.push(func_declaration_node);
-						$2->SetDataType(type_specifier_node.name);
+						$2->SetDataType(type_specifier_node.children[0].name);
 						st->Insert(*$2);
 					}
 		            ;
 		 
 func_definition	:	type_specifier ID LPAREN parameter_list RPAREN compound_statement
 				{
-					$2->SetIDType("FUNCTION");
-					$2->SetArray(false);
-
-					logStream << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement" << std::endl;
-
 					ParseTreeNode compound_statement_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -303,16 +277,17 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN compound_statem
 
 					SetLine(func_definition_node);
 					parseTreeStack.push(func_definition_node);
-					$2->SetDataType(type_specifier_node.name);
-					st->Insert(*$2);
+					$2->SetIDType("FUNCTION");
+					$2->SetArray(false);
+					$2->SetDataType(type_specifier_node.children[0].name);
+					st->InsertPrevious(*$2);
+					st->PrintAllScope();
+					st->ExitScope();
+
+					logStream << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement" << std::endl;
 				}
 				|	type_specifier ID LPAREN RPAREN compound_statement
 				{
-					$2->SetIDType("FUNCTION");
-					$2->SetArray(false);
-
-					logStream << "func_definition : type_specifier ID LPAREN RPAREN compound_statement" << std::endl;
-
 					ParseTreeNode compound_statement_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -328,8 +303,14 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN compound_statem
 
 					SetLine(func_definition_node);
 					parseTreeStack.push(func_definition_node);
-					$2->SetDataType(type_specifier_node.name);
-					st->Insert(*$2);
+					$2->SetIDType("FUNCTION");
+					$2->SetArray(false);
+					$2->SetDataType(type_specifier_node.children[0].name);
+					st->InsertPrevious(*$2);
+					st->PrintAllScope();
+					st->ExitScope();
+
+					logStream << "func_definition : type_specifier ID LPAREN RPAREN compound_statement" << std::endl;
 				}
  				;
 
@@ -342,14 +323,14 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 						st->EnterScope();
 					}
 
-					$4->SetIDType("VARIABLE");
-					$4->SetDataType($3->GetName());
-					$4->SetArray(false);
-					st->Insert(*$4);
-
 					logStream << "parameter_list  : parameter_list COMMA type_specifier ID" << std::endl;
 
 					ParseTreeNode type_specifier_node = parseTreeStack.top();
+
+					$4->SetIDType("VARIABLE");
+					$4->SetDataType(type_specifier_node.children[0].name);
+					$4->SetArray(false);
+					st->Insert(*$4);
 
 					parseTreeStack.pop();
 
@@ -398,14 +379,16 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 						st->EnterScope();
 					}
 
-					$2->SetIDType("VARIABLE");
-					$2->SetDataType($1->GetName());
-					$2->SetArray(false);
-					st->Insert(*$2);
-
 					logStream << "parameter_list  : type_specifier ID" << std::endl;
 
 					ParseTreeNode type_specifier_node = parseTreeStack.top();
+
+					$2->SetIDType("VARIABLE");
+					$2->SetDataType(type_specifier_node.children[0].name);
+					$2->SetArray(false);
+					st->Insert(*$2);
+
+					// std::cout << "Line no: " << $2->GetSymbolStart() << ' ' << $2 << ' ' << $2->GetName() << std::endl;
 
 					parseTreeStack.pop();
 					
@@ -440,9 +423,6 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 compound_statement	:	LCURL statements RCURL
 					{
 						logStream << "compound_statement : LCURL statements RCURL" << std::endl;
-
-						st->PrintAllScope();
-						st->ExitScope();
 
 						ParseTreeNode statements_node = parseTreeStack.top();
 
@@ -488,7 +468,7 @@ var_declaration :   type_specifier declaration_list SEMICOLON
 					SetLine(var_declaration_node);
 					parseTreeStack.push(var_declaration_node);
 
-					InsertID(declaration_list_node, type_specifier_node.name, st);
+					InsertID(declaration_list_node, type_specifier_node.children[0].name, st);
 				}
  		        ;
  		 
@@ -652,6 +632,9 @@ statement	:   var_declaration
 			}
 			|   compound_statement
 			{
+				st->PrintAllScope();
+				st->ExitScope();
+
 				logStream << "statement : compound_statement" << std::endl;
 
 				ParseTreeNode compound_statement_node = parseTreeStack.top();

@@ -34,6 +34,16 @@ bool SymbolTable::Insert(const SymbolInfo &symbol)
     return currentScope->Insert(symbol);
 }
 
+bool SymbolTable::InsertPrevious(const SymbolInfo &symbolInfo)
+{
+    if(currentScope->GetParent() != NULL)
+    {
+        return currentScope->GetParent()->Insert(symbolInfo);
+    }
+    
+    return false;
+}
+
 bool SymbolTable::Delete(const std::string &symbolName)
 {
     return currentScope->Delete(symbolName);

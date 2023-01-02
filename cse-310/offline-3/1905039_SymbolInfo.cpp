@@ -47,12 +47,12 @@ void SymbolInfo::SetSymbolEnd(size_t end)
     symbolEnd = end;
 }
 
-size_t SymbolInfo::GetSymbolStart()
+size_t SymbolInfo::GetSymbolStart() const
 {
     return symbolStart;
 }
 
-size_t SymbolInfo::GetSymbolEnd()
+size_t SymbolInfo::GetSymbolEnd() const
 {
     return symbolEnd;
 }
@@ -70,4 +70,19 @@ void SymbolInfo::SetDataType(const std::string dataType)
 void SymbolInfo::SetArray(bool array)
 {
     this->array = array;
+}
+
+std::string SymbolInfo::GetIDType() const
+{
+    return idType;
+}
+
+std::string SymbolInfo::GetDataType() const
+{
+    return dataType;
+}
+
+bool SymbolInfo::IsArray() const
+{
+    return array;
 }

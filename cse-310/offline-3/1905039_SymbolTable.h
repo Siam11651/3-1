@@ -19,6 +19,7 @@ public:
     void EnterScope();
     void ExitScope();
     bool Insert(const SymbolInfo &symbol);
+    bool InsertPrevious(const SymbolInfo &symbolInfo);
     bool Delete(const std::string &symbolName);
     SymbolInfo *LookUp(const std::string &symbolName);
     void PrintCurrentScope();

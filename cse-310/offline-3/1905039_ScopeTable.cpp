@@ -45,7 +45,12 @@ bool ScopeTable::Insert(const SymbolInfo &symbol)
     }
 
     SymbolInfo *newSymbol = new SymbolInfo(symbol.GetName(), symbol.GetType());
+    newSymbol->SetIDType(symbol.GetIDType());
+    newSymbol->SetDataType(symbol.GetDataType());
+    newSymbol->SetArray(symbol.IsArray());
     newSymbol->SetNext(buckets[index]);
+    newSymbol->SetSymbolStart(symbol.GetSymbolStart());
+    newSymbol->SetSymbolEnd(symbol.GetSymbolEnd());
     buckets[index] = newSymbol;
     ++bucketSizes[index];
 
@@ -140,7 +145,21 @@ void ScopeTable::Print(size_t &start, size_t scopeCount)
             {
                 std::stringstream ss("");
 
-                ss << '<' << next->GetName() << ',' << next->GetType() << "> ";
+                if(next->IsArray())
+                {
+                    ss << '<' << next->GetName() << ", " << "ARRAY" << ", " << next->GetDataType() << "> ";
+                }
+                else
+                {
+                    if(next->GetIDType() == "VARIABLE")
+                    {
+                        ss << '<' << next->GetName() << ", " << next->GetDataType() << "> ";
+                    }
+                    else
+                    {
+                        ss << '<' << next->GetName() << ", " << "FUNCTION" << ", " << next->GetDataType() << "> ";
+                    }
+                }
 
                 symbols[j] = ss.str();
 
@@ -150,7 +169,7 @@ void ScopeTable::Print(size_t &start, size_t scopeCount)
 
             if(bucketSizes[i] > 0)
             {
-                *output << "\t" << (i + 1) << "--> ";
+                *output << '\t' << (i + 1) << "--> ";
 
                 for(size_t j = bucketSizes[i] - 1; ; --j)
                 {
