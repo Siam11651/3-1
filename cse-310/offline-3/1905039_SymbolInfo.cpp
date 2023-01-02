@@ -56,3 +56,18 @@ size_t SymbolInfo::GetSymbolEnd()
 {
     return symbolEnd;
 }
+
+void SymbolInfo::SetIDType(const std::string idType)
+{
+    this->idType = idType;
+}
+
+void SymbolInfo::SetDataType(const std::string dataType)
+{
+    this->dataType = dataType;
+}
+
+void SymbolInfo::SetArray(bool array)
+{
+    this->array = array;
+}

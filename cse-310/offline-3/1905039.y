@@ -14,8 +14,11 @@ SymbolTable *st;
 // int yyparse(void);
 int yylex(void);
 extern FILE *yyin;
-extern FILE *tokenout;
-extern FILE *logout;
+std::ofstream parseTreeStream;
+extern std::ofstream logStream;
+extern size_t lineCount;
+extern size_t errorCount;
+extern bool enterNewScope;
 
 size_t depth = 0;
 
@@ -32,26 +35,26 @@ void PrintParseTree(ParseTreeNode &parseTreeNode, size_t depth)
 	{
 		for(size_t i = 0; i < depth; ++i)
 		{
-			std::cout << ' ';
+			parseTreeStream << ' ';
 		}
 
-		std::cout << parseTreeNode.name << " : " << parseTreeNode.symbolInfo->GetName() << "\t<Line: " << parseTreeNode.symbolInfo->GetSymbolStart() << '>' << std::endl;
+		parseTreeStream << parseTreeNode.name << " : " << parseTreeNode.symbolInfo->GetName() << "\t<Line: " << parseTreeNode.symbolInfo->GetSymbolStart() << '>' << std::endl;
 	}
 	else
 	{
 		for(size_t i = 0; i < depth; ++i)
 		{
-			std::cout << ' ';
+			parseTreeStream << ' ';
 		}
 
-		std::cout << parseTreeNode.name << " : ";
+		parseTreeStream << parseTreeNode.name << " : ";
 
 		for(size_t i = 0; i < parseTreeNode.children.size(); ++i)
 		{
-			std::cout << parseTreeNode.children[i].name << ' ';
+			parseTreeStream << parseTreeNode.children[i].name << ' ';
 		}
 
-		std::cout << "\t<Line: " << parseTreeNode.startLine << '-' << parseTreeNode.endLine << '>' << std::endl;
+		parseTreeStream << "\t<Line: " << parseTreeNode.startLine << '-' << parseTreeNode.endLine << '>' << std::endl;
 
 		for(size_t i = 0; i < parseTreeNode.children.size(); ++i)
 		{
@@ -85,6 +88,43 @@ void SetLine(ParseTreeNode &parseTreeNode)
 	parseTreeNode.endLine = end;
 }
 
+void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symbolTable)
+{
+	if(root.terminal && root.name == "ID")
+	{
+		root.symbolInfo->SetDataType(dataType);
+		symbolTable->Insert(*root.symbolInfo);
+	}
+	else
+	{
+		for(size_t i = 0; i < root.children.size(); ++i)
+		{
+			InsertID(root.children[i], dataType, symbolTable);
+		}
+	}
+}
+
+void InsertIdFromParamList(ParseTreeNode &root, SymbolTable* st)
+{
+	std::vector<ParseTreeNode> &children = root.children;
+
+	if(children.size() > 1)
+	{
+		if(children[children.size() - 1].name == "ID")
+		{
+			children[children.size() - 1].symbolInfo->SetIDType("VARIABLE");
+			children[children.size() - 1].symbolInfo->SetDataType(children[children.size() - 2].name);
+			children[children.size() - 1].symbolInfo->SetArray(false);
+			st->Insert(*children[children.size() - 1].symbolInfo);
+
+			if(children.size() == 4)
+			{
+				InsertIdFromParamList(children[0], st);
+			}
+		}
+	}
+}
+
 %}
 
 %code requires
@@ -101,6 +141,8 @@ void SetLine(ParseTreeNode &parseTreeNode)
 
 start   :   program
 	    {
+			logStream << "start : program" << std::endl;
+
 			ParseTreeNode program_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -114,6 +156,8 @@ start   :   program
 
 program :   program unit
         {
+			logStream << "program : program unit" << std::endl;
+
             ParseTreeNode unit_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -129,6 +173,8 @@ program :   program unit
         }
 	    |   unit
         {
+			logStream << "program : unit" << std::endl;
+
             ParseTreeNode unit_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -142,6 +188,8 @@ program :   program unit
 	
 unit    :   var_declaration
 		{
+			logStream << "unit : var_declaration" << std::endl;
+
 			ParseTreeNode var_declaration_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -153,6 +201,8 @@ unit    :   var_declaration
 		}
         |   func_declaration
 		{
+			logStream << "unit : func_declaration" << std::endl;
+
 			ParseTreeNode func_declaration_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -164,6 +214,8 @@ unit    :   var_declaration
 		}
         |   func_definition
 		{
+			logStream << "unit : func_definition" << std::endl;
+
 			ParseTreeNode func_definition_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -177,6 +229,11 @@ unit    :   var_declaration
      
 func_declaration    :   type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 					{
+						$2->SetIDType("FUNCTION");
+						$2->SetArray(false);
+
+						logStream << "func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON" << std::endl;
+
 						ParseTreeNode parameter_list_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -193,9 +250,16 @@ func_declaration    :   type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 					
 						SetLine(func_declaration_node);
 						parseTreeStack.push(func_declaration_node);
+						$2->SetDataType(type_specifier_node.name);
+						st->Insert(*$2);
 					}
 		            |   type_specifier ID LPAREN RPAREN SEMICOLON
 					{
+						$2->SetIDType("FUNCTION");
+						$2->SetArray(false);
+
+						logStream << "func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON" << std::endl;
+
 						ParseTreeNode type_specifier_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -208,11 +272,18 @@ func_declaration    :   type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 
 						SetLine(func_declaration_node);
 						parseTreeStack.push(func_declaration_node);
+						$2->SetDataType(type_specifier_node.name);
+						st->Insert(*$2);
 					}
 		            ;
 		 
 func_definition	:	type_specifier ID LPAREN parameter_list RPAREN compound_statement
 				{
+					$2->SetIDType("FUNCTION");
+					$2->SetArray(false);
+
+					logStream << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement" << std::endl;
+
 					ParseTreeNode compound_statement_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -232,9 +303,16 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN compound_statem
 
 					SetLine(func_definition_node);
 					parseTreeStack.push(func_definition_node);
+					$2->SetDataType(type_specifier_node.name);
+					st->Insert(*$2);
 				}
 				|	type_specifier ID LPAREN RPAREN compound_statement
 				{
+					$2->SetIDType("FUNCTION");
+					$2->SetArray(false);
+
+					logStream << "func_definition : type_specifier ID LPAREN RPAREN compound_statement" << std::endl;
+
 					ParseTreeNode compound_statement_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -250,11 +328,27 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN compound_statem
 
 					SetLine(func_definition_node);
 					parseTreeStack.push(func_definition_node);
+					$2->SetDataType(type_specifier_node.name);
+					st->Insert(*$2);
 				}
  				;
 
 parameter_list	:	parameter_list COMMA type_specifier ID
 				{
+					if(!enterNewScope)
+					{
+						enterNewScope = true;
+
+						st->EnterScope();
+					}
+
+					$4->SetIDType("VARIABLE");
+					$4->SetDataType($3->GetName());
+					$4->SetArray(false);
+					st->Insert(*$4);
+
+					logStream << "parameter_list  : parameter_list COMMA type_specifier ID" << std::endl;
+
 					ParseTreeNode type_specifier_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -272,6 +366,15 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 				}
 				|	parameter_list COMMA type_specifier
 				{
+					if(!enterNewScope)
+					{
+						enterNewScope = true;
+
+						st->EnterScope();
+					}
+
+					logStream << "parameter_list  : parameter_list COMMA type_specifier" << std::endl;
+
 					ParseTreeNode type_specifier_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -288,6 +391,20 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 				}
  				|	type_specifier ID
 				{
+					if(!enterNewScope)
+					{
+						enterNewScope = true;
+
+						st->EnterScope();
+					}
+
+					$2->SetIDType("VARIABLE");
+					$2->SetDataType($1->GetName());
+					$2->SetArray(false);
+					st->Insert(*$2);
+
+					logStream << "parameter_list  : type_specifier ID" << std::endl;
+
 					ParseTreeNode type_specifier_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -300,6 +417,15 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 				}
 				|	type_specifier
 				{
+					if(!enterNewScope)
+					{
+						enterNewScope = true;
+
+						st->EnterScope();
+					}
+
+					logStream << "parameter_list  : type_specifier" << std::endl;
+
 					ParseTreeNode type_specifier_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -313,6 +439,11 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 
 compound_statement	:	LCURL statements RCURL
 					{
+						logStream << "compound_statement : LCURL statements RCURL" << std::endl;
+
+						st->PrintAllScope();
+						st->ExitScope();
+
 						ParseTreeNode statements_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -326,6 +457,10 @@ compound_statement	:	LCURL statements RCURL
 					}
  		            |	LCURL RCURL
 					{
+						logStream << "compund_statement : LCURL RCURL" << std::endl;
+
+						st->PrintAllScope();
+
 						ParseTreeNode lcurl_node = {"LCURL", true, {}, $1};
 						ParseTreeNode rcurl_node = {"RCURL", true, {}, $2};
 						ParseTreeNode compound_statement_node = {"compound_statement", false, {lcurl_node, rcurl_node}, NULL};
@@ -337,6 +472,8 @@ compound_statement	:	LCURL statements RCURL
  		    
 var_declaration :   type_specifier declaration_list SEMICOLON
 				{
+					logStream << "var_declaration : type_specifier declaration_list SEMICOLON" << std::endl;
+
 					ParseTreeNode declaration_list_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -350,11 +487,15 @@ var_declaration :   type_specifier declaration_list SEMICOLON
 
 					SetLine(var_declaration_node);
 					parseTreeStack.push(var_declaration_node);
+
+					InsertID(declaration_list_node, type_specifier_node.name, st);
 				}
  		        ;
  		 
 type_specifier  :   INT
 				{
+					logStream << "type_specifier\t: INT" << std::endl;
+
 					ParseTreeNode int_node = {"INT", true, {}, $1};
 					ParseTreeNode type_specifier_node = {"type_specifier", false, {int_node}, NULL};
 					
@@ -363,6 +504,8 @@ type_specifier  :   INT
 				}
  		        |   FLOAT
 				{
+					logStream << "type_specifier\t: FLOAT" << std::endl;
+
 					ParseTreeNode float_node = {"FLOAT", true, {}, $1};
 					ParseTreeNode type_specifier_node = {"type_specifier", false, {float_node}, NULL};
 					
@@ -371,6 +514,8 @@ type_specifier  :   INT
 				}
  		        |   VOID
 				{
+					logStream << "type_specifier\t: VOID" << std::endl;
+
 					ParseTreeNode void_node = {"VOID", true, {}, $1};
 					ParseTreeNode type_specifier_node = {"type_specifier", false, {void_node}, NULL};
 					
@@ -381,6 +526,11 @@ type_specifier  :   INT
  		
 declaration_list    :   declaration_list COMMA ID
 					{
+						$3->SetIDType("VARIABLE");
+						$3->SetArray(false);
+
+						logStream << "declaration_list : declaration_list COMMA ID" << std::endl;
+
 						ParseTreeNode declaration_list_node_child = parseTreeStack.top();
 						ParseTreeNode comma_node = {"COMMA", true, {}, $2};
 						ParseTreeNode id_node = {"ID", true, {}, $3};
@@ -392,6 +542,11 @@ declaration_list    :   declaration_list COMMA ID
 					}
  		            |   declaration_list COMMA ID LSQUARE CONST_INT RSQUARE
 					{
+						$3->SetIDType("VARIABLE");
+						$3->SetArray(true);
+
+						logStream << "declaration_list : declaration_list COMMA ID LSQUARE CONST_INT RSQUARE" << std::endl;
+
 						ParseTreeNode declaration_list_node_child = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -408,6 +563,11 @@ declaration_list    :   declaration_list COMMA ID
 					}
  		            |   ID
 					{
+						$1->SetIDType("VARIABLE");
+						$1->SetArray(false);
+
+						logStream << "declaration_list : ID" << std::endl;
+
 						ParseTreeNode id_node = {"ID", true, {}, $1};
 						ParseTreeNode declaration_list_node = {"declaration_list", false, {id_node}, NULL};
 						
@@ -416,6 +576,11 @@ declaration_list    :   declaration_list COMMA ID
 					}
  		            |   ID LSQUARE CONST_INT RSQUARE
 					{
+						$1->SetIDType("VARIABLE");
+						$1->SetArray(true);
+
+						logStream << "declaration_list : ID LSQUARE CONST_INT RSQUARE" << std::endl;
+
 						ParseTreeNode id_node = {"ID", true, {}, $1};
 						ParseTreeNode lsquare_node = {"LSQUARE", true, {}, $2};
 						ParseTreeNode const_int_node = {"CONST_INT", true, {}, $3};
@@ -429,6 +594,8 @@ declaration_list    :   declaration_list COMMA ID
  		  
 statements  :   statement
 			{
+				logStream << "statements : statement" << std::endl;
+
 				ParseTreeNode statement_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -440,6 +607,8 @@ statements  :   statement
 			}
 	        |   statements statement
 			{
+				logStream << "statements : statements statement" << std::endl;
+
 				ParseTreeNode statement_node = parseTreeStack.top();
 				
 				parseTreeStack.pop();
@@ -457,6 +626,8 @@ statements  :   statement
 
 statement	:   var_declaration
 			{
+				logStream << "statement : var_declaration" << std::endl;
+
 				ParseTreeNode var_declaration_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -468,6 +639,8 @@ statement	:   var_declaration
 			}
 			|   expression_statement
 			{
+				logStream << "statement : expression_statement" << std::endl;
+
 				ParseTreeNode expression_statement_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -479,6 +652,8 @@ statement	:   var_declaration
 			}
 			|   compound_statement
 			{
+				logStream << "statement : compound_statement" << std::endl;
+
 				ParseTreeNode compound_statement_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -490,6 +665,8 @@ statement	:   var_declaration
 			}
 			|   FOR LPAREN expression_statement expression_statement expression RPAREN statement
 			{
+				logStream << "statement : FOR LPAREN expression_statement expression_statement expression RPAREN statement" << std::endl;
+
 				ParseTreeNode statement_node_child = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -516,6 +693,8 @@ statement	:   var_declaration
 			}
 			|   WHILE LPAREN expression RPAREN statement
 			{
+				logStream << "statement : WHILE LPAREN expression RPAREN statement" << std::endl;
+
 				ParseTreeNode statement_node_child = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -534,6 +713,8 @@ statement	:   var_declaration
 			}
 			|   RETURN expression SEMICOLON
 			{
+				logStream << "statement : RETURN expression SEMICOLON" << std::endl;
+
 				ParseTreeNode expression_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -547,6 +728,8 @@ statement	:   var_declaration
 			}
 			| IF LPAREN expression RPAREN statement
 			{
+				logStream << "statement : IF LPAREN expression RPAREN statement" << std::endl;
+
 				ParseTreeNode statement_node_child = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -565,6 +748,8 @@ statement	:   var_declaration
 			}
 	  		| IF LPAREN expression RPAREN statement ELSE statement
 			{
+				logStream << "statement : IF LPAREN expression RPAREN statement ELSE statement" << std::endl;
+
 				ParseTreeNode statement_node2 = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -590,6 +775,8 @@ statement	:   var_declaration
 	  
 expression_statement    :   SEMICOLON
 						{
+							logStream << "expression_statement : SEMICOLON" << std::endl;
+
 							ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $1};
 							ParseTreeNode expression_statement_node = {"expression_statement", false, {semicolon_node}, NULL};
 
@@ -598,6 +785,8 @@ expression_statement    :   SEMICOLON
 						}
 			            |   expression SEMICOLON
 						{
+							logStream << "expression_statement : expression SEMICOLON" << std::endl;
+
 							ParseTreeNode expression_node = parseTreeStack.top();
 
 							parseTreeStack.pop();
@@ -612,6 +801,8 @@ expression_statement    :   SEMICOLON
 	  
 variable    :   ID
 			{
+				logStream << "variable : ID" << std::endl;
+
 				ParseTreeNode id_node = {"ID", true, {}, $1};
 				ParseTreeNode variable_node = {"variable", false, {id_node}, NULL};
 
@@ -620,6 +811,8 @@ variable    :   ID
 			}
 	        |   ID LSQUARE expression RSQUARE
 			{
+				logStream << "variable : ID LSQUARE expression RSQUARE" << std::endl;
+
 				ParseTreeNode expression_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -636,6 +829,8 @@ variable    :   ID
 	 
 expression  :   logic_expression
 			{
+				logStream << "expression \t: logic_expression" << std::endl;
+
 				ParseTreeNode logic_expression_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -647,6 +842,8 @@ expression  :   logic_expression
 			}
 	        |   variable ASSIGNOP logic_expression
 			{
+				logStream << "expression \t: variable ASSIGNOP logic_expression" << std::endl;
+
 				ParseTreeNode logic_expression_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -665,6 +862,8 @@ expression  :   logic_expression
 			
 logic_expression    :   rel_expression
 					{
+						logStream << "logic_expression : rel_expression" << std::endl;
+
 						ParseTreeNode rel_expression_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -676,6 +875,8 @@ logic_expression    :   rel_expression
 					}
 		            |   rel_expression LOGICOP rel_expression
 					{
+						logStream << "logic_expression : rel_expression LOGICOP rel_expression" << std::endl;
+
 						ParseTreeNode rel_expression_node2 = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -694,6 +895,8 @@ logic_expression    :   rel_expression
 			
 rel_expression  :   simple_expression
 				{
+					logStream << "rel_expression\t: simple_expression" << std::endl;
+
 					ParseTreeNode simple_expression_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -705,6 +908,8 @@ rel_expression  :   simple_expression
 				}
 		        |   simple_expression RELOP simple_expression
 				{
+					logStream << "rel_expression\t: simple_expression RELOP simple_expression" << std::endl;
+
 					ParseTreeNode simple_expression_node2 = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -723,6 +928,8 @@ rel_expression  :   simple_expression
 				
 simple_expression   :   term
 					{
+						logStream << "simple_expression : term" << std::endl;
+
 						ParseTreeNode term_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -734,6 +941,8 @@ simple_expression   :   term
 					}
 		            |   simple_expression ADDOP term
 					{
+						logStream << "simple_expression : simple_expression ADDOP term" << std::endl;
+
 						ParseTreeNode term_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -752,6 +961,8 @@ simple_expression   :   term
 					
 term    :	unary_expression
 		{
+			logStream << "term :\tunary_expression" << std::endl;
+
 			ParseTreeNode unary_expression_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -763,6 +974,8 @@ term    :	unary_expression
 		}
         |   term MULOP unary_expression
 		{
+			logStream << "term :\tterm MULOP unary_expression" << std::endl;
+
 			ParseTreeNode unary_expression_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -781,6 +994,8 @@ term    :	unary_expression
 
 unary_expression    :   ADDOP unary_expression
 					{
+						logStream << "unary_expression : ADDOP unary_expression" << std::endl;
+
 						ParseTreeNode unary_expression_node_child = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -793,6 +1008,8 @@ unary_expression    :   ADDOP unary_expression
 					}
 		            |   NOT unary_expression
 					{
+						logStream << "unary_expression : NOT unary_expression" << std::endl;
+
 						ParseTreeNode unary_expression_node_child = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -805,6 +1022,8 @@ unary_expression    :   ADDOP unary_expression
 					}
 		            |   factor
 					{
+						logStream << "unary_expression : factor" << std::endl;
+
 						ParseTreeNode factor_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -818,6 +1037,8 @@ unary_expression    :   ADDOP unary_expression
 	
 factor  :   variable
 		{
+			logStream << "factor\t: variable" << std::endl;
+
 			ParseTreeNode variable_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -829,6 +1050,8 @@ factor  :   variable
 		}
 	    |   ID LPAREN argument_list RPAREN
 		{
+			logStream << "factor\t: ID LPAREN argument_list RPAREN" << std::endl;
+
 			ParseTreeNode argument_list_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -843,6 +1066,8 @@ factor  :   variable
 		}
 	    |   LPAREN expression RPAREN
 		{
+			logStream << "factor\t: LPAREN expression RPAREN" << std::endl;
+
 			ParseTreeNode expression_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -856,6 +1081,8 @@ factor  :   variable
 		}
 	    |   CONST_INT
 		{
+			logStream << "factor\t: CONST_INT" << std::endl;
+
 			ParseTreeNode const_int_node = {"CONST_INT", true, {}, $1};
 			ParseTreeNode factor_node = {"factor", false, {const_int_node}, NULL};
 
@@ -864,6 +1091,8 @@ factor  :   variable
 		}
 	    |   CONST_FLOAT
 		{
+			logStream << "factor\t: CONST_FLOAT" << std::endl;
+
 			ParseTreeNode const_float_node = {"CONST_FLOAT", true, {}, $1};
 			ParseTreeNode factor_node = {"factor", false, {const_float_node}, NULL};
 
@@ -872,6 +1101,8 @@ factor  :   variable
 		}
 	    |   variable INCOP
 		{
+			logStream << "factor\t: variable INCOP" << std::endl;
+
 			ParseTreeNode variable_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
@@ -886,6 +1117,8 @@ factor  :   variable
 	
 argument_list   :   arguments
 				{
+					logStream << "argument_list : arguments" << std::endl;
+
 					ParseTreeNode arguments_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -900,6 +1133,8 @@ argument_list   :   arguments
 	
 arguments   :   arguments COMMA logic_expression
 			{
+				logStream << "arguments : arguments COMMA logic_expression" << std::endl;
+
 				ParseTreeNode logic_expression_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -916,6 +1151,8 @@ arguments   :   arguments COMMA logic_expression
 			}
 	        |   logic_expression
 			{
+				logStream << "arguments : logic_expression" << std::endl;
+
 				ParseTreeNode logic_expression_node = parseTreeStack.top();
 
 				parseTreeStack.pop();
@@ -931,10 +1168,12 @@ arguments   :   arguments COMMA logic_expression
 
 int main(int argc,char *argv[])
 {
-	st = new SymbolTable(10);
+	enterNewScope = false;
 
-	tokenout = fopen("1905039_tokenout.txt", "w");
-	logout = fopen("1905039_logout.txt", "w");
+	parseTreeStream.open("1905039_parsetree.txt");
+	logStream.open("1905039_log.txt");
+
+	st = new SymbolTable(11, &logStream);
 	FILE *fp = fopen(argv[1], "r");
 
 	if(fp == NULL)
@@ -947,9 +1186,13 @@ int main(int argc,char *argv[])
 
 	yyparse();
 	PrintParseTree(parseTreeStack.top(), 0);
+
+	logStream << "Total Lines: " << lineCount << std::endl;
+	logStream << "Total Errors: " << errorCount << std::endl;
+
 	fclose(fp);
-	fclose(tokenout);
-	fclose(logout);
+	parseTreeStream.close();
+	logStream.close();
 	
 	return 0;
 }

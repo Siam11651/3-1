@@ -124,54 +124,7 @@ bool ScopeTable::Delete(const std::string &symbolName)
 
 void ScopeTable::Print(size_t &start, size_t scopeCount)
 {
-    if(output == NULL)
-    {
-        std::cout << "\tScopeTable# " << scopeCount - id + 1 << std::endl;
-
-        size_t &printed = start;
-
-        for(size_t i = 0; i < numberOfBuckets; ++i)
-        {
-            SymbolInfo *next = buckets[i];
-            std::string *symbols = new std::string[bucketSizes[i]];
-
-            size_t j = 0;
-
-            while(next != NULL)
-            {
-                std::stringstream ss("");
-
-                ss << '<' << next->GetName() << ',' << next->GetType() << "> ";
-
-                symbols[j] = ss.str();
-
-                next = next->GetNext();
-                ++j;
-            }
-
-            if(bucketSizes[i] > 0)
-            {
-                std::cout << "\t" << (printed + 1) << "--> ";
-
-                for(size_t j = bucketSizes[i] - 1; ; --j)
-                {
-                    std::cout << symbols[j];
-
-                    if(j == 0)
-                    {
-                        break;
-                    }
-                }
-
-                ++printed;
-            }
-
-            std::cout << std::endl;
-
-            delete[] symbols;
-        }
-    }
-    else
+    if(output != NULL)
     {
         *output << "\tScopeTable# " << id << std::endl;
 
@@ -233,9 +186,4 @@ ScopeTable::~ScopeTable()
 {
     delete[] buckets;
     delete[] bucketSizes;
-
-    if(output != NULL)
-    {
-        *output << "\tScopeTable# " << id << " removed" << std::endl;
-    }
 }
