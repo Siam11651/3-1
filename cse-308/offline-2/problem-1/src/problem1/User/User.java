@@ -14,8 +14,6 @@ public abstract class User
         this.server = server;
         this.name = name;
         state = UserState.FULL_USAGE;
-
-        this.server.Attach(this);
     }
 
     public Server GetServer()

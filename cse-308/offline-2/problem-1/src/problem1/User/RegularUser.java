@@ -8,13 +8,19 @@ import problem1.State.UserState;
 
 public class RegularUser extends User
 {
+    private Scanner scanner;
+
     public RegularUser(Server server, String name)
     {
         super(server, name);
+
+        scanner = new Scanner(System.in);
     }
 
     public void Notify()
     {
+        System.out.println("Notifying regular user " + name);
+
         ServerState previousState = server.GetPreviousState();
         ServerState currenState = server.GetCurrentState();
 
@@ -22,13 +28,11 @@ public class RegularUser extends User
         {
             System.out.println("Choices:");
             System.out.println("[1] Use limited service from ABC");
-            System.out.print("[2] Pay $20/hour and get service from DEF");
-
-            Scanner scanner = new Scanner(System.in);
+            System.out.println("[2] Pay $20/hour and get service from DEF");
 
             while(true)
             {
-                char option = (char)scanner.nextByte();
+                char option = scanner.next().charAt(0);
 
                 if(option == '1')
                 {
@@ -47,8 +51,6 @@ public class RegularUser extends User
                     System.out.println("Invalid Input, Retry");
                 }
             }
-
-            scanner.close();
         }
         else if(previousState == ServerState.OPERATIONAL && currenState == ServerState.FULLY_DOWN)
         {
@@ -56,11 +58,9 @@ public class RegularUser extends User
             System.out.println("[1] Pay $20/hour and use service from DEF");
             System.out.println("[2] Do not pay");
 
-            Scanner scanner = new Scanner(System.in);
-
             while(true)
             {
-                char option = (char)scanner.nextByte();
+                char option = scanner.next().charAt(0);
 
                 if(option == '1')
                 {
@@ -76,11 +76,9 @@ public class RegularUser extends User
                 }
                 else
                 {
-                    System.out.print("Invalid Input, Retry");
+                    System.out.println("Invalid Input, Retry");
                 }
             }
-
-            scanner.close();
         }
         else if(previousState == ServerState.PARTIALLY_DOWN && currenState == ServerState.FULLY_DOWN)
         {
@@ -90,11 +88,9 @@ public class RegularUser extends User
                 System.out.println("[1] Pay $20/hour and use service from DEF");
                 System.out.println("[2] Do not pay");
 
-                Scanner scanner = new Scanner(System.in);
-
                 while(true)
                 {
-                    char option = (char)scanner.nextByte();
+                    char option = scanner.next().charAt(0);
 
                     if(option == '1')
                     {
@@ -110,18 +106,16 @@ public class RegularUser extends User
                     }
                     else
                     {
-                        System.out.print("Invalid Input, Retry");
+                        System.out.println("Invalid Input, Retry");
                     }
                 }
-
-                scanner.close();
             }
         }
         else if((previousState == ServerState.PARTIALLY_DOWN || previousState == ServerState.FULLY_DOWN) && currenState == ServerState.OPERATIONAL)
         {
             if(state == UserState.FULL_USAGE_OTHER)
             {
-                // total bill
+                System.out.println("Total bill of regular user " + name + " is \'x\'");
             }
 
             state = UserState.FULL_USAGE;
@@ -134,11 +128,9 @@ public class RegularUser extends User
                 System.out.println("[1] Use limited service from ABC");
                 System.out.println("[2] Use no service");
 
-                Scanner scanner = new Scanner(System.in);
-
                 while(true)
                 {
-                    char option = (char)scanner.nextByte();
+                    char option = scanner.next().charAt(0);
 
                     if(option == '1')
                     {
@@ -155,26 +147,29 @@ public class RegularUser extends User
                         System.out.println("Invalid Input, Retry");
                     }
                 }
-
-                scanner.close();
             }
         }
 
         if(state == UserState.FULL_USAGE)
         {
-
+            System.out.println("Regular user " + name + " using ABC fully");
         }
         else if(state == UserState.PARTIAL_USAGE)
         {
-
+            System.out.println("Regular user " + name + " using partially down ABC");
         }
         else if(state == UserState.FULL_USAGE_OTHER)
         {
-
+            System.out.println("Regular user " + name + " using DEF fully");
         }
         else
         {
-            
+            System.out.println("Regular user " + name + " under no service");
         }
+    }
+
+    public void Close()
+    {
+        scanner.close();
     }
 }

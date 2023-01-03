@@ -8,13 +8,19 @@ import problem1.State.UserState;
 
 public class PremiumUser extends User
 {
+    private Scanner scanner;
+
     public PremiumUser(Server server, String name)
     {
         super(server, name);
+
+        scanner = new Scanner(System.in);
     }
 
     public void Notify()
     {
+        System.out.println("Notifying premium user " + name);
+
         ServerState previousState = server.GetPreviousState();
         ServerState currentState = server.GetCurrentState();
         
@@ -24,11 +30,9 @@ public class PremiumUser extends User
             System.out.println("[1] Use service from ABC and DEF");
             System.out.println("[2] Use service from DEF");
 
-            Scanner scanner = new Scanner(System.in);
-
             while(true)
             {
-                char option = (char)scanner.nextByte();
+                char option = scanner.next().charAt(0);
 
                 if(option == '1')
                 {
@@ -47,8 +51,6 @@ public class PremiumUser extends User
                     System.out.println("Invalid Input, Retry");
                 }
             }
-
-            scanner.close();
         }
         else if(previousState == ServerState.OPERATIONAL && currentState == ServerState.FULLY_DOWN)
         {
@@ -68,15 +70,20 @@ public class PremiumUser extends User
 
         if(state == UserState.FULL_USAGE)
         {
-
+            System.out.println("Premium user " + name + " using ABC fully");
         }
         else if(state == UserState.PARTIAL_USAGE)
         {
-
+            System.out.println("Premium user " + name + " using ABC and DEF");
         }
         else
         {
-
+            System.out.println("Premium user " + name + " using DEF fully");
         }
+    }
+
+    public void Close()
+    {
+        scanner.close();
     }
 }
