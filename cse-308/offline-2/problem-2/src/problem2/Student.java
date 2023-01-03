@@ -3,15 +3,13 @@ package problem2;
 public class Student extends AcademicComponent
 {
     private int id;
-    private int marks;
+    private Script script;
 
     public Student(int id, Controller controller)
     {
         super(controller);
 
         this.id = id;
-
-        SetMarks(101); // 101 means not set yet, kinda null
     }
 
     public void Notify(String command, String params)
@@ -24,14 +22,17 @@ public class Student extends AcademicComponent
         return id;
     }
 
-    public void SetMarks(int marks)
+    public void RecieveScript(Script script)
     {
-        this.marks = marks;
+        if(this.script == null)
+        {
+            this.script = script;
+        }
     }
 
-    public int GetMarks()
+    public Script GetScript()
     {
-        return marks;
+        return script;
     }
 
     public void ReexamineRequest(int claim)

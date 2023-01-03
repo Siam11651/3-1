@@ -8,12 +8,12 @@ class Examiner extends AcademicComponent
     private Random random;
     private Vector<Script> scripts;
 
-    public Examiner(Controller controller, Vector<Script> scripts)
+    public Examiner(Controller controller)
     {
         super(controller);
 
         random = new Random();
-        this.scripts = scripts;
+        this.scripts = new Vector<>();
     }
 
     public void SendToController()
@@ -63,6 +63,11 @@ class Examiner extends AcademicComponent
                 System.out.println("Claim rejected");
             }
         }
+    }
+
+    public void RecieveScript(Script script)
+    {
+        scripts.add(script);
     }
 
     public Vector<Script> GetScripts()

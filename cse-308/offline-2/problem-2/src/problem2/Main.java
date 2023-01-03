@@ -7,20 +7,14 @@ class Main
 {
     public static void main(String[] args)
     {
-        Vector<Script> scripts = new Vector<>();
-
-        for(int i = 0; i < 5; ++i)
-        {
-            scripts.add(new Script(i + 1));
-        }
-
         Controller controller = new Controller();
         Vector<Student> students = new Vector<>();
-        Examiner examiner = new Examiner(controller, scripts);
+        Examiner examiner = new Examiner(controller);
 
         for(int i = 0; i < 5; ++i)
         {
             students.add(new Student(i + 1, controller));
+            examiner.RecieveScript(new Script(i + 1));
         }
 
         controller.SetExaminer(examiner);
@@ -39,6 +33,11 @@ class Main
             int id = scanner.nextInt();
             int claim = scanner.nextInt();
 
+            if(id == -1)
+            {
+                break;
+            }
+
             for(int i = 0; i < students.size(); ++i)
             {
                 Student student = students.get(i);
@@ -51,5 +50,7 @@ class Main
                 }
             }
         }
+
+        scanner.close();
     }
 }

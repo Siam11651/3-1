@@ -65,17 +65,6 @@ class Controller implements IController
                 int claim = Integer.parseInt(params);
 
                 examiner.Reexamine(((Student)notifier).GetID(), claim);
-
-                for(int i = 0; i < scripts.size(); ++i)
-                {
-                    for(int j = 0; j < students.size(); ++j)
-                    {
-                        if(scripts.get(i).GetID() == students.get(j).GetID())
-                        {
-                            students.get(j).SetMarks(scripts.get(i).GetMarks());
-                        }
-                    }
-                }
             }
         }
     }
@@ -122,7 +111,7 @@ class Controller implements IController
             {
                 if(scripts.get(i).GetID() == students.get(j).GetID())
                 {
-                    students.get(j).SetMarks(scripts.get(i).GetMarks());
+                    students.get(j).RecieveScript(scripts.get(i));
                 }
             }
         }
@@ -131,7 +120,7 @@ class Controller implements IController
 
         for(int i = 0; i < students.size(); ++i)
         {
-            System.out.println("id: " +  students.get(i).GetID() + "; marks: " + students.get(i).GetMarks());
+            System.out.println("id: " +  students.get(i).GetID() + "; marks: " + students.get(i).GetScript().GetMarks());
         }
     }
 }

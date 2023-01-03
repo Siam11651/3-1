@@ -1,6 +1,6 @@
 package problem2;
 
-class AcademicComponent
+abstract class AcademicComponent
 {
     protected IController controller;
 
@@ -8,4 +8,6 @@ class AcademicComponent
     {
         this.controller = controller;
     }
+
+    public abstract void RecieveScript(Script script);
 }
