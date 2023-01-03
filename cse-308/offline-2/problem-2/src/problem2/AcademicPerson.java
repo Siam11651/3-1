@@ -1,10 +1,10 @@
 package problem2;
 
-abstract class AcademicComponent
+abstract class AcademicPerson
 {
     protected IController controller;
 
-    public AcademicComponent(IController controller)
+    public AcademicPerson(IController controller)
     {
         this.controller = controller;
     }

@@ -31,12 +31,13 @@ class Main
         while(true)
         {
             int id = scanner.nextInt();
-            int claim = scanner.nextInt();
 
             if(id == -1)
             {
                 break;
             }
+
+            int claim = scanner.nextInt();
 
             for(int i = 0; i < students.size(); ++i)
             {

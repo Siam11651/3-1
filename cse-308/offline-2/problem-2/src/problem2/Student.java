@@ -1,6 +1,6 @@
 package problem2;
 
-public class Student extends AcademicComponent
+public class Student extends AcademicPerson
 {
     private int id;
     private Script script;

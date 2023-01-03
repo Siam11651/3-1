@@ -1,10 +1,16 @@
 package problem3;
 
+import java.util.Scanner;
+
 class TakeOrder extends State
 {
+    private Scanner scanner;
+
     public TakeOrder(VendingMachine vendingMachine)
     {
         super(vendingMachine);
+
+        scanner = new Scanner(System.in);
     }
 
     @Override
@@ -12,7 +18,7 @@ class TakeOrder extends State
     {
         System.out.println("Taking money: ");
 
-        int money = Scanner.stdin.nextInt();
+        int money = scanner.nextInt();
 
         if(vendingMachine.GetCount() > 0)
         {

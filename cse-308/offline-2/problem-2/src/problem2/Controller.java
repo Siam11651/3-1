@@ -49,7 +49,7 @@ class Controller implements IController
         System.out.println(" sent to exam controller office");
     }
 
-    public void Notify(AcademicComponent notifier, String command, String params)
+    public void Notify(AcademicPerson notifier, String command, String params)
     {
         if(notifier instanceof Examiner)
         {

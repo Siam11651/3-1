@@ -3,7 +3,7 @@ package problem2;
 import java.util.Random;
 import java.util.Vector;
 
-class Examiner extends AcademicComponent
+class Examiner extends AcademicPerson
 {
     private Random random;
     private Vector<Script> scripts;
@@ -62,6 +62,8 @@ class Examiner extends AcademicComponent
             {
                 System.out.println("Claim rejected");
             }
+
+            System.out.println("id: " + id + ", marks: " + scripts.get(scriptIndex).GetMarks());
         }
     }
 
