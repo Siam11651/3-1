@@ -32,29 +32,35 @@ class Examiner extends AcademicComponent
     public void Reexamine(int id, int claim)
     {
         int action = random.nextInt(5);
+        int scriptIndex = -1;
 
-        if(action < 3)
+        for(int i = 0; i < scripts.size(); ++i)
         {
-            for(int i = 0; i < scripts.size(); ++i)
+            if(scripts.get(i).GetID() == id)
             {
-                if(scripts.get(i).GetID() == id)
-                {
-                    scripts.get(i).SetMarks(claim);
+                scriptIndex = i;
 
-                    break;
-                }
+                break;
             }
         }
-        else if(action < 4)
-        {
-            for(int i = 0; i < scripts.size(); ++i)
-            {
-                if(scripts.get(i).GetID() == id)
-                {
-                    scripts.get(i).SetMarks(random.nextInt(scripts.get(i).GetMarks()));
 
-                    break;
-                }
+        if(scriptIndex > -1)
+        {
+            if(action < 3)
+            {
+                System.out.println("Claim accepted");
+
+                scripts.get(scriptIndex).SetMarks(claim);
+            }
+            else if(action < 4)
+            {
+                System.out.println("Claim rejected and marks reduced");
+
+                scripts.get(scriptIndex).SetMarks(random.nextInt(scripts.get(scriptIndex).GetMarks()));
+            }
+            else
+            {
+                System.out.println("Claim rejected");
             }
         }
     }

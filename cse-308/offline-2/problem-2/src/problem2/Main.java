@@ -32,6 +32,8 @@ class Main
 
         Scanner scanner = new Scanner(System.in);
 
+        System.out.println("Taking reexamine requests: [id claim]");
+
         while(true)
         {
             int id = scanner.nextInt();

@@ -65,6 +65,17 @@ class Controller implements IController
                 int claim = Integer.parseInt(params);
 
                 examiner.Reexamine(((Student)notifier).GetID(), claim);
+
+                for(int i = 0; i < scripts.size(); ++i)
+                {
+                    for(int j = 0; j < students.size(); ++j)
+                    {
+                        if(scripts.get(i).GetID() == students.get(j).GetID())
+                        {
+                            students.get(j).SetMarks(scripts.get(i).GetMarks());
+                        }
+                    }
+                }
             }
         }
     }
@@ -121,43 +132,6 @@ class Controller implements IController
         for(int i = 0; i < students.size(); ++i)
         {
             System.out.println("id: " +  students.get(i).GetID() + "; marks: " + students.get(i).GetMarks());
-        }
-    }
-
-    public void Reexamine(int id, int claim)
-    {
-        System.out.println("Reexamine request got from student id " + id);
-
-        int index = -1;
-
-        for(int i = 0; i < scripts.size(); ++i)
-        {
-            for(int j = 0; j < students.size(); ++j)
-            {
-                if(scripts.get(i).GetID() == students.get(j).GetID())
-                {
-                    index = j;
-                }
-            }
-        }
-
-        int previous = students.get(index).GetMarks();
-        
-        examiner.Reexamine(id, claim);
-        
-        int newMarks = students.get(index).GetMarks();
-
-        if(previous > newMarks)
-        {
-            System.out.println("Marks deduced, id: " + id + ", previous: " + previous + ", later: " + newMarks);
-        }
-        else if(previous == newMarks)
-        {
-            System.out.println("Marks unchanged");
-        }
-        else
-        {
-            System.out.println("Marks increased, id: " + id + ", previous: " + previous + ", later: " + newMarks);
         }
     }
 }
