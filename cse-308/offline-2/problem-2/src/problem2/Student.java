@@ -8,17 +8,15 @@ public class Student extends AcademicComponent
     public Student(int id, Controller controller)
     {
         super(controller);
+
+        this.id = id;
+
         SetMarks(101); // 101 means not set yet, kinda null
     }
 
     public void Notify(String command, String params)
     {
         controller.Notify(this, command, params);
-    }
-
-    public void SetID(int id)
-    {
-        this.id = id;
     }
 
     public int GetID()

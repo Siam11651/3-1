@@ -20,7 +20,7 @@ class Controller implements IController
         this.examiner = examiner;
     }
 
-    public void SetStudenst(Vector<Student> students)
+    public void SetStudents(Vector<Student> students)
     {
         this.students = students;
     }
@@ -40,7 +40,7 @@ class Controller implements IController
         {
             if(i > 0)
             {
-                System.out.println(", ");
+                System.out.print(", ");
             }
 
             System.out.print(i + 1);
@@ -116,6 +116,8 @@ class Controller implements IController
             }
         }
 
+        System.out.println("Final marks:");
+
         for(int i = 0; i < students.size(); ++i)
         {
             System.out.println("id: " +  students.get(i).GetID() + "; marks: " + students.get(i).GetMarks());
@@ -126,7 +128,7 @@ class Controller implements IController
     {
         System.out.println("Reexamine request got from student id " + id);
 
-        examiner.Reexamine(id, claim);
+        int index = -1;
 
         for(int i = 0; i < scripts.size(); ++i)
         {
@@ -134,9 +136,28 @@ class Controller implements IController
             {
                 if(scripts.get(i).GetID() == students.get(j).GetID())
                 {
-                    
+                    index = j;
                 }
             }
+        }
+
+        int previous = students.get(index).GetMarks();
+        
+        examiner.Reexamine(id, claim);
+        
+        int newMarks = students.get(index).GetMarks();
+
+        if(previous > newMarks)
+        {
+            System.out.println("Marks deduced, id: " + id + ", previous: " + previous + ", later: " + newMarks);
+        }
+        else if(previous == newMarks)
+        {
+            System.out.println("Marks unchanged");
+        }
+        else
+        {
+            System.out.println("Marks increased, id: " + id + ", previous: " + previous + ", later: " + newMarks);
         }
     }
 }
