@@ -3,7 +3,7 @@ package problem2;
 import java.util.Random;
 import java.util.Vector;
 
-class Controller
+class Controller implements IController
 {
     private Examiner examiner;
     private Vector<Student> students;
@@ -47,6 +47,26 @@ class Controller
         }
 
         System.out.println(" sent to exam controller office");
+    }
+
+    public void Notify(AcademicComponent notifier, String command, String params)
+    {
+        if(notifier instanceof Examiner)
+        {
+            if(command.equalsIgnoreCase("send_to_controller"))
+            {
+                SendToController(((Examiner)notifier).GetScripts());
+            }
+        }
+        else if(notifier instanceof Student)
+        {
+            if(command.equalsIgnoreCase("reexamine"))
+            {
+                int claim = Integer.parseInt(params);
+
+                examiner.Reexamine(((Student)notifier).GetID(), claim);
+            }
+        }
     }
 
     public void Scrutinize()

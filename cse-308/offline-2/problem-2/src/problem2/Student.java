@@ -1,16 +1,19 @@
 package problem2;
 
-public class Student
+public class Student extends AcademicComponent
 {
     private int id;
     private int marks;
-    private Controller controller;
 
     public Student(int id, Controller controller)
     {
-        this.controller = controller;
-
+        super(controller);
         SetMarks(101); // 101 means not set yet, kinda null
+    }
+
+    public void Notify(String command, String params)
+    {
+        controller.Notify(this, command, params);
     }
 
     public void SetID(int id)
@@ -36,7 +39,6 @@ public class Student
     public void ReexamineRequest(int claim)
     {
         System.out.println("Reexamine request sent to student id " + id);
-
-        controller.Reexamine(id, claim);
+        controller.Notify(this, "reexamine", Integer.toString(claim));
     }
 }

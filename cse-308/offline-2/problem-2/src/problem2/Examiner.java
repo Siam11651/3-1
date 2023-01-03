@@ -3,22 +3,22 @@ package problem2;
 import java.util.Random;
 import java.util.Vector;
 
-class Examiner
+class Examiner extends AcademicComponent
 {
     private Random random;
     private Vector<Script> scripts;
-    private Controller controller;
 
     public Examiner(Controller controller, Vector<Script> scripts)
     {
+        super(controller);
+
         random = new Random();
-        this.controller = controller;
         this.scripts = scripts;
     }
 
     public void SendToController()
     {
-        controller.SendToController(scripts);
+        controller.Notify(this, "send_to_controller", null);
     }
 
     public void Examine()
@@ -57,5 +57,10 @@ class Examiner
                 }
             }
         }
+    }
+
+    public Vector<Script> GetScripts()
+    {
+        return scripts;
     }
 }
