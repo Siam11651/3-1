@@ -38,10 +38,7 @@ class VendingMachine
 
     public void Simulate()
     {
-        while(true)
-        {
-            state.Simulate();
-        }
+        state.Simulate();
     }
 
     public void SetState(State state)

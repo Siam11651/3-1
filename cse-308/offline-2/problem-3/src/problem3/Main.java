@@ -6,6 +6,9 @@ public class Main
     {
         VendingMachine vendingMachine = new VendingMachine(100, 5);
 
-        vendingMachine.Simulate();
+        while(true)
+        {
+            vendingMachine.Simulate();
+        }
     }
 }
