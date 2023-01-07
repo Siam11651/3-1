@@ -10,7 +10,7 @@ class NoOrder extends State
     @Override
     public void Simulate()
     {
-        System.out.println("No Product Left");
+        System.out.println("No Product Left. Returning money");
         vendingMachine.SetState(new TakeOrder(vendingMachine));
     }
 }
