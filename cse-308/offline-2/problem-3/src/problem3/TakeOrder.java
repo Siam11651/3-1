@@ -14,7 +14,7 @@ class TakeOrder extends State
     }
 
     @Override
-    public void Simulate()
+    public void InsertMoney()
     {
         System.out.println("Taking money: ");
 
@@ -39,5 +39,17 @@ class TakeOrder extends State
         {
             vendingMachine.SetState(new NoOrder(vendingMachine));
         }
+    }
+
+    @Override
+    public void ReturnMoney()
+    {
+
+    }
+
+    @Override
+    public void Dispense()
+    {
+        
     }
 }

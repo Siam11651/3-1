@@ -36,13 +36,28 @@ class VendingMachine
         return count;
     }
 
-    public void Simulate()
+    public void InsertMoney()
     {
-        state.Simulate();
+        state.InsertMoney();
+    }
+
+    public void ReturnMoney()
+    {
+        state.ReturnMoney();
+    }
+
+    public void Dispense()
+    {
+        state.Dispense();
     }
 
     public void SetState(State state)
     {
         this.state = state;
+    }
+
+    public State GetState()
+    {
+        return state;
     }
 }

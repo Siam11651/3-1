@@ -12,10 +12,22 @@ class MoreMoney extends State
     }
 
     @Override
-    public void Simulate()
+    public void InsertMoney()
+    {
+
+    }
+
+    @Override
+    public void ReturnMoney()
     {
         System.out.println("Extra by: " + extra + ", returning...");
 
         vendingMachine.SetState(new Transaction(vendingMachine));
+    }
+
+    @Override
+    public void Dispense()
+    {
+        
     }
 }

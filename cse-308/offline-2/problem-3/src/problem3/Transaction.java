@@ -8,10 +8,30 @@ class Transaction extends State
     }
 
     @Override
-    public void Simulate()
+    public void InsertMoney()
     {
-        System.out.println("Extracting product");
+
+    }
+
+    @Override
+    public void ReturnMoney()
+    {
+
+    }
+
+    @Override
+    public void Dispense()
+    {
+        System.out.println("Dispensing product");
         vendingMachine.SetCount(vendingMachine.GetCount() - 1);
-        vendingMachine.SetState(new TakeOrder(vendingMachine));
+
+        if(vendingMachine.GetCount() > 0)
+        {
+            vendingMachine.SetState(new TakeOrder(vendingMachine));
+        }
+        else
+        {
+            vendingMachine.SetState(new NoOrder(vendingMachine));
+        }
     }
 }

@@ -6,9 +6,13 @@ public class Main
     {
         VendingMachine vendingMachine = new VendingMachine(100, 5);
 
-        while(true)
+        while(!(vendingMachine.GetState() instanceof NoOrder))
         {
-            vendingMachine.Simulate();
+            vendingMachine.InsertMoney();
+            vendingMachine.ReturnMoney();
+            vendingMachine.Dispense();
         }
+
+        System.out.println("Out of products");
     }
 }

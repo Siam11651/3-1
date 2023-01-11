@@ -9,5 +9,7 @@ abstract class State
         this.vendingMachine = vendingMachine;
     }
 
-    public abstract void Simulate();
+    public abstract void InsertMoney();
+    public abstract void ReturnMoney();
+    public abstract void Dispense();
 }

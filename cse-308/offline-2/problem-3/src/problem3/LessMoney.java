@@ -16,7 +16,7 @@ class LessMoney extends State
     }
 
     @Override
-    public void Simulate()
+    public void InsertMoney()
     {
         System.out.println("Money less by: " + money);
         System.out.println("Add more money: ");
@@ -36,4 +36,17 @@ class LessMoney extends State
             vendingMachine.SetState(new LessMoney(vendingMachine, money - paid));
         }
     }
+
+    @Override
+    public void ReturnMoney()
+    {
+
+    }
+
+    @Override
+    public void Dispense()
+    {
+
+    }
+
 }
