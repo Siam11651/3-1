@@ -19,7 +19,6 @@ size_t lineCount = 1;
 size_t errorCount = 0;
 std::ofstream logStream;
 std::stringstream symbolTablePrinter;
-bool enterNewScope;
 
 std::string FormatLiteral(const std::string yytext)
 {
@@ -141,8 +140,6 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 "if"	{
             st->EnterScope();
 
-            enterNewScope = true;
-
             logStream << "Line# " << lineCount << ": Token <IF> Lexeme " << yytext << " found" << std::endl;
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "IF");
@@ -156,10 +153,6 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 		}
 		
 "else"	{
-            st->EnterScope();
-
-            enterNewScope = true;
-
 			logStream << "Line# " << lineCount << ": Token <ELSE> Lexeme " << yytext << " found" << std::endl;   
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "ELSE");
@@ -173,10 +166,6 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 		}
 
 "for"   {
-            st->EnterScope();
-
-            enterNewScope = true;
-
             logStream << "Line# " << lineCount << ": Token <FOR> Lexeme " << yytext << " found" << std::endl;
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "FOR");
@@ -517,15 +506,6 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 		}
 
 "{"     {
-            if(enterNewScope)
-            {
-                enterNewScope = false;
-            }
-            else
-            {
-                st->EnterScope();
-            }
-
 			logStream << "Line# " << lineCount << ": Token <LCURL> Lexeme " << yytext << " found" << std::endl;
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "LCURL");
@@ -591,12 +571,6 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 		}
 
 ";"     {
-            if(enterNewScope)
-            {
-                enterNewScope = false;
-                st->ExitScope();
-            }
-
 			logStream << "Line# " << lineCount << ": Token <SEMICOLON> Lexeme " << yytext << " found" << std::endl;
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "SEMICOLON");

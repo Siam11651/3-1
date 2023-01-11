@@ -25,5 +25,6 @@ public:
     void PrintCurrentScope();
     void PrintAllScope();
     size_t GetScopeCount();
+    void FalseScope();
     ~SymbolTable();
 };

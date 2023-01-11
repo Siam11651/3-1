@@ -18,9 +18,6 @@ std::ofstream parseTreeStream;
 extern std::ofstream logStream;
 extern size_t lineCount;
 extern size_t errorCount;
-extern bool enterNewScope;
-
-size_t depth = 0;
 
 void yyerror(char *s)
 {
@@ -205,59 +202,72 @@ unit    :   var_declaration
 			parseTreeStack.push(unit_node);
 		}
         ;
-     
-func_declaration    :   type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
-					{
-						$2->SetIDType("FUNCTION");
-						$2->SetArray(false);
 
+func_start	:	type_specifier ID LPAREN
+			{
+				ParseTreeNode type_specifier_node = parseTreeStack.top();
+
+				parseTreeStack.pop();
+
+				$2->SetIDType("FUNCTION");
+				$2->SetArray(false);
+				$2->SetDataType(type_specifier_node.children[0].name);
+				st->Insert(*$2);
+
+				ParseTreeNode id_node = {"ID", true, {}, $2};
+				ParseTreeNode lparen_node = {"LPAREN", true, {}, $3};
+
+				ParseTreeNode func_start_node = {"func_start", false, {type_specifier_node, id_node, lparen_node}, NULL};
+
+				parseTreeStack.push(func_start_node);
+				st->EnterScope();
+			}
+			;
+     
+func_declaration    :	func_start parameter_list RPAREN SEMICOLON
+					{
 						logStream << "func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON" << std::endl;
 
 						ParseTreeNode parameter_list_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
 
-						ParseTreeNode type_specifier_node = parseTreeStack.top();
+						ParseTreeNode func_start_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
 
-						ParseTreeNode id_node = {"id", true, {}, $2};
-						ParseTreeNode lparen_node = {"LPAREN", true, {}, $3};
-						ParseTreeNode rparen_node = {"RPAREN", true, {}, $5};
-						ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $6};
-						ParseTreeNode func_declaration_node = {"func_declaration", false, {type_specifier_node, id_node, lparen_node, parameter_list_node, rparen_node, semicolon_node}, NULL};
+						ParseTreeNode rparen_node = {"RPAREN", true, {}, $3};
+						ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $4};
+						ParseTreeNode func_declaration_node = {"func_declaration", false, {func_start_node.children[0], func_start_node.children[1], func_start_node.children[2], parameter_list_node, rparen_node, semicolon_node}, NULL};
 					
-						SetLine(func_declaration_node);
 						parseTreeStack.push(func_declaration_node);
-						$2->SetDataType(type_specifier_node.children[0].name);
-						st->Insert(*$2);
+						SetLine(parseTreeStack.top());
+						st->ExitScope();
+						st->FalseScope();
 					}
-		            |   type_specifier ID LPAREN RPAREN SEMICOLON
+		            |	func_start RPAREN SEMICOLON
 					{
-						$2->SetIDType("FUNCTION");
-						$2->SetArray(false);
-
 						logStream << "func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON" << std::endl;
 
-						ParseTreeNode type_specifier_node = parseTreeStack.top();
+						ParseTreeNode func_start_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
 
-						ParseTreeNode id_node = {"ID", true, {}, $2};
-						ParseTreeNode lparen_node = {"LPAREN", true, {}, $3};
-						ParseTreeNode rparen_node = {"RPAREN", true, {}, $4};
-						ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $5};
-						ParseTreeNode func_declaration_node = {"func_declaration", false, {type_specifier_node, id_node, lparen_node, rparen_node, semicolon_node}};
-
-						SetLine(func_declaration_node);
+						ParseTreeNode rparen_node = {"RPAREN", true, {}, $2};
+						ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $3};
+						ParseTreeNode func_declaration_node = {"func_declaration", false, {func_start_node.children[0], func_start_node.children[1], func_start_node.children[2], rparen_node, semicolon_node}, NULL};
+					
 						parseTreeStack.push(func_declaration_node);
-						$2->SetDataType(type_specifier_node.children[0].name);
-						st->Insert(*$2);
+						SetLine(parseTreeStack.top());
+						st->ExitScope();
+						st->FalseScope();
 					}
 		            ;
 		 
-func_definition	:	type_specifier ID LPAREN parameter_list RPAREN compound_statement
+func_definition	:	func_start parameter_list RPAREN compound_statement
 				{
+					logStream << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement" << std::endl;
+
 					ParseTreeNode compound_statement_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -266,63 +276,38 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN compound_statem
 
 					parseTreeStack.pop();
 
-					ParseTreeNode type_specifier_node = parseTreeStack.top();
+					ParseTreeNode func_start_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
 
-					ParseTreeNode id_node = {"ID", true, {}, $2};
-					ParseTreeNode lparen_node = {"LPAREN", true, {}, $3};
-					ParseTreeNode rparen_node = {"RPAREN", true, {}, $5};
-					ParseTreeNode func_definition_node = {"func_definition", false, {type_specifier_node, id_node, lparen_node, parameter_list_node, rparen_node, compound_statement_node}, NULL};
-
+					ParseTreeNode rparen_node = {"RPAREN", true, {}, $3};
+					ParseTreeNode func_definition_node = {"func_definition", false, {func_start_node.children[0], func_start_node.children[1], func_start_node.children[2], parameter_list_node, rparen_node, compound_statement_node}, NULL};
+				
 					SetLine(func_definition_node);
 					parseTreeStack.push(func_definition_node);
-					$2->SetIDType("FUNCTION");
-					$2->SetArray(false);
-					$2->SetDataType(type_specifier_node.children[0].name);
-					st->InsertPrevious(*$2);
-					st->PrintAllScope();
-					st->ExitScope();
-
-					logStream << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement" << std::endl;
 				}
-				|	type_specifier ID LPAREN RPAREN compound_statement
+				|	func_start RPAREN compound_statement
 				{
+					logStream << "func_definition : type_specifier ID LPAREN RPAREN compound_statement" << std::endl;
+
 					ParseTreeNode compound_statement_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
 
-					ParseTreeNode type_specifier_node = parseTreeStack.top();
+					ParseTreeNode func_start_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
 
-					ParseTreeNode id_node = {"ID", true, {}, $2};
-					ParseTreeNode lparen_node = {"LPAREN", true, {}, $3};
-					ParseTreeNode rparen_node = {"RPAREN", true, {}, $4};
-					ParseTreeNode func_definition_node = {"func_definition", false, {type_specifier_node, id_node, lparen_node, rparen_node, compound_statement_node}, NULL};
-
+					ParseTreeNode rparen_node = {"RPAREN", true, {}, $2};
+					ParseTreeNode func_definition_node = {"func_definition", false, {func_start_node.children[0], func_start_node.children[1], func_start_node.children[2], rparen_node, compound_statement_node}, NULL};
+				
 					SetLine(func_definition_node);
 					parseTreeStack.push(func_definition_node);
-					$2->SetIDType("FUNCTION");
-					$2->SetArray(false);
-					$2->SetDataType(type_specifier_node.children[0].name);
-					st->InsertPrevious(*$2);
-					st->PrintAllScope();
-					st->ExitScope();
-
-					logStream << "func_definition : type_specifier ID LPAREN RPAREN compound_statement" << std::endl;
 				}
  				;
 
 parameter_list	:	parameter_list COMMA type_specifier ID
 				{
-					if(!enterNewScope)
-					{
-						enterNewScope = true;
-
-						st->EnterScope();
-					}
-
 					logStream << "parameter_list  : parameter_list COMMA type_specifier ID" << std::endl;
 
 					ParseTreeNode type_specifier_node = parseTreeStack.top();
@@ -347,13 +332,6 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 				}
 				|	parameter_list COMMA type_specifier
 				{
-					if(!enterNewScope)
-					{
-						enterNewScope = true;
-
-						st->EnterScope();
-					}
-
 					logStream << "parameter_list  : parameter_list COMMA type_specifier" << std::endl;
 
 					ParseTreeNode type_specifier_node = parseTreeStack.top();
@@ -372,13 +350,6 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 				}
  				|	type_specifier ID
 				{
-					if(!enterNewScope)
-					{
-						enterNewScope = true;
-
-						st->EnterScope();
-					}
-
 					logStream << "parameter_list  : type_specifier ID" << std::endl;
 
 					ParseTreeNode type_specifier_node = parseTreeStack.top();
@@ -400,13 +371,6 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 				}
 				|	type_specifier
 				{
-					if(!enterNewScope)
-					{
-						enterNewScope = true;
-
-						st->EnterScope();
-					}
-
 					logStream << "parameter_list  : type_specifier" << std::endl;
 
 					ParseTreeNode type_specifier_node = parseTreeStack.top();
@@ -424,6 +388,9 @@ compound_statement	:	LCURL statements RCURL
 					{
 						logStream << "compound_statement : LCURL statements RCURL" << std::endl;
 
+						st->PrintAllScope();
+						st->ExitScope();
+
 						ParseTreeNode statements_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
@@ -437,9 +404,10 @@ compound_statement	:	LCURL statements RCURL
 					}
  		            |	LCURL RCURL
 					{
-						logStream << "compund_statement : LCURL RCURL" << std::endl;
-
 						st->PrintAllScope();
+						st->ExitScope();
+
+						logStream << "compund_statement : LCURL RCURL" << std::endl;
 
 						ParseTreeNode lcurl_node = {"LCURL", true, {}, $1};
 						ParseTreeNode rcurl_node = {"RCURL", true, {}, $2};
@@ -646,7 +614,11 @@ statement	:   var_declaration
 				SetLine(statement_node);
 				parseTreeStack.push(statement_node);
 			}
-			|   FOR LPAREN expression_statement expression_statement expression RPAREN statement
+			|   FOR 
+			{
+				st->EnterScope();
+			}
+			LPAREN expression_statement expression_statement expression RPAREN statement
 			{
 				logStream << "statement : FOR LPAREN expression_statement expression_statement expression RPAREN statement" << std::endl;
 
@@ -674,7 +646,11 @@ statement	:   var_declaration
 				SetLine(statement_node);
 				parseTreeStack.push(statement_node);
 			}
-			|   WHILE LPAREN expression RPAREN statement
+			|   WHILE
+			{
+				st->EnterScope();
+			}
+			LPAREN expression RPAREN statement
 			{
 				logStream << "statement : WHILE LPAREN expression RPAREN statement" << std::endl;
 
@@ -729,7 +705,11 @@ statement	:   var_declaration
 				SetLine(statement_node);
 				parseTreeStack.push(statement_node);
 			}
-	  		| IF LPAREN expression RPAREN statement ELSE statement
+	  		| IF LPAREN expression RPAREN statement ELSE
+			{
+				st->EnterScope();
+			}
+			statement
 			{
 				logStream << "statement : IF LPAREN expression RPAREN statement ELSE statement" << std::endl;
 
@@ -1151,8 +1131,6 @@ arguments   :   arguments COMMA logic_expression
 
 int main(int argc,char *argv[])
 {
-	enterNewScope = false;
-
 	parseTreeStream.open("1905039_parsetree.txt");
 	logStream.open("1905039_log.txt");
 

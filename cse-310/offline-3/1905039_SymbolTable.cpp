@@ -103,6 +103,11 @@ size_t SymbolTable::GetScopeCount()
     return scopeCount;
 }
 
+void SymbolTable::FalseScope()
+{
+    --maxScopeCount;
+}
+
 SymbolTable::~SymbolTable()
 {
     ScopeTable *next = currentScope;
