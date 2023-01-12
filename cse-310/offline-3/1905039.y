@@ -18,6 +18,8 @@ std::ofstream parseTreeStream;
 extern std::ofstream logStream;
 extern size_t lineCount;
 extern size_t errorCount;
+SymbolInfo *function;
+SymbolInfo *present;
 
 void yyerror(char *s)
 {
@@ -89,8 +91,15 @@ void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symb
 {
 	if(root.terminal && root.name == "ID")
 	{
-		root.symbolInfo->SetDataType(dataType);
-		symbolTable->Insert(*root.symbolInfo);
+		if(dataType == "void")
+		{
+			// void data type declaration
+		}
+		else
+		{
+			root.symbolInfo->SetDataType(dataType);
+			symbolTable->Insert(root.symbolInfo);
+		}
 	}
 	else
 	{
@@ -98,6 +107,194 @@ void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symb
 		{
 			InsertID(root.children[i], dataType, symbolTable);
 		}
+	}
+}
+
+void SetParams(ParseTreeNode &root, std::vector<std::string> &paramList)
+{
+	if(root.children.size() == 3 || root.children.size() == 4)
+	{
+		std::pair<std::string, std::string> param = {root.children[2].children[0].name, if(root.children.size() == 4) ? root.children[3].children[0].name : ""};
+		paramList.push_back(param);
+
+		SetParams(root.children[0], paramList);
+	}
+	else if(root.children.size() == 2 || root.children.size() == 1)
+	{
+		std::pair<std::string, std::string> param = {root.children[2].children[0].name, if(root.children.size() == 2) ? root.children[1].children[0].name : ""};
+		paramList.push_back(param);
+	}
+}
+
+std::string GetVariableDataType(ParseTreeNode &root)
+{
+	return root.children[0].symbolInfo->GetDataType();
+}
+
+std::string GetFactorDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		if(root.children[0].name == "variable")
+		{
+			return GetVariableDataType(root.children[0]);
+		}
+		else
+		{
+			if(root.children[0].name == "CONST_FLOAT")
+			{
+				return "float";
+			}
+			else
+			{
+				return "int";
+			}
+		}
+	}
+	else if(root.children.size() == 2)
+	{
+		return GetVariableDataType(root.children[0]);
+	}
+	else if(root.children.size() == 3)
+	{
+		return GetExpressionDataType(root.children[1]);
+	}
+	else
+	{
+		SymbolInfo* function = st->LookUpFunction(root.children[0].symbolInfo->GetName());
+
+		return function->GetDataType();
+	}
+}
+
+std::string GetUnaryExpressionDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetFactorDataType(root.children[0]);
+	}
+	else
+	{
+		std::string type = GetUnaryExpressionDataType(root.children[1]);
+
+		if(type == "void")
+		{
+			// void in expression error
+
+			return "";
+		}
+		else
+		{
+			return type;
+		}
+	}
+}
+
+std::string GetTermDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetUnaryExpressionDataType(root.children[0]);
+	}
+	else
+	{
+		std::string term = GetTermDataType(root.children[0]);
+		std::string unaryExpession = GetUnaryExpressionDataType(root.children[2]);
+
+		if(unaryExpession == "")
+		{
+			return "";
+		}
+		else if(term == "void" || unaryExpession == "void")
+		{
+			// void in expression error
+
+			return "";
+		}
+		else
+		{
+			if(term == "float" || unaryExpession == "float")
+			{
+				if(root.children[1].symbol->GetName() == "%")
+				{
+					// operands of modulus warning
+				}
+
+				return "float";
+			}
+			else
+			{
+				return "int";
+			}
+		}
+	}
+}
+
+std::string GetSimpleExpressionDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetTermDataType(root.children[0]);
+	}
+	else
+	{
+		std::string simpleExpression = GetSimpleExpressionDataType(root.children[0]);
+		std::string term = GetTermDataType(root.children[2]);
+
+		if(simpleExpression == "" || term == "")
+		{
+			return "";
+		}
+		else if(term == "void")
+		{
+			// void in expression error
+
+			return "";
+		}
+		else if(simpleExpression == "float" || term == "float")
+		{
+			return "float";
+		}
+		else
+		{
+			return "int";
+		}
+	}
+}
+
+std::string GetRelExpressionDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetSimpleExpressionDataType(root.children[0]);
+	}
+	else
+	{
+		return "int"; // relop always give int
+	}
+}
+
+std::string GetLoginExpressionDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetRelExpressionDataType(root.children[0]);
+	}
+	else // else 3
+	{
+		return "int"; // logic op always give int
+	}
+}
+
+std::string GetExpressionDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetLoginExpressionDataType(root);
+	}
+	else // else 3
+	{
+		return GetVariableDataType(root.children[0]);
 	}
 }
 
@@ -212,7 +409,19 @@ func_start	:	type_specifier ID LPAREN
 				$2->SetIDType("FUNCTION");
 				$2->SetArray(false);
 				$2->SetDataType(type_specifier_node.children[0].name);
-				st->Insert(*$2);
+				
+				present = NULL;
+				function = NULL;
+
+				if(present == NULL)
+				{
+					st->InsertFunction($2);
+					function = $2;
+				}
+				else
+				{
+					function = present;
+				}
 
 				ParseTreeNode id_node = {"ID", true, {}, $2};
 				ParseTreeNode lparen_node = {"LPAREN", true, {}, $3};
@@ -236,6 +445,38 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 
 						parseTreeStack.pop();
 
+						if(present == NULL)
+						{
+							std::vector<std::string> paramList;
+							SetParams(parameter_list_node, paramList);
+
+							bool ok = true;
+
+							for(size_t i = 0; ok && (i < paramList.size() - 1); ++i)
+							{
+								for(size_t j = i + 1; ok && (j < paramList.size()); ++j)
+								{
+									if(paramList[i].second == paramList[j].second)
+									{
+										ok = false;
+									}
+								}
+							}
+
+							if(ok)
+							{
+								function->SetParamList(paramList);
+							}
+							else
+							{
+								// Redefinition of parameter
+							}
+						}
+						else
+						{
+							// redeclaration of same function
+						}
+
 						ParseTreeNode rparen_node = {"RPAREN", true, {}, $3};
 						ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $4};
 						ParseTreeNode func_declaration_node = {"func_declaration", false, {func_start_node.children[0], func_start_node.children[1], func_start_node.children[2], parameter_list_node, rparen_node, semicolon_node}, NULL};
@@ -252,6 +493,11 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 						ParseTreeNode func_start_node = parseTreeStack.top();
 
 						parseTreeStack.pop();
+
+						if(present != NULL)
+						{
+							// redeclaration
+						}
 
 						ParseTreeNode rparen_node = {"RPAREN", true, {}, $2};
 						ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $3};
@@ -280,6 +526,86 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 
 					parseTreeStack.pop();
 
+					function->SetDefined(true);
+
+					if(present == NULL)
+					{
+						std::vector<std::string> paramList;
+
+						SetParams(parameter_list_node, paramList);
+
+						bool ok = true;
+
+						for(size_t i = 0; ok && (i < paramList.size() - 1); ++i)
+						{
+							for(size_t j = i + 1; ok && (j < paramList.size()); ++j)
+							{
+								if(paramList[i].second == paramList[j].second)
+								{
+									ok = false;
+								}
+							}
+						}
+
+						if(ok)
+						{
+							function->SetParamList(paramList);
+						}
+						else
+						{
+							// Redefinition of parameter
+						}
+					}
+					else
+					{
+						if(present->GetIDType() == "FUNCTION")
+						{
+							if(present->GetDefined())
+							{
+								// redefinition
+							}
+							else
+							{
+								if(present->GetDataType() == function->GetDataType())
+								{
+									std::vector<std::string> paramList;
+						
+									SetParams(parameter_list_node, paramList);
+
+									bool ok = true;
+
+									for(size_t i = 0; ok && (i < paramList.size() - 1); ++i)
+									{
+										for(size_t j = i + 1; ok && (j < paramList.size()); ++j)
+										{
+											if(paramList[i].second == paramList[j].second)
+											{
+												ok = false;
+											}
+										}
+									}
+
+									if(ok)
+									{
+										function->SetParamList(paramList);
+									}
+									else
+									{
+										// Redefinition of parameter
+									}
+								}
+								else
+								{
+									// Conflicting types for
+								}
+							}
+						}
+						else
+						{
+							// redeclared as different kind of symbol
+						}
+					}
+
 					ParseTreeNode rparen_node = {"RPAREN", true, {}, $3};
 					ParseTreeNode func_definition_node = {"func_definition", false, {func_start_node.children[0], func_start_node.children[1], func_start_node.children[2], parameter_list_node, rparen_node, compound_statement_node}, NULL};
 				
@@ -298,6 +624,44 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 
 					parseTreeStack.pop();
 
+					function->SetDefined(true);
+
+					if(present == NULL)
+					{
+						std::vector<std::string> paramList;
+
+						SetParams(parameter_list_node, paramList);
+						function->SetParamList(paramList);
+					}
+					else
+					{
+						if(present->GetIDType() == "FUNCTION")
+						{
+							if(present->GetDefined())
+							{
+								// redefinition
+							}
+							else
+							{
+								if(present->GetDataType() == function->GetDataType())
+								{
+									std::vector<std::string> paramList;
+						
+									SetParams(parameter_list_node, paramList);
+									function->SetParamList(paramList);
+								}
+								else
+								{
+									// Conflicting types for
+								}
+							}
+						}
+						else
+						{
+							// redeclared as different kind of symbol
+						}
+					}
+
 					ParseTreeNode rparen_node = {"RPAREN", true, {}, $2};
 					ParseTreeNode func_definition_node = {"func_definition", false, {func_start_node.children[0], func_start_node.children[1], func_start_node.children[2], rparen_node, compound_statement_node}, NULL};
 				
@@ -315,7 +679,7 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 					$4->SetIDType("VARIABLE");
 					$4->SetDataType(type_specifier_node.children[0].name);
 					$4->SetArray(false);
-					st->Insert(*$4);
+					st->Insert($4);
 
 					parseTreeStack.pop();
 
@@ -357,7 +721,7 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 					$2->SetIDType("VARIABLE");
 					$2->SetDataType(type_specifier_node.children[0].name);
 					$2->SetArray(false);
-					st->Insert(*$2);
+					st->Insert($2);
 
 					// std::cout << "Line no: " << $2->GetSymbolStart() << ' ' << $2 << ' ' << $2->GetName() << std::endl;
 
@@ -766,6 +1130,24 @@ variable    :   ID
 			{
 				logStream << "variable : ID" << std::endl;
 
+				SymbolInfo *variablePtr = st->LookUp($2->GetName());
+
+				if(variablePtr == NULL)
+				{
+					// undeclared variable
+				}
+				else
+				{
+					if(variablePtr->GetIDType() == "FUNCTION")
+					{
+						// undeclared variable
+					}
+					else
+					{
+
+					}
+				}
+
 				ParseTreeNode id_node = {"ID", true, {}, $1};
 				ParseTreeNode variable_node = {"variable", false, {id_node}, NULL};
 
@@ -775,6 +1157,36 @@ variable    :   ID
 	        |   ID LSQUARE expression RSQUARE
 			{
 				logStream << "variable : ID LSQUARE expression RSQUARE" << std::endl;
+
+				if(variablePtr == NULL)
+				{
+					// undeclared variable
+				}
+				else
+				{
+					if(variablePtr->GetIDType() == "FUNCTION")
+					{
+						// undeclared variable
+					}
+					else
+					{
+						if(variablePtr->IsArray())
+						{
+							if(GetExpressionDataType(expression) == "int")
+							{
+
+							}
+							else
+							{
+								// Array subscript is not an integer
+							}
+						}
+						else
+						{
+							// not an array
+						}
+					}
+				}
 
 				ParseTreeNode expression_node = parseTreeStack.top();
 
@@ -1013,6 +1425,13 @@ factor  :   variable
 		}
 	    |   ID LPAREN argument_list RPAREN
 		{
+			SymbolInfo *function = st->LookUpFunction($1->GetName());
+
+			if(function == NULL)
+			{
+				// undeclared function
+			}
+
 			logStream << "factor\t: ID LPAREN argument_list RPAREN" << std::endl;
 
 			ParseTreeNode argument_list_node = parseTreeStack.top();

@@ -20,16 +20,16 @@ ScopeTable::ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent, st
     this->output = output;
 }
 
-bool ScopeTable::Insert(const SymbolInfo &symbol)
+bool ScopeTable::Insert(SymbolInfo *symbol)
 {
-    size_t hash = Hash(symbol.GetName());
+    size_t hash = Hash(symbol->GetName());
     size_t index = hash % numberOfBuckets;
     bool alreadyExists = false;
     SymbolInfo *next = buckets[index];
 
     while(next != NULL)
     {
-        if(next->GetName() == symbol.GetName())
+        if(next->GetName() == symbol->GetName())
         {
             alreadyExists = true;
 
@@ -44,14 +44,7 @@ bool ScopeTable::Insert(const SymbolInfo &symbol)
         return false;
     }
 
-    SymbolInfo *newSymbol = new SymbolInfo(symbol.GetName(), symbol.GetType());
-    newSymbol->SetIDType(symbol.GetIDType());
-    newSymbol->SetDataType(symbol.GetDataType());
-    newSymbol->SetArray(symbol.IsArray());
-    newSymbol->SetNext(buckets[index]);
-    newSymbol->SetSymbolStart(symbol.GetSymbolStart());
-    newSymbol->SetSymbolEnd(symbol.GetSymbolEnd());
-    buckets[index] = newSymbol;
+    buckets[index] = symbol;
     ++bucketSizes[index];
 
     return true;
@@ -92,9 +85,6 @@ bool ScopeTable::Delete(const std::string &symbolName)
     {
         SymbolInfo *toDelete = buckets[index];
         buckets[index] = buckets[index]->GetNext();
-
-        delete toDelete;
-
         --bucketSizes[index];
 
         return true;
@@ -111,9 +101,7 @@ bool ScopeTable::Delete(const std::string &symbolName)
                 SymbolInfo *toDelete = current->GetNext();
 
                 current->SetNext(current->GetNext()->GetNext());
-
-                delete toDelete;
-
+                
                 --bucketSizes[index];
 
                 return true;

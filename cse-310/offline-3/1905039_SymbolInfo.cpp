@@ -86,3 +86,23 @@ bool SymbolInfo::IsArray() const
 {
     return array;
 }
+
+void SymbolInfo::SetParamList(std::vector<std::pair<std::string, std::string>> &paramList)
+{
+    this->paramList = paramList;
+}
+
+std::vector<std::pair<std::string, std::string>> SymbolInfo::GetParamList() const
+{
+    return paramList;
+}
+
+void SymbolInfo::SetDefined(bool defined)
+{
+    this->defined = defined;
+}
+
+bool SymbolInfo::GetDefined() const
+{
+    return defined;
+}

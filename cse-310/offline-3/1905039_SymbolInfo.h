@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 class SymbolInfo
 {
@@ -9,6 +10,8 @@ private:
     size_t symbolStart, symbolEnd;
     SymbolInfo* next;
     bool array;
+    std::vector<std::pair<std::string, std::string>> paramList;
+    bool defined;
 public:
     SymbolInfo(const std::string &name, const std::string &type);
     void SetName(const std::string &name);
@@ -27,4 +30,8 @@ public:
     std::string GetDataType() const;
     bool IsArray() const;
     SymbolInfo *GetNext() const;
+    void SetParamList(std::vector<std::pair<std::string, std::string>> &paramList);
+    std::vector<std::pair<std::string, std::string>> GetParamList() const;
+    void SetDefined(bool defined);
+    bool GetDefined() const;
 };

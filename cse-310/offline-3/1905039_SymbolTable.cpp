@@ -29,19 +29,21 @@ void SymbolTable::ExitScope()
     }
 }
 
-bool SymbolTable::Insert(const SymbolInfo &symbol)
+bool SymbolTable::Insert(SymbolInfo *symbol)
 {
     return currentScope->Insert(symbol);
 }
 
-bool SymbolTable::InsertPrevious(const SymbolInfo &symbolInfo)
+void SymbolTable::InsertFunction(SymbolInfo *symbol)
 {
-    if(currentScope->GetParent() != NULL)
+    ScopeTable *scopeTable = currentScope;
+
+    while(scopeTable->GetParent() != NULL)
     {
-        return currentScope->GetParent()->Insert(symbolInfo);
+        scopeTable = scopeTable->GetParent();
     }
-    
-    return false;
+
+    scopeTable->Insert(symbol);
 }
 
 bool SymbolTable::Delete(const std::string &symbolName)
@@ -71,6 +73,18 @@ SymbolInfo *SymbolTable::LookUp(const std::string &symbolName)
     }
 
     return toReturn;
+}
+
+SymbolInfo *SymbolTable::LookUpFunction(const std::string &symbolName)
+{
+    ScopeTable *scopeTable = currentScope;
+
+    while(scopeTable->GetParent() != NULL)
+    {
+        scopeTable = scopeTable->GetParent();
+    }
+
+    return scopeTable->LookUp(symbolName);
 }
 
 void SymbolTable::PrintScope(ScopeTable *scope, size_t &start)
