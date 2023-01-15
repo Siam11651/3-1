@@ -44,6 +44,8 @@ bool ScopeTable::Insert(SymbolInfo *symbol)
         return false;
     }
 
+    symbol->SetNext(buckets[index]);
+
     buckets[index] = symbol;
     ++bucketSizes[index];
 

@@ -75,16 +75,21 @@ SymbolInfo *SymbolTable::LookUp(const std::string &symbolName)
     return toReturn;
 }
 
+SymbolInfo *SymbolTable::LookUpThisScope(const std::string &symbolName)
+{
+    return currentScope->LookUp(symbolName);
+}
+
 SymbolInfo *SymbolTable::LookUpFunction(const std::string &symbolName)
 {
-    ScopeTable *scopeTable = currentScope;
+    ScopeTable *root = currentScope;
 
-    while(scopeTable->GetParent() != NULL)
+    while(root->GetParent() != NULL)
     {
-        scopeTable = scopeTable->GetParent();
+        root = root->GetParent();
     }
 
-    return scopeTable->LookUp(symbolName);
+    return root->LookUp(symbolName);
 }
 
 void SymbolTable::PrintScope(ScopeTable *scope, size_t &start)

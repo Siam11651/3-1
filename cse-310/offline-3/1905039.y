@@ -15,6 +15,7 @@ SymbolTable *st;
 int yylex(void);
 extern FILE *yyin;
 std::ofstream parseTreeStream;
+std::ofstream errorStream;
 extern std::ofstream logStream;
 extern size_t lineCount;
 extern size_t errorCount;
@@ -27,6 +28,8 @@ void yyerror(char *s)
 }
 
 std::stack<ParseTreeNode> parseTreeStack;
+
+std::string GetExpressionDataType(ParseTreeNode &root);
 
 void PrintParseTree(ParseTreeNode &parseTreeNode, size_t depth)
 {
@@ -91,14 +94,45 @@ void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symb
 {
 	if(root.terminal && root.name == "ID")
 	{
-		if(dataType == "void")
+		if(dataType == "VOID")
 		{
-			// void data type declaration
+			errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Variable or field '" << root.symbolInfo->GetName() << "' declared void" << std::endl;
+			
+			++errorCount;
 		}
 		else
 		{
-			root.symbolInfo->SetDataType(dataType);
-			symbolTable->Insert(root.symbolInfo);
+			SymbolInfo* thisScopeSymbol = st->LookUpThisScope(root.symbolInfo->GetName());
+
+			if(thisScopeSymbol == NULL)
+			{
+				root.symbolInfo->SetDataType(dataType);
+				symbolTable->Insert(root.symbolInfo);
+			}
+			else
+			{
+				if(thisScopeSymbol->GetIDType() == "VARIABLE")
+				{
+					if(thisScopeSymbol->GetDataType() == dataType)
+					{
+						errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root.symbolInfo->GetName() << "\'" << std::endl;
+
+						++errorCount;
+					}
+					else
+					{
+						errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root.symbolInfo->GetName() << "\'" << std::endl;
+
+						++errorCount;
+					}
+				}
+				else
+				{
+					errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": \'" << root.symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+					++errorCount;
+				}
+			}
 		}
 	}
 	else
@@ -110,19 +144,71 @@ void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symb
 	}
 }
 
-void SetParams(ParseTreeNode &root, std::vector<std::string> &paramList)
+void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::string>> &paramList)
 {
 	if(root.children.size() == 3 || root.children.size() == 4)
 	{
-		std::pair<std::string, std::string> param = {root.children[2].children[0].name, if(root.children.size() == 4) ? root.children[3].children[0].name : ""};
-		paramList.push_back(param);
+		std::string paramName = "";
+
+		if(root.children.size() == 4)
+		{
+			paramName = root.children[3].symbolInfo->GetName();
+		}
+
+		std::pair<std::string, std::string> param = {root.children[2].children[0].name, paramName};
+		bool redefinition = false;
+
+		for(size_t i = 0; i < paramList.size(); ++i)
+		{
+			if(param.second != "" && paramList[i].second == param.second)
+			{
+				redefinition = true;
+
+				break;
+			}
+		}
+
+		if(redefinition)
+		{
+			errorStream << "Line# " << root.children[3].symbolInfo->GetSymbolStart() << ": Redefinition of parameter \'" << root.children[3].symbolInfo->GetName() << "\'" << std::endl;
+		}
+		else
+		{
+			paramList.push_back(param);
+		}
 
 		SetParams(root.children[0], paramList);
 	}
 	else if(root.children.size() == 2 || root.children.size() == 1)
 	{
-		std::pair<std::string, std::string> param = {root.children[2].children[0].name, if(root.children.size() == 2) ? root.children[1].children[0].name : ""};
-		paramList.push_back(param);
+		std::string paramName = "";
+
+		if(root.children.size() == 2)
+		{
+			paramName = root.children[1].symbolInfo->GetName();
+		}
+
+		std::pair<std::string, std::string> param = {root.children[0].children[0].name, paramName};
+		bool redefinition = false;
+
+		for(size_t i = 0; i < paramList.size(); ++i)
+		{
+			if(param.second != "" && paramList[i].second == param.second)
+			{
+				redefinition = true;
+
+				break;
+			}
+		}
+
+		if(redefinition)
+		{
+			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Redefinition of parameter \'" << root.children[1].symbolInfo->GetName() << "\'" << std::endl;
+		}
+		else
+		{
+			paramList.push_back(param);
+		}
 	}
 }
 
@@ -215,7 +301,7 @@ std::string GetTermDataType(ParseTreeNode &root)
 		{
 			if(term == "float" || unaryExpession == "float")
 			{
-				if(root.children[1].symbol->GetName() == "%")
+				if(root.children[1].symbolInfo->GetName() == "%")
 				{
 					// operands of modulus warning
 				}
@@ -410,17 +496,21 @@ func_start	:	type_specifier ID LPAREN
 				$2->SetArray(false);
 				$2->SetDataType(type_specifier_node.children[0].name);
 				
-				present = NULL;
-				function = NULL;
+				present = st->LookUp($2->GetName());
+				function = $2;
 
 				if(present == NULL)
 				{
-					st->InsertFunction($2);
-					function = $2;
+					st->Insert($2);
 				}
 				else
 				{
-					function = present;
+					if(present->GetIDType() != "FUNCTION")
+					{
+						errorStream << "Line# " << function->GetSymbolStart() << ": \'" << $2->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+						++errorCount;
+					}
 				}
 
 				ParseTreeNode id_node = {"ID", true, {}, $2};
@@ -447,7 +537,7 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 
 						if(present == NULL)
 						{
-							std::vector<std::string> paramList;
+							std::vector<std::pair<std::string, std::string>> paramList;
 							SetParams(parameter_list_node, paramList);
 
 							bool ok = true;
@@ -526,13 +616,12 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 
 					parseTreeStack.pop();
 
-					function->SetDefined(true);
-
 					if(present == NULL)
 					{
-						std::vector<std::string> paramList;
+						std::vector<std::pair<std::string, std::string>> paramList;
 
 						SetParams(parameter_list_node, paramList);
+						function->SetDefined(true);
 
 						bool ok = true;
 
@@ -568,11 +657,44 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 							{
 								if(present->GetDataType() == function->GetDataType())
 								{
-									std::vector<std::string> paramList;
+									std::vector<std::pair<std::string, std::string>> paramList;
 						
 									SetParams(parameter_list_node, paramList);
 
 									bool ok = true;
+
+									std::vector<std::pair<std::string, std::string>> presentParamList = present->GetParamList();
+
+									if(paramList.size() == presentParamList.size())
+									{
+										for(size_t i = 0; paramList.size(); ++i)
+										{
+											if(paramList[i] != presentParamList[i])
+											{
+												ok = false;
+
+												break;
+											}
+										}
+
+										if(ok)
+										{
+											present->SetDefined(true);
+										}
+										else
+										{
+											errorStream << "Line# " << function->GetSymbolStart() << ": Conflicting types for \'" << function->GetName() << "\'" << std::endl;
+
+											++errorCount;
+										}
+									}
+									else
+									{
+										errorStream << "Line# " << function->GetSymbolStart() << ": Conflicting types for \'" << function->GetName() << "\'" << std::endl;
+
+										++errorCount;
+										ok = false;
+									}
 
 									for(size_t i = 0; ok && (i < paramList.size() - 1); ++i)
 									{
@@ -589,20 +711,18 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 									{
 										function->SetParamList(paramList);
 									}
-									else
-									{
-										// Redefinition of parameter
-									}
 								}
 								else
 								{
-									// Conflicting types for
+									errorStream << "Line# " << function->GetSymbolStart() << ": Conflicting types for \'" << function->GetName() << "\'" << std::endl;
+
+									++errorCount;
 								}
 							}
 						}
 						else
 						{
-							// redeclared as different kind of symbol
+							
 						}
 					}
 
@@ -628,10 +748,7 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 
 					if(present == NULL)
 					{
-						std::vector<std::string> paramList;
-
-						SetParams(parameter_list_node, paramList);
-						function->SetParamList(paramList);
+						
 					}
 					else
 					{
@@ -645,14 +762,24 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 							{
 								if(present->GetDataType() == function->GetDataType())
 								{
-									std::vector<std::string> paramList;
-						
-									SetParams(parameter_list_node, paramList);
-									function->SetParamList(paramList);
+									std::vector<std::pair<std::string, std::string>> presentParamList = present->GetParamList();
+
+									if(presentParamList.size() > 0)
+									{
+										errorStream << "Line# " << function->GetSymbolStart() << ": Conflicting types for \'" << function->GetName() << "\'" << std::endl;
+
+										++errorCount;
+									}
+									else
+									{
+										present->SetDefined(true);
+									}
 								}
 								else
 								{
-									// Conflicting types for
+									errorStream << "Line# " << func_start_node.children[1].startLine << ": Conflicting types for \'" << func_start_node.children[1].name << "\'" << std::endl;
+
+									++errorCount;
 								}
 							}
 						}
@@ -1130,7 +1257,7 @@ variable    :   ID
 			{
 				logStream << "variable : ID" << std::endl;
 
-				SymbolInfo *variablePtr = st->LookUp($2->GetName());
+				SymbolInfo *variablePtr = st->LookUp($1->GetName());
 
 				if(variablePtr == NULL)
 				{
@@ -1158,6 +1285,12 @@ variable    :   ID
 			{
 				logStream << "variable : ID LSQUARE expression RSQUARE" << std::endl;
 
+				SymbolInfo *variablePtr = st->LookUp($1->GetName());
+
+				ParseTreeNode expression_node = parseTreeStack.top();
+
+				parseTreeStack.pop();
+
 				if(variablePtr == NULL)
 				{
 					// undeclared variable
@@ -1172,7 +1305,7 @@ variable    :   ID
 					{
 						if(variablePtr->IsArray())
 						{
-							if(GetExpressionDataType(expression) == "int")
+							if(GetExpressionDataType(expression_node) == "int")
 							{
 
 							}
@@ -1187,10 +1320,6 @@ variable    :   ID
 						}
 					}
 				}
-
-				ParseTreeNode expression_node = parseTreeStack.top();
-
-				parseTreeStack.pop();
 
 				ParseTreeNode id_node = {"ID", true, {}, $1};
 				ParseTreeNode lsquare_node = {"LSQUARE", true, {}, $2};
@@ -1552,6 +1681,7 @@ int main(int argc,char *argv[])
 {
 	parseTreeStream.open("1905039_parsetree.txt");
 	logStream.open("1905039_log.txt");
+	errorStream.open("1905039_error.txt");
 
 	st = new SymbolTable(11, &logStream);
 	FILE *fp = fopen(argv[1], "r");
@@ -1573,6 +1703,7 @@ int main(int argc,char *argv[])
 	fclose(fp);
 	parseTreeStream.close();
 	logStream.close();
+	errorStream.close();
 	
 	return 0;
 }
