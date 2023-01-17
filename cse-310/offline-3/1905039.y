@@ -3,6 +3,8 @@
 #include <fstream>
 #include <cstdlib>
 #include <cstring>
+#include <string>
+#include <sstream>
 #include <cmath>
 #include <stack>
 #include "1905039_SymbolTable.h"
@@ -457,10 +459,16 @@ std::string GetTermDataType(ParseTreeNode &root)
 			{
 				if(root.children[1].symbolInfo->GetName() == "%")
 				{
-					// operands of modulus warning
-				}
+					errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Operands of modulus must be integers " << std::endl;
 
-				return "FLOAT";
+					++errorCount;
+
+					return "INT";
+				}
+				else
+				{
+					return "FLOAT";
+				}
 			}
 			else
 			{
@@ -572,18 +580,26 @@ std::string GetExpressionDataType(ParseTreeNode &root)
 	}
 	else
 	{
-		if(GetLogicExpressionDataType(root.children[2]) == "VOID")
+		std::string rhsType = GetLogicExpressionDataType(root.children[2]);
+		std::string lhsType = GetVariableDataType(root.children[0]);
+
+		if(rhsType == "VOID")
 		{
 			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
 
 			++errorCount;
-
-			return "";
 		}
 		else
 		{
-			return GetVariableDataType(root.children[0]);
+			if(lhsType == "INT" && rhsType == "FLOAT")
+			{
+				errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Warning: possible loss of data in assignment of FLOAT to INT" << std::endl;
+
+				++errorCount;
+			}
 		}
+
+		return lhsType;
 	}
 }
 
@@ -597,6 +613,72 @@ void SetArgumentTypeList(ParseTreeNode &root, std::vector<std::string> &argument
 	else
 	{
 		argumentTypeList.push_back(GetLogicExpressionDataType(root.children[0]));
+	}
+}
+
+bool FactorIsZero(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		if(root.children[0].name == "CONST_INT")
+		{
+			stringstream ss(root.children[0].symbolInfo->GetName());
+			int value;
+
+			ss >> value;
+
+			if(value == 0)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else if(root.children[0].name == "CONST_FLOAT")
+		{
+			stringstream ss(root.children[0].symbolInfo->GetName());
+			float value;
+
+			ss >> value;
+
+			if(value == 0.0)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool UnaryExpressionIsZero(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return FactorIsZero(root.children[0]);
+	}
+	else
+	{
+		if(root.children[0].name == "ADDOP")
+		{
+			return UnaryExpressionIsZero(root.children[1]);
+		}
+		else
+		{
+			return !UnaryExpressionIsZero(root.children[1]);
+		}
 	}
 }
 
@@ -1733,7 +1815,13 @@ factor  :   variable
 
 			if(function == NULL)
 			{
-				// undeclared function
+				errorStream << "Line# " << $1->GetSymbolStart() << ": Undeclared function \'" << $1->GetName() << "\'" << std::endl;
+
+				++errorCount;
+
+				std::vector<std::string> argumentTypeList;
+
+				SetArgumentTypeList(argument_list_node.children[0], argumentTypeList);
 			}
 			else
 			{
@@ -1758,7 +1846,7 @@ factor  :   variable
 				{
 					for(size_t i = 0; i < paramList.size(); ++i)
 					{
-						if(paramList[i].first != argumentTypeList[i])
+						if(argumentTypeList[i] != "" && paramList[i].first != argumentTypeList[i])
 						{
 							errorStream << "Line# " << $1->GetSymbolStart() << ": Type mismatch for argument " << i + 1 << " of \'" << function->GetName() << "\'" << std::endl;
 
