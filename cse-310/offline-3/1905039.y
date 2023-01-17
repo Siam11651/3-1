@@ -270,57 +270,6 @@ void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symb
 			}
 		}
 	}
-
-	// if(root.terminal && root.name == "ID")
-	// {
-	// 	if(dataType == "VOID")
-	// 	{
-	// 		errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Variable or field '" << root.symbolInfo->GetName() << "' declared void" << std::endl;
-			
-	// 		++errorCount;
-	// 	}
-	// 	else
-	// 	{
-	// 		SymbolInfo* thisScopeSymbol = st->LookUpThisScope(root.symbolInfo->GetName());
-
-	// 		if(thisScopeSymbol == NULL)
-	// 		{
-	// 			root.symbolInfo->SetDataType(dataType);
-	// 			symbolTable->Insert(root.symbolInfo);
-	// 		}
-	// 		else
-	// 		{
-	// 			if(thisScopeSymbol->GetIDType() == "VARIABLE")
-	// 			{
-	// 				if(thisScopeSymbol->GetDataType() == dataType)
-	// 				{
-	// 					errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root.symbolInfo->GetName() << "\'" << std::endl;
-
-	// 					++errorCount;
-	// 				}
-	// 				else
-	// 				{
-	// 					errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root.symbolInfo->GetName() << "\'" << std::endl;
-
-	// 					++errorCount;
-	// 				}
-	// 			}
-	// 			else
-	// 			{
-	// 				errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": \'" << root.symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
-
-	// 				++errorCount;
-	// 			}
-	// 		}
-	// 	}
-	// }
-	// else
-	// {
-	// 	for(size_t i = 0; i < root.children.size(); ++i)
-	// 	{
-	// 		InsertID(root.children[i], dataType, symbolTable);
-	// 	}
-	// }
 }
 
 void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::string>> &paramList)
@@ -441,9 +390,16 @@ std::string GetFactorDataType(ParseTreeNode &root)
 	}
 	else
 	{
-		SymbolInfo* function = st->LookUpFunction(root.children[0].symbolInfo->GetName());
+		SymbolInfo* calledFunction = st->LookUpFunction(root.children[0].symbolInfo->GetName());
 
-		return function->GetDataType();
+		if(calledFunction == NULL)
+		{
+			return "";
+		}
+		else
+		{
+			return calledFunction->GetDataType();
+		}
 	}
 }
 
@@ -459,7 +415,9 @@ std::string GetUnaryExpressionDataType(ParseTreeNode &root)
 
 		if(type == "VOID")
 		{
-			// void in expression error
+			errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
 
 			return "";
 		}
@@ -481,13 +439,15 @@ std::string GetTermDataType(ParseTreeNode &root)
 		std::string term = GetTermDataType(root.children[0]);
 		std::string unaryExpession = GetUnaryExpressionDataType(root.children[2]);
 
-		if(unaryExpession == "")
+		if(unaryExpession == "" || term == "")
 		{
 			return "";
 		}
-		else if(term == "VOID" || unaryExpession == "VOID")
+		else if(unaryExpession == "VOID" || term == "VOID")
 		{
-			// void in expression error
+			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
 
 			return "";
 		}
@@ -521,13 +481,15 @@ std::string GetSimpleExpressionDataType(ParseTreeNode &root)
 		std::string simpleExpression = GetSimpleExpressionDataType(root.children[0]);
 		std::string term = GetTermDataType(root.children[2]);
 
-		if(simpleExpression == "" || term == "")
+		if(term == "" || simpleExpression == "")
 		{
 			return "";
 		}
-		else if(term == "VOID")
+		else if(simpleExpression == "VOID" || term == "VOID")
 		{
-			// void in expression error
+			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
 
 			return "";
 		}
@@ -550,7 +512,25 @@ std::string GetRelExpressionDataType(ParseTreeNode &root)
 	}
 	else
 	{
-		return "INT"; // relop always give int
+		std::string simpleExpression1 = GetSimpleExpressionDataType(root.children[0]);
+		std::string simpleExpression2 = GetSimpleExpressionDataType(root.children[2]);
+
+		if(simpleExpression1 == "" || simpleExpression2 == "")
+		{
+			return "";
+		}
+		else if(simpleExpression1 == "VOID" || simpleExpression2 == "VOID")
+		{
+			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
+
+			return "";
+		}
+		else
+		{
+			return "INT"; // relop always give int	
+		}
 	}
 }
 
@@ -562,7 +542,25 @@ std::string GetLogicExpressionDataType(ParseTreeNode &root)
 	}
 	else // else 3
 	{
-		return "INT"; // logic op always give int
+		std::string relExpression1 = GetRelExpressionDataType(root.children[0]);
+		std::string relExpression2 = GetRelExpressionDataType(root.children[2]);
+
+		if(relExpression1 == "" || relExpression2 == "")
+		{
+			return "";
+		}
+		else if(relExpression1 == "VOID" || relExpression2 == "VOID")
+		{
+			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
+
+			return "";
+		}
+		else
+		{
+			return "INT"; // logic op always give int
+		}
 	}
 }
 
@@ -570,11 +568,22 @@ std::string GetExpressionDataType(ParseTreeNode &root)
 {
 	if(root.children.size() == 1)
 	{
-		return GetLogicExpressionDataType(root);
+		return GetLogicExpressionDataType(root.children[0]);
 	}
-	else // else 3
+	else
 	{
-		return GetVariableDataType(root.children[0]);
+		if(GetLogicExpressionDataType(root.children[2]) == "VOID")
+		{
+			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
+
+			return "";
+		}
+		else
+		{
+			return GetVariableDataType(root.children[0]);
+		}
 	}
 }
 
@@ -1399,6 +1408,8 @@ expression_statement    :   SEMICOLON
 
 							parseTreeStack.pop();
 
+							GetExpressionDataType(expression_node);
+
 							ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $2};
 							ParseTreeNode expression_statement_node = {"expression_statement", false, {expression_node, semicolon_node}, NULL};
 
@@ -1459,18 +1470,22 @@ variable    :   ID
 					{
 						if(variablePtr->IsArray())
 						{
-							if(GetExpressionDataType(expression_node) == "int")
+							if(GetExpressionDataType(expression_node) == "INT")
 							{
 
 							}
 							else
 							{
-								// Array subscript is not an integer
+								errorStream << "Line# " << $1->GetSymbolStart() << ": Array subscript is not an integer" << std::endl;
+
+								++errorCount;
 							}
 						}
 						else
 						{
-							// not an array
+							errorStream << "Line# " << $1->GetSymbolStart() << ": \'" << $1->GetName() << "\' is not an array" << std::endl;
+
+							++errorCount;
 						}
 					}
 				}
