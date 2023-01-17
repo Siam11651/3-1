@@ -616,6 +616,8 @@ void SetArgumentTypeList(ParseTreeNode &root, std::vector<std::string> &argument
 	}
 }
 
+bool ExpressionInZero(ParseTreeNode &root);
+
 bool FactorIsZero(ParseTreeNode &root)
 {
 	if(root.children.size() == 1)
@@ -656,6 +658,10 @@ bool FactorIsZero(ParseTreeNode &root)
 		{
 			return false;
 		}
+	}
+	else if(root.children.size() == 3)
+	{
+		return ExpressionInZero(root.children[1]);
 	}
 	else
 	{
