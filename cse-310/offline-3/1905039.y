@@ -92,22 +92,25 @@ void SetLine(ParseTreeNode &parseTreeNode)
 
 void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symbolTable)
 {
-	if(root.terminal && root.name == "ID")
+	if(root.children.size() == 6)
 	{
+		InsertID(root.children[0], dataType, st);
+
 		if(dataType == "VOID")
 		{
-			errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Variable or field '" << root.symbolInfo->GetName() << "' declared void" << std::endl;
+			errorStream << "Line# " << root.children[2].symbolInfo->GetSymbolStart() << ": Variable or field '" << root.children[2].symbolInfo->GetName() << "' declared void" << std::endl;
 			
 			++errorCount;
 		}
 		else
 		{
-			SymbolInfo* thisScopeSymbol = st->LookUpThisScope(root.symbolInfo->GetName());
+			SymbolInfo* thisScopeSymbol = st->LookUpThisScope(root.children[2].symbolInfo->GetName());
 
 			if(thisScopeSymbol == NULL)
 			{
-				root.symbolInfo->SetDataType(dataType);
-				symbolTable->Insert(root.symbolInfo);
+				root.children[2].symbolInfo->SetDataType(dataType);
+				root.children[2].symbolInfo->SetArray(true);
+				symbolTable->Insert(root.children[2].symbolInfo);
 			}
 			else
 			{
@@ -115,20 +118,109 @@ void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symb
 				{
 					if(thisScopeSymbol->GetDataType() == dataType)
 					{
-						errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root.symbolInfo->GetName() << "\'" << std::endl;
+						errorStream << "Line# " << root.children[2].symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root.children[2].symbolInfo->GetName() << "\'" << std::endl;
 
 						++errorCount;
 					}
 					else
 					{
-						errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root.symbolInfo->GetName() << "\'" << std::endl;
+						errorStream << "Line# " << root.children[2].symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root.children[2].symbolInfo->GetName() << "\'" << std::endl;
 
 						++errorCount;
 					}
 				}
 				else
 				{
-					errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": \'" << root.symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+					errorStream << "Line# " << root.children[2].symbolInfo->GetSymbolStart() << ": \'" << root.children[2].symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+					++errorCount;
+				}
+			}
+		}
+	}
+	else if(root.children.size() == 4)
+	{
+		if(dataType == "VOID")
+		{
+			errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Variable or field '" << root.children[0].symbolInfo->GetName() << "' declared void" << std::endl;
+			
+			++errorCount;
+		}
+		else
+		{
+			SymbolInfo* thisScopeSymbol = st->LookUpThisScope(root.children[0].symbolInfo->GetName());
+
+			if(thisScopeSymbol == NULL)
+			{
+				root.children[0].symbolInfo->SetDataType(dataType);
+				root.children[0].symbolInfo->SetArray(true);
+				symbolTable->Insert(root.children[0].symbolInfo);
+			}
+			else
+			{
+				if(thisScopeSymbol->GetIDType() == "VARIABLE")
+				{
+					if(thisScopeSymbol->GetDataType() == dataType)
+					{
+						errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root.children[0].symbolInfo->GetName() << "\'" << std::endl;
+
+						++errorCount;
+					}
+					else
+					{
+						errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root.children[0].symbolInfo->GetName() << "\'" << std::endl;
+
+						++errorCount;
+					}
+				}
+				else
+				{
+					errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": \'" << root.children[0].symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+					++errorCount;
+				}
+			}
+		}
+	}
+	else if(root.children.size() == 3)
+	{
+		InsertID(root.children[0], dataType, st);
+
+		if(dataType == "VOID")
+		{
+			errorStream << "Line# " << root.children[2].symbolInfo->GetSymbolStart() << ": Variable or field '" << root.children[2].symbolInfo->GetName() << "' declared void" << std::endl;
+			
+			++errorCount;
+		}
+		else
+		{
+			SymbolInfo* thisScopeSymbol = st->LookUpThisScope(root.children[2].symbolInfo->GetName());
+
+			if(thisScopeSymbol == NULL)
+			{
+				root.children[2].symbolInfo->SetDataType(dataType);
+				symbolTable->Insert(root.children[2].symbolInfo);
+			}
+			else
+			{
+				if(thisScopeSymbol->GetIDType() == "VARIABLE")
+				{
+					if(thisScopeSymbol->GetDataType() == dataType)
+					{
+						errorStream << "Line# " << root.children[2].symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root.children[2].symbolInfo->GetName() << "\'" << std::endl;
+
+						++errorCount;
+					}
+					else
+					{
+						errorStream << "Line# " << root.children[2].symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root.children[2].symbolInfo->GetName() << "\'" << std::endl;
+
+						++errorCount;
+					}
+				}
+				else
+				{
+					errorStream << "Line# " << root.children[2].symbolInfo->GetSymbolStart() << ": \'" << root.children[2].symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
 
 					++errorCount;
 				}
@@ -137,17 +229,106 @@ void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symb
 	}
 	else
 	{
-		for(size_t i = 0; i < root.children.size(); ++i)
+		if(dataType == "VOID")
 		{
-			InsertID(root.children[i], dataType, symbolTable);
+			errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Variable or field '" << root.children[0].symbolInfo->GetName() << "' declared void" << std::endl;
+			
+			++errorCount;
+		}
+		else
+		{
+			SymbolInfo* thisScopeSymbol = st->LookUpThisScope(root.children[0].symbolInfo->GetName());
+
+			if(thisScopeSymbol == NULL)
+			{
+				root.children[0].symbolInfo->SetDataType(dataType);
+				symbolTable->Insert(root.children[0].symbolInfo);
+			}
+			else
+			{
+				if(thisScopeSymbol->GetIDType() == "VARIABLE")
+				{
+					if(thisScopeSymbol->GetDataType() == dataType)
+					{
+						errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root.children[0].symbolInfo->GetName() << "\'" << std::endl;
+
+						++errorCount;
+					}
+					else
+					{
+						errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root.children[0].symbolInfo->GetName() << "\'" << std::endl;
+
+						++errorCount;
+					}
+				}
+				else
+				{
+					errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": \'" << root.children[0].symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+					++errorCount;
+				}
+			}
 		}
 	}
+
+	// if(root.terminal && root.name == "ID")
+	// {
+	// 	if(dataType == "VOID")
+	// 	{
+	// 		errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Variable or field '" << root.symbolInfo->GetName() << "' declared void" << std::endl;
+			
+	// 		++errorCount;
+	// 	}
+	// 	else
+	// 	{
+	// 		SymbolInfo* thisScopeSymbol = st->LookUpThisScope(root.symbolInfo->GetName());
+
+	// 		if(thisScopeSymbol == NULL)
+	// 		{
+	// 			root.symbolInfo->SetDataType(dataType);
+	// 			symbolTable->Insert(root.symbolInfo);
+	// 		}
+	// 		else
+	// 		{
+	// 			if(thisScopeSymbol->GetIDType() == "VARIABLE")
+	// 			{
+	// 				if(thisScopeSymbol->GetDataType() == dataType)
+	// 				{
+	// 					errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root.symbolInfo->GetName() << "\'" << std::endl;
+
+	// 					++errorCount;
+	// 				}
+	// 				else
+	// 				{
+	// 					errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root.symbolInfo->GetName() << "\'" << std::endl;
+
+	// 					++errorCount;
+	// 				}
+	// 			}
+	// 			else
+	// 			{
+	// 				errorStream << "Line# " << root.symbolInfo->GetSymbolStart() << ": \'" << root.symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+	// 				++errorCount;
+	// 			}
+	// 		}
+	// 	}
+	// }
+	// else
+	// {
+	// 	for(size_t i = 0; i < root.children.size(); ++i)
+	// 	{
+	// 		InsertID(root.children[i], dataType, symbolTable);
+	// 	}
+	// }
 }
 
 void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::string>> &paramList)
 {
 	if(root.children.size() == 3 || root.children.size() == 4)
 	{
+		SetParams(root.children[0], paramList);
+
 		std::string paramName = "";
 
 		if(root.children.size() == 4)
@@ -171,13 +352,13 @@ void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::stri
 		if(redefinition)
 		{
 			errorStream << "Line# " << root.children[3].symbolInfo->GetSymbolStart() << ": Redefinition of parameter \'" << root.children[3].symbolInfo->GetName() << "\'" << std::endl;
+
+			++errorCount;
 		}
 		else
 		{
 			paramList.push_back(param);
 		}
-
-		SetParams(root.children[0], paramList);
 	}
 	else if(root.children.size() == 2 || root.children.size() == 1)
 	{
@@ -204,6 +385,8 @@ void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::stri
 		if(redefinition)
 		{
 			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Redefinition of parameter \'" << root.children[1].symbolInfo->GetName() << "\'" << std::endl;
+
+			++errorCount;
 		}
 		else
 		{
@@ -214,7 +397,18 @@ void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::stri
 
 std::string GetVariableDataType(ParseTreeNode &root)
 {
-	return root.children[0].symbolInfo->GetDataType();
+	SymbolInfo *variable = st->LookUp(root.children[0].symbolInfo->GetName());
+
+	if(variable == NULL)
+	{
+		errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Undeclared variable \'" << root.children[0].symbolInfo->GetName() << "\'" << std::endl;
+
+		return "";
+	}
+	else
+	{
+		return variable->GetDataType();
+	}
 }
 
 std::string GetFactorDataType(ParseTreeNode &root)
@@ -229,11 +423,11 @@ std::string GetFactorDataType(ParseTreeNode &root)
 		{
 			if(root.children[0].name == "CONST_FLOAT")
 			{
-				return "float";
+				return "FLOAT";
 			}
 			else
 			{
-				return "int";
+				return "INT";
 			}
 		}
 	}
@@ -263,7 +457,7 @@ std::string GetUnaryExpressionDataType(ParseTreeNode &root)
 	{
 		std::string type = GetUnaryExpressionDataType(root.children[1]);
 
-		if(type == "void")
+		if(type == "VOID")
 		{
 			// void in expression error
 
@@ -291,7 +485,7 @@ std::string GetTermDataType(ParseTreeNode &root)
 		{
 			return "";
 		}
-		else if(term == "void" || unaryExpession == "void")
+		else if(term == "VOID" || unaryExpession == "VOID")
 		{
 			// void in expression error
 
@@ -299,18 +493,18 @@ std::string GetTermDataType(ParseTreeNode &root)
 		}
 		else
 		{
-			if(term == "float" || unaryExpession == "float")
+			if(term == "FLOAT" || unaryExpession == "FLOAT")
 			{
 				if(root.children[1].symbolInfo->GetName() == "%")
 				{
 					// operands of modulus warning
 				}
 
-				return "float";
+				return "FLOAT";
 			}
 			else
 			{
-				return "int";
+				return "INT";
 			}
 		}
 	}
@@ -331,19 +525,19 @@ std::string GetSimpleExpressionDataType(ParseTreeNode &root)
 		{
 			return "";
 		}
-		else if(term == "void")
+		else if(term == "VOID")
 		{
 			// void in expression error
 
 			return "";
 		}
-		else if(simpleExpression == "float" || term == "float")
+		else if(simpleExpression == "FLOAT" || term == "FLOAT")
 		{
-			return "float";
+			return "FLOAT";
 		}
 		else
 		{
-			return "int";
+			return "FLOAT";
 		}
 	}
 }
@@ -356,11 +550,11 @@ std::string GetRelExpressionDataType(ParseTreeNode &root)
 	}
 	else
 	{
-		return "int"; // relop always give int
+		return "INT"; // relop always give int
 	}
 }
 
-std::string GetLoginExpressionDataType(ParseTreeNode &root)
+std::string GetLogicExpressionDataType(ParseTreeNode &root)
 {
 	if(root.children.size() == 1)
 	{
@@ -368,7 +562,7 @@ std::string GetLoginExpressionDataType(ParseTreeNode &root)
 	}
 	else // else 3
 	{
-		return "int"; // logic op always give int
+		return "INT"; // logic op always give int
 	}
 }
 
@@ -376,11 +570,24 @@ std::string GetExpressionDataType(ParseTreeNode &root)
 {
 	if(root.children.size() == 1)
 	{
-		return GetLoginExpressionDataType(root);
+		return GetLogicExpressionDataType(root);
 	}
 	else // else 3
 	{
 		return GetVariableDataType(root.children[0]);
+	}
+}
+
+void SetArgumentTypeList(ParseTreeNode &root, std::vector<std::string> &argumentTypeList)
+{
+	if(root.children.size() == 3)
+	{
+		SetArgumentTypeList(root.children[0], argumentTypeList);
+		argumentTypeList.push_back(GetLogicExpressionDataType(root.children[2]));
+	}
+	else
+	{
+		argumentTypeList.push_back(GetLogicExpressionDataType(root.children[0]));
 	}
 }
 
@@ -539,28 +746,7 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 						{
 							std::vector<std::pair<std::string, std::string>> paramList;
 							SetParams(parameter_list_node, paramList);
-
-							bool ok = true;
-
-							for(size_t i = 0; ok && (i < paramList.size() - 1); ++i)
-							{
-								for(size_t j = i + 1; ok && (j < paramList.size()); ++j)
-								{
-									if(paramList[i].second == paramList[j].second)
-									{
-										ok = false;
-									}
-								}
-							}
-
-							if(ok)
-							{
-								function->SetParamList(paramList);
-							}
-							else
-							{
-								// Redefinition of parameter
-							}
+							function->SetParamList(paramList);
 						}
 						else
 						{
@@ -622,28 +808,7 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 
 						SetParams(parameter_list_node, paramList);
 						function->SetDefined(true);
-
-						bool ok = true;
-
-						for(size_t i = 0; ok && (i < paramList.size() - 1); ++i)
-						{
-							for(size_t j = i + 1; ok && (j < paramList.size()); ++j)
-							{
-								if(paramList[i].second == paramList[j].second)
-								{
-									ok = false;
-								}
-							}
-						}
-
-						if(ok)
-						{
-							function->SetParamList(paramList);
-						}
-						else
-						{
-							// Redefinition of parameter
-						}
+						function->SetParamList(paramList);
 					}
 					else
 					{
@@ -694,17 +859,6 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 
 										++errorCount;
 										ok = false;
-									}
-
-									for(size_t i = 0; ok && (i < paramList.size() - 1); ++i)
-									{
-										for(size_t j = i + 1; ok && (j < paramList.size()); ++j)
-										{
-											if(paramList[i].second == paramList[j].second)
-											{
-												ok = false;
-											}
-										}
 									}
 
 									if(ok)
@@ -1556,16 +1710,48 @@ factor  :   variable
 		{
 			SymbolInfo *function = st->LookUpFunction($1->GetName());
 
-			if(function == NULL)
-			{
-				// undeclared function
-			}
-
 			logStream << "factor\t: ID LPAREN argument_list RPAREN" << std::endl;
 
 			ParseTreeNode argument_list_node = parseTreeStack.top();
 
 			parseTreeStack.pop();
+
+			if(function == NULL)
+			{
+				// undeclared function
+			}
+			else
+			{
+				std::vector<std::pair<std::string, std::string>> paramList = function->GetParamList();
+				std::vector<std::string> argumentTypeList;
+
+				SetArgumentTypeList(argument_list_node.children[0], argumentTypeList);
+
+				if(argumentTypeList.size() > paramList.size())
+				{
+					errorStream << "Line# " << $1->GetSymbolStart() << ": Too many arguments to function \'" << function->GetName() << "\'" << std::endl;
+
+					++errorCount;
+				}
+				else if(argumentTypeList.size() < paramList.size())
+				{
+					errorStream << "Line# " << $1->GetSymbolStart() << ": Too few arguments to function \'" << function->GetName() << "\'" << std::endl;
+
+					++errorCount;
+				}
+				else
+				{
+					for(size_t i = 0; i < paramList.size(); ++i)
+					{
+						if(paramList[i].first != argumentTypeList[i])
+						{
+							errorStream << "Line# " << $1->GetSymbolStart() << ": Type mismatch for argument " << i + 1 << " of \'" << function->GetName() << "\'" << std::endl;
+
+							++errorCount;
+						}
+					}
+				}
+			}
 
 			ParseTreeNode id_node = {"ID", true, {}, $1};
 			ParseTreeNode lparen_node = {"LPAREN", true, {}, $2};
