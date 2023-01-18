@@ -346,273 +346,246 @@ void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::stri
 	}
 }
 
-std::string GetVariableDataType(ParseTreeNode &root)
-{
-	SymbolInfo *variable = st->LookUp(root.children[0].symbolInfo->GetName());
+void SetExpressionValue(ParseTreeNode &root);
 
-	if(variable == NULL)
-	{
-		errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Undeclared variable \'" << root.children[0].symbolInfo->GetName() << "\'" << std::endl;
-
-		return "";
-	}
-	else
-	{
-		return variable->GetDataType();
-	}
-}
-
-std::string GetFactorDataType(ParseTreeNode &root)
+void SetFactorValue(ParseTreeNode &root)
 {
 	if(root.children.size() == 1)
 	{
-		if(root.children[0].name == "variable")
+		root.valueSet = true;
+		stringstream ss;
+		std::string value = root.children[0].symbolInfo->GetName();
+
+		ss.str(value);
+
+		if(root.children[0].name == "CONST_INT")
 		{
-			return GetVariableDataType(root.children[0]);
+			root.valueType = "INT";
+			
+			ss >> root.intValue;
 		}
-		else
+		else if(root.children[0].name == "CONST_FLOAT")
 		{
-			if(root.children[0].name == "CONST_FLOAT")
-			{
-				return "FLOAT";
-			}
-			else
-			{
-				return "INT";
-			}
+			root.valueType = "FLOAT";
+			
+			ss >> root.floatValue;
 		}
-	}
-	else if(root.children.size() == 2)
-	{
-		return GetVariableDataType(root.children[0]);
 	}
 	else if(root.children.size() == 3)
 	{
-		return GetExpressionDataType(root.children[1]);
-	}
-	else
-	{
-		SymbolInfo* calledFunction = st->LookUpFunction(root.children[0].symbolInfo->GetName());
+		SetExpressionValue(root.children[1]);
 
-		if(calledFunction == NULL)
+		if(root.children[1].valueSet)
 		{
-			return "";
-		}
-		else
-		{
-			return calledFunction->GetDataType();
-		}
-	}
-}
+			root.valueSet = true;
+			root.valueType = root.children[1].valueType;
 
-std::string GetUnaryExpressionDataType(ParseTreeNode &root)
-{
-	if(root.children.size() == 1)
-	{
-		return GetFactorDataType(root.children[0]);
-	}
-	else
-	{
-		std::string type = GetUnaryExpressionDataType(root.children[1]);
-
-		if(type == "VOID")
-		{
-			errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
-
-			++errorCount;
-
-			return "";
-		}
-		else
-		{
-			return type;
-		}
-	}
-}
-
-std::string GetTermDataType(ParseTreeNode &root)
-{
-	if(root.children.size() == 1)
-	{
-		return GetUnaryExpressionDataType(root.children[0]);
-	}
-	else
-	{
-		std::string term = GetTermDataType(root.children[0]);
-		std::string unaryExpession = GetUnaryExpressionDataType(root.children[2]);
-
-		if(unaryExpession == "" || term == "")
-		{
-			return "";
-		}
-		else if(unaryExpession == "VOID" || term == "VOID")
-		{
-			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
-
-			++errorCount;
-
-			return "";
-		}
-		else
-		{
-			if(term == "FLOAT" || unaryExpession == "FLOAT")
+			if(root.children[1].valueType == "INT")
 			{
-				if(root.children[1].symbolInfo->GetName() == "%")
+				root.intValue = root.children[1].intValue;
+			}
+			else
+			{
+				root.floatValue = root.children[1].floatValue;
+			}
+		}
+	}
+}
+
+void SetUnaryExpressionValue(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		SetFactorValue(root.children[0]);
+
+		if(root.children[0].valueSet)
+		{
+			root.valueSet = true;
+			root.valueType = root.children[0].valueType;
+
+			if(root.children[0].valueType == "INT")
+			{
+				root.intValue = root.children[0].intValue;
+			}
+			else
+			{
+				root.floatValue = root.children[0].floatValue;
+			}
+		}
+	}
+	else
+	{
+		SetUnaryExpressionValue(root.children[1]);
+
+		if(root.children[1].valueSet)
+		{
+			root.valueSet = true;
+			root.valueType = "FLOAT";
+
+			if(root.children[1].valueType == "INT")
+			{
+				root.valueType = "INT";
+
+				if(root.children[0].symbolInfo->GetName() == "+")
 				{
-					errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Operands of modulus must be integers " << std::endl;
-
-					++errorCount;
-
-					return "INT";
+					root.intValue = root.children[1].intValue;
 				}
 				else
 				{
-					return "FLOAT";
+					root.intValue = !root.children[1].intValue;
 				}
 			}
 			else
 			{
-				return "INT";
+				if(root.children[0].symbolInfo->GetName() == "+")
+				{
+					root.floatValue = root.children[1].floatValue;
+				}
+				else
+				{
+					root.floatValue = !root.children[1].floatValue;
+				}
 			}
 		}
 	}
 }
 
-std::string GetSimpleExpressionDataType(ParseTreeNode &root)
+void SetTermValue(ParseTreeNode &root)
 {
 	if(root.children.size() == 1)
 	{
-		return GetTermDataType(root.children[0]);
-	}
-	else
-	{
-		std::string simpleExpression = GetSimpleExpressionDataType(root.children[0]);
-		std::string term = GetTermDataType(root.children[2]);
+		SetUnaryExpressionValue(root.children[0]);
 
-		if(term == "" || simpleExpression == "")
+		if(root.children[0].valueSet)
 		{
-			return "";
-		}
-		else if(simpleExpression == "VOID" || term == "VOID")
-		{
-			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+			root.valueSet = true;
+			root.valueType = root.children[0].valueType;
 
-			++errorCount;
-
-			return "";
-		}
-		else if(simpleExpression == "FLOAT" || term == "FLOAT")
-		{
-			return "FLOAT";
-		}
-		else
-		{
-			return "FLOAT";
-		}
-	}
-}
-
-std::string GetRelExpressionDataType(ParseTreeNode &root)
-{
-	if(root.children.size() == 1)
-	{
-		return GetSimpleExpressionDataType(root.children[0]);
-	}
-	else
-	{
-		std::string simpleExpression1 = GetSimpleExpressionDataType(root.children[0]);
-		std::string simpleExpression2 = GetSimpleExpressionDataType(root.children[2]);
-
-		if(simpleExpression1 == "" || simpleExpression2 == "")
-		{
-			return "";
-		}
-		else if(simpleExpression1 == "VOID" || simpleExpression2 == "VOID")
-		{
-			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
-
-			++errorCount;
-
-			return "";
-		}
-		else
-		{
-			return "INT"; // relop always give int	
-		}
-	}
-}
-
-std::string GetLogicExpressionDataType(ParseTreeNode &root)
-{
-	if(root.children.size() == 1)
-	{
-		return GetRelExpressionDataType(root.children[0]);
-	}
-	else // else 3
-	{
-		std::string relExpression1 = GetRelExpressionDataType(root.children[0]);
-		std::string relExpression2 = GetRelExpressionDataType(root.children[2]);
-
-		if(relExpression1 == "" || relExpression2 == "")
-		{
-			return "";
-		}
-		else if(relExpression1 == "VOID" || relExpression2 == "VOID")
-		{
-			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
-
-			++errorCount;
-
-			return "";
-		}
-		else
-		{
-			return "INT"; // logic op always give int
-		}
-	}
-}
-
-std::string GetExpressionDataType(ParseTreeNode &root)
-{
-	if(root.children.size() == 1)
-	{
-		return GetLogicExpressionDataType(root.children[0]);
-	}
-	else
-	{
-		std::string rhsType = GetLogicExpressionDataType(root.children[2]);
-		std::string lhsType = GetVariableDataType(root.children[0]);
-
-		if(rhsType == "VOID")
-		{
-			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
-
-			++errorCount;
-		}
-		else
-		{
-			if(lhsType == "INT" && rhsType == "FLOAT")
+			if(root.children[0].valueType == "INT")
 			{
-				errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Warning: possible loss of data in assignment of FLOAT to INT" << std::endl;
-
-				++errorCount;
+				root.intValue = root.children[0].intValue;
+			}
+			else
+			{
+				root.floatValue = root.children[0].floatValue;
 			}
 		}
-
-		return lhsType;
-	}
-}
-
-void SetArgumentTypeList(ParseTreeNode &root, std::vector<std::string> &argumentTypeList)
-{
-	if(root.children.size() == 3)
-	{
-		SetArgumentTypeList(root.children[0], argumentTypeList);
-		argumentTypeList.push_back(GetLogicExpressionDataType(root.children[2]));
 	}
 	else
 	{
-		argumentTypeList.push_back(GetLogicExpressionDataType(root.children[0]));
+		SetTermValue(root.children[0]);
+		SetUnaryExpressionValue(root.children[2]);
+
+		if(root.children[0].valueSet && root.children[2].valueSet)
+		{
+			root.valueSet = true;
+			root.valueType = "FLOAT";
+
+			if(root.children[0].valueType == "INT" && root.children[2].valueType == "INT")
+			{
+				root.valueType = "INT";
+
+				if(root.children[1].symbolInfo->GetName() == "*")
+				{
+					root.intValue = root.children[0].intValue * root.children[2].intValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "/")
+				{
+					if(root.children[2].intValue != 0)
+					{
+						root.intValue = root.children[0].intValue / root.children[2].intValue;
+					}
+					else
+					{
+						root.valueSet = false;
+					}
+				}
+				else
+				{
+					if(root.children[2].intValue != 0)
+					{
+						root.intValue = root.children[0].intValue % root.children[2].intValue;
+					}
+					else
+					{
+						root.valueSet = false;
+					}
+				}
+			}
+			else if(root.children[0].valueType == "INT" && root.children[2].valueType == "FLOAT")
+			{
+				if(root.children[1].symbolInfo->GetName() == "*")
+				{
+					root.floatValue = root.children[0].intValue * root.children[2].floatValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "/")
+				{
+					if(root.children[2].floatValue != 0.0)
+					{
+						root.floatValue = root.children[0].intValue / root.children[2].floatValue;
+					}
+					else
+					{
+						root.valueSet = false;
+					}
+				}
+				else
+				{
+					root.valueSet = false;
+				}
+			}
+			else if(root.children[0].valueType == "FLOAT" && root.children[2].valueType == "INT")
+			{
+				if(root.children[1].symbolInfo->GetName() == "*")
+				{
+					root.floatValue = root.children[0].floatValue * root.children[2].intValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "/")
+				{
+					if(root.children[2].intValue != 0)
+					{
+						root.floatValue = root.children[0].floatValue / root.children[2].intValue;
+					}
+					else
+					{
+						root.valueSet = false;
+					}
+				}
+				else
+				{
+					if(root.children[2].intValue != 0)
+					{
+						root.intValue = root.children[0].intValue % root.children[2].intValue;
+					}
+					else
+					{
+						root.valueSet = false;
+					}
+				}
+			}
+			else
+			{
+				if(root.children[1].symbolInfo->GetName() == "*")
+				{
+					root.floatValue = root.children[0].floatValue * root.children[2].floatValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "/")
+				{
+					if(root.children[2].floatValue != 0)
+					{
+						root.floatValue = root.children[0].floatValue / root.children[2].floatValue;
+					}
+					else
+					{
+						root.valueSet = false;
+					}
+				}
+				else
+				{
+					root.valueSet = false;
+				}
+			}
+		}
 	}
 }
 
@@ -645,8 +618,54 @@ void SetSimpleExpressionValue(ParseTreeNode &root)
 		if(root.children[0].valueSet && root.children[2].valueSet)
 		{
 			root.valueSet = true;
+			root.valueType = "FLOAT";
 
-			if()
+			if(root.children[0].valueType == "INT" && root.children[2].valueType == "INT")
+			{
+				root.valueType = "INT";
+				
+				if(root.children[1].symbolInfo->GetName() == "+")
+				{
+					root.intValue = root.children[0].intValue + root.children[2].intValue;
+				}
+				else
+				{
+					root.intValue = root.children[0].intValue - root.children[2].intValue;
+				}
+			}
+			else if(root.children[0].valueType == "INT" && root.children[2].valueType == "FLOAT")
+			{
+				if(root.children[1].symbolInfo->GetName() == "+")
+				{
+					root.floatValue = root.children[0].intValue + root.children[2].floatValue;
+				}
+				else
+				{
+					root.floatValue = root.children[0].intValue - root.children[2].floatValue;
+				}
+			}
+			else if(root.children[0].valueType == "FLOAT" && root.children[2].valueType == "INT")
+			{
+				if(root.children[1].symbolInfo->GetName() == "+")
+				{
+					root.floatValue = root.children[0].floatValue + root.children[2].intValue;
+				}
+				else
+				{
+					root.floatValue = root.children[0].floatValue - root.children[2].intValue;
+				}
+			}
+			else
+			{
+				if(root.children[1].symbolInfo->GetName() == "+")
+				{
+					root.floatValue = root.children[0].floatValue + root.children[2].floatValue;
+				}
+				else
+				{
+					root.floatValue = root.children[0].floatValue - root.children[2].floatValue;
+				}
+			}
 		}
 	}
 }
@@ -673,8 +692,26 @@ void SetRelExpressionValue(ParseTreeNode &root)
 		}
 	}
 	else
-	{
-				root.intValue = root.children[0].intValue >= root.children[2].intValue;
+	{	
+		if(root.children[0].valueSet && root.children[2].valueSet)
+		{	
+			if(root.children[0].valueType == "INT" && root.children[2].valueType == "INT")
+			{
+				if(root.children[1].symbolInfo->GetName() == "<")
+				{
+					root.intValue = root.children[0].intValue < root.children[2].intValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "<=")
+				{
+					root.intValue = root.children[0].intValue <= root.children[2].intValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == ">")
+				{
+					root.intValue = root.children[0].intValue > root.children[2].intValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == ">=")
+				{
+					root.intValue = root.children[0].intValue >= root.children[2].intValue;
 				}
 				else if(root.children[1].symbolInfo->GetName() == "==")
 				{
@@ -892,6 +929,330 @@ void SetExpressionValue(ParseTreeNode &root)
 				root.floatValue = root.children[0].floatValue;
 			}
 		}
+	}
+}
+
+std::string GetVariableDataType(ParseTreeNode &root)
+{
+	SymbolInfo *variable = st->LookUp(root.children[0].symbolInfo->GetName());
+
+	if(variable == NULL)
+	{
+		errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Undeclared variable \'" << root.children[0].symbolInfo->GetName() << "\'" << std::endl;
+
+		return "";
+	}
+	else
+	{
+		return variable->GetDataType();
+	}
+}
+
+std::string GetFactorDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		if(root.children[0].name == "variable")
+		{
+			return GetVariableDataType(root.children[0]);
+		}
+		else
+		{
+			if(root.children[0].name == "CONST_FLOAT")
+			{
+				return "FLOAT";
+			}
+			else
+			{
+				return "INT";
+			}
+		}
+	}
+	else if(root.children.size() == 2)
+	{
+		return GetVariableDataType(root.children[0]);
+	}
+	else if(root.children.size() == 3)
+	{
+		return GetExpressionDataType(root.children[1]);
+	}
+	else
+	{
+		SymbolInfo* calledFunction = st->LookUpFunction(root.children[0].symbolInfo->GetName());
+
+		if(calledFunction == NULL)
+		{
+			return "";
+		}
+		else
+		{
+			return calledFunction->GetDataType();
+		}
+	}
+}
+
+std::string GetUnaryExpressionDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetFactorDataType(root.children[0]);
+	}
+	else
+	{
+		std::string type = GetUnaryExpressionDataType(root.children[1]);
+
+		if(type == "VOID")
+		{
+			errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
+
+			return "";
+		}
+		else
+		{
+			return type;
+		}
+	}
+}
+
+std::string GetTermDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetUnaryExpressionDataType(root.children[0]);
+	}
+	else
+	{
+		std::string term = GetTermDataType(root.children[0]);
+		std::string unaryExpession = GetUnaryExpressionDataType(root.children[2]);
+
+		if(unaryExpession == "" || term == "")
+		{
+			return "";
+		}
+		else if(unaryExpession == "VOID" || term == "VOID")
+		{
+			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
+
+			return "";
+		}
+		else
+		{
+			if(term == "FLOAT" || unaryExpession == "FLOAT")
+			{
+				if(root.children[1].symbolInfo->GetName() == "%")
+				{
+					errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Operands of modulus must be integers " << std::endl;
+
+					++errorCount;
+
+					return "INT";
+				}
+				else
+				{
+					if(root.children[1].symbolInfo->GetName() == "/")
+					{
+						SetTermValue(root.children[2]);
+
+						if(root.children[2].valueSet)
+						{
+							if(root.children[2].valueType == "INT")
+							{
+								if(root.children[2].intValue == 0)
+								{
+									errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
+
+									++errorCount;
+								}
+							}
+							else
+							{
+								if(root.children[2].floatValue == 0.0)
+								{
+									errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
+
+									++errorCount;
+								}
+							}
+						}
+					}
+
+					return "FLOAT";
+				}
+			}
+			else
+			{
+				if(root.children[1].symbolInfo->GetName() == "/")
+				{
+					SetTermValue(root.children[2]);
+
+					if(root.children[2].valueSet)
+					{
+						if(root.children[2].valueType == "INT")
+						{
+							if(root.children[2].intValue == 0)
+							{
+								errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
+
+								++errorCount;
+							}
+						}
+						else
+						{
+							if(root.children[2].floatValue == 0.0)
+							{
+								errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
+
+								++errorCount;
+							}
+						}
+					}
+				}
+
+				return "INT";
+			}
+		}
+	}
+}
+
+std::string GetSimpleExpressionDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetTermDataType(root.children[0]);
+	}
+	else
+	{
+		std::string simpleExpression = GetSimpleExpressionDataType(root.children[0]);
+		std::string term = GetTermDataType(root.children[2]);
+
+		if(term == "" || simpleExpression == "")
+		{
+			return "";
+		}
+		else if(simpleExpression == "VOID" || term == "VOID")
+		{
+			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
+
+			return "";
+		}
+		else if(simpleExpression == "FLOAT" || term == "FLOAT")
+		{
+			return "FLOAT";
+		}
+		else
+		{
+			return "FLOAT";
+		}
+	}
+}
+
+std::string GetRelExpressionDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetSimpleExpressionDataType(root.children[0]);
+	}
+	else
+	{
+		std::string simpleExpression1 = GetSimpleExpressionDataType(root.children[0]);
+		std::string simpleExpression2 = GetSimpleExpressionDataType(root.children[2]);
+
+		if(simpleExpression1 == "" || simpleExpression2 == "")
+		{
+			return "";
+		}
+		else if(simpleExpression1 == "VOID" || simpleExpression2 == "VOID")
+		{
+			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
+
+			return "";
+		}
+		else
+		{
+			return "INT"; // relop always give int	
+		}
+	}
+}
+
+std::string GetLogicExpressionDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetRelExpressionDataType(root.children[0]);
+	}
+	else // else 3
+	{
+		std::string relExpression1 = GetRelExpressionDataType(root.children[0]);
+		std::string relExpression2 = GetRelExpressionDataType(root.children[2]);
+
+		if(relExpression1 == "" || relExpression2 == "")
+		{
+			return "";
+		}
+		else if(relExpression1 == "VOID" || relExpression2 == "VOID")
+		{
+			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
+
+			return "";
+		}
+		else
+		{
+			return "INT"; // logic op always give int
+		}
+	}
+}
+
+std::string GetExpressionDataType(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		return GetLogicExpressionDataType(root.children[0]);
+	}
+	else
+	{
+		std::string rhsType = GetLogicExpressionDataType(root.children[2]);
+		std::string lhsType = GetVariableDataType(root.children[0]);
+
+		if(rhsType == "VOID")
+		{
+			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
+
+			++errorCount;
+		}
+		else
+		{
+			if(lhsType == "INT" && rhsType == "FLOAT")
+			{
+				errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Warning: possible loss of data in assignment of FLOAT to INT" << std::endl;
+
+				++errorCount;
+			}
+		}
+
+		return lhsType;
+	}
+}
+
+void SetArgumentTypeList(ParseTreeNode &root, std::vector<std::string> &argumentTypeList)
+{
+	if(root.children.size() == 3)
+	{
+		SetArgumentTypeList(root.children[0], argumentTypeList);
+		argumentTypeList.push_back(GetLogicExpressionDataType(root.children[2]));
+	}
+	else
+	{
+		argumentTypeList.push_back(GetLogicExpressionDataType(root.children[0]));
 	}
 }
 
