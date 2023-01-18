@@ -274,11 +274,16 @@ void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symb
 	}
 }
 
-void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::string>> &paramList)
+void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::string>> &paramList, bool &error, bool definition)
 {
 	if(root.children.size() == 3 || root.children.size() == 4)
 	{
-		SetParams(root.children[0], paramList);
+		SetParams(root.children[0], paramList, error, definition);
+
+		if(error)
+		{
+			return;
+		}
 
 		std::string paramName = "";
 
@@ -305,10 +310,16 @@ void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::stri
 			errorStream << "Line# " << root.children[3].symbolInfo->GetSymbolStart() << ": Redefinition of parameter \'" << root.children[3].symbolInfo->GetName() << "\'" << std::endl;
 
 			++errorCount;
+			error = true;
 		}
 		else
 		{
 			paramList.push_back(param);
+
+			if(definition)
+			{
+				st->Insert(root.children[3].symbolInfo);
+			}
 		}
 	}
 	else if(root.children.size() == 2 || root.children.size() == 1)
@@ -338,10 +349,16 @@ void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::stri
 			errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Redefinition of parameter \'" << root.children[1].symbolInfo->GetName() << "\'" << std::endl;
 
 			++errorCount;
+			error = true;
 		}
 		else
 		{
 			paramList.push_back(param);
+
+			if(definition)
+			{
+				st->Insert(root.children[1].symbolInfo);
+			}
 		}
 	}
 }
@@ -940,6 +957,8 @@ std::string GetVariableDataType(ParseTreeNode &root)
 	{
 		errorStream << "Line# " << root.children[0].symbolInfo->GetSymbolStart() << ": Undeclared variable \'" << root.children[0].symbolInfo->GetName() << "\'" << std::endl;
 
+		++errorCount;
+
 		return "";
 	}
 	else
@@ -1171,7 +1190,7 @@ std::string GetSimpleExpressionDataType(ParseTreeNode &root)
 		}
 		else
 		{
-			return "FLOAT";
+			return "INT";
 		}
 	}
 }
@@ -1434,7 +1453,10 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 						if(present == NULL)
 						{
 							std::vector<std::pair<std::string, std::string>> paramList;
-							SetParams(parameter_list_node, paramList);
+
+							bool error = false;
+
+							SetParams(parameter_list_node, paramList, error, false);
 							function->SetParamList(paramList);
 							function->SetDefined(false);
 						}
@@ -1482,8 +1504,6 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 		 
 func_definition	:	func_start parameter_list RPAREN compound_statement
 				{
-					logStream << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement" << std::endl;
-
 					ParseTreeNode compound_statement_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -1499,8 +1519,9 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 					if(present == NULL)
 					{
 						std::vector<std::pair<std::string, std::string>> paramList;
+						bool error = false;
 
-						SetParams(parameter_list_node, paramList);
+						SetParams(parameter_list_node, paramList, error, true);
 						function->SetDefined(true);
 						function->SetParamList(paramList);
 					}
@@ -1514,12 +1535,13 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 							}
 							else
 							{
+								std::vector<std::pair<std::string, std::string>> paramList;
+								bool error = false;
+					
+								SetParams(parameter_list_node, paramList, error, true);
+
 								if(present->GetDataType() == function->GetDataType())
 								{
-									std::vector<std::pair<std::string, std::string>> paramList;
-						
-									SetParams(parameter_list_node, paramList);
-
 									bool ok = true;
 
 									std::vector<std::pair<std::string, std::string>> presentParamList = present->GetParamList();
@@ -1581,11 +1603,11 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 					parseTreeStack.push(func_definition_node);
 					st->PrintAllScope();
 					st->ExitScope();
+
+					logStream << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement" << std::endl;
 				}
 				|	func_start RPAREN compound_statement
 				{
-					logStream << "func_definition : type_specifier ID LPAREN RPAREN compound_statement" << std::endl;
-
 					ParseTreeNode compound_statement_node = parseTreeStack.top();
 
 					parseTreeStack.pop();
@@ -1646,6 +1668,8 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 					parseTreeStack.push(func_definition_node);
 					st->PrintAllScope();
 					st->ExitScope();
+
+					logStream << "func_definition : type_specifier ID LPAREN RPAREN compound_statement" << std::endl;
 				}
  				;
 
@@ -1658,7 +1682,7 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 					$4->SetIDType("VARIABLE");
 					$4->SetDataType(type_specifier_node.children[0].name);
 					$4->SetArray(false);
-					st->Insert($4);
+					//st->Insert($4);
 
 					parseTreeStack.pop();
 
