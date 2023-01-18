@@ -616,6 +616,41 @@ void SetArgumentTypeList(ParseTreeNode &root, std::vector<std::string> &argument
 	}
 }
 
+void SetSimpleExpressionValue(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		SetTermValue(root.children[0]);
+
+		if(root.children[0].valueSet)
+		{
+			root.valueSet = true;
+			root.valueType = root.children[0].valueType;
+
+			if(root.children[0].valueType == "INT")
+			{
+				root.intValue = root.children[0].intValue;
+			}
+			else
+			{
+				root.floatValue = root.children[0].floatValue;
+			}
+		}
+	}
+	else
+	{
+		SetSimpleExpressionValue(root.children[0]);
+		SetTermValue(root.children[2]);
+
+		if(root.children[0].valueSet && root.children[2].valueSet)
+		{
+			root.valueSet = true;
+
+			if()
+		}
+	}
+}
+
 void SetRelExpressionValue(ParseTreeNode &root)
 {
 	if(root.children.size() == 1)
@@ -639,7 +674,99 @@ void SetRelExpressionValue(ParseTreeNode &root)
 	}
 	else
 	{
-		
+				root.intValue = root.children[0].intValue >= root.children[2].intValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "==")
+				{
+					root.intValue = root.children[0].intValue == root.children[2].intValue;
+				}
+				else
+				{
+					root.intValue = root.children[0].intValue != root.children[2].intValue;
+				}
+			}
+			else if(root.children[0].valueType == "INT" && root.children[2].valueType == "FLOAT")
+			{
+				if(root.children[1].symbolInfo->GetName() == "<")
+				{
+					root.intValue = root.children[0].intValue < root.children[2].floatValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "<=")
+				{
+					root.intValue = root.children[0].intValue <= root.children[2].floatValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == ">")
+				{
+					root.intValue = root.children[0].intValue > root.children[2].floatValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == ">=")
+				{
+					root.intValue = root.children[0].intValue >= root.children[2].floatValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "==")
+				{
+					root.intValue = root.children[0].intValue == root.children[2].floatValue;
+				}
+				else
+				{
+					root.intValue = root.children[0].intValue != root.children[2].floatValue;
+				}
+			}
+			else if(root.children[0].valueType == "FLOAT" && root.children[2].valueType == "INT")
+			{
+				if(root.children[1].symbolInfo->GetName() == "<")
+				{
+					root.intValue = root.children[0].floatValue < root.children[2].intValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "<=")
+				{
+					root.intValue = root.children[0].floatValue <= root.children[2].intValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == ">")
+				{
+					root.intValue = root.children[0].floatValue > root.children[2].intValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == ">=")
+				{
+					root.intValue = root.children[0].floatValue >= root.children[2].intValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "==")
+				{
+					root.intValue = root.children[0].floatValue == root.children[2].intValue;
+				}
+				else
+				{
+					root.intValue = root.children[0].floatValue != root.children[2].intValue;
+				}
+			}
+			else
+			{
+				if(root.children[1].symbolInfo->GetName() == "<")
+				{
+					root.floatValue = root.children[0].floatValue < root.children[2].floatValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "<=")
+				{
+					root.floatValue = root.children[0].floatValue <= root.children[2].floatValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == ">")
+				{
+					root.floatValue = root.children[0].floatValue > root.children[2].floatValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == ">=")
+				{
+					root.floatValue = root.children[0].floatValue >= root.children[2].floatValue;
+				}
+				else if(root.children[1].symbolInfo->GetName() == "==")
+				{
+					root.floatValue = root.children[0].floatValue == root.children[2].floatValue;
+				}
+				else
+				{
+					root.floatValue = root.children[0].floatValue != root.children[2].floatValue;
+				}
+			}
+		}
 	}
 }
 
