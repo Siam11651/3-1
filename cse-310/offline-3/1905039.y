@@ -1049,6 +1049,30 @@ std::string GetTermDataType(ParseTreeNode &root)
 
 					++errorCount;
 
+					SetTermValue(root.children[2]);
+
+					if(root.children[2].valueSet)
+					{
+						if(root.children[2].valueType == "INT")
+						{
+							if(root.children[2].intValue == 0)
+							{
+								errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
+
+								++errorCount;
+							}
+						}
+						else
+						{
+							if(root.children[2].floatValue == 0.0)
+							{
+								errorStream << "Line# " << root.children[1].symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
+
+								++errorCount;
+							}
+						}
+					}
+
 					return "INT";
 				}
 				else
@@ -1085,9 +1109,9 @@ std::string GetTermDataType(ParseTreeNode &root)
 			}
 			else
 			{
-				if(root.children[1].symbolInfo->GetName() == "/")
+				if(root.children[1].symbolInfo->GetName() == "/" || root.children[1].symbolInfo->GetName() == "%")
 				{
-					SetTermValue(root.children[2]);
+					SetUnaryExpressionValue(root.children[2]);
 
 					if(root.children[2].valueSet)
 					{
@@ -1412,6 +1436,7 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 							std::vector<std::pair<std::string, std::string>> paramList;
 							SetParams(parameter_list_node, paramList);
 							function->SetParamList(paramList);
+							function->SetDefined(false);
 						}
 						else
 						{
@@ -1435,7 +1460,11 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 
 						parseTreeStack.pop();
 
-						if(present != NULL)
+						if(present == NULL)
+						{
+							function->SetDefined(false);
+						}
+						else
 						{
 							// redeclaration
 						}
