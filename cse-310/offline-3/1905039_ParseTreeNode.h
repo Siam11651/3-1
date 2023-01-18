@@ -12,4 +12,8 @@ public:
     std::vector<ParseTreeNode> children;
     SymbolInfo *symbolInfo;
     size_t startLine, endLine;
+    bool valueSet;
+    std::string valueType;
+    int intValue;
+    float floatValue;
 };

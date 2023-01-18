@@ -616,74 +616,154 @@ void SetArgumentTypeList(ParseTreeNode &root, std::vector<std::string> &argument
 	}
 }
 
-bool ExpressionInZero(ParseTreeNode &root);
-
-bool FactorIsZero(ParseTreeNode &root)
+void SetRelExpressionValue(ParseTreeNode &root)
 {
 	if(root.children.size() == 1)
 	{
-		if(root.children[0].name == "CONST_INT")
+		SetSimpleExpressionValue(root.children[0]);
+
+		if(root.children[0].valueSet)
 		{
-			stringstream ss(root.children[0].symbolInfo->GetName());
-			int value;
+			root.valueSet = true;
+			root.valueType = root.children[0].valueType;
 
-			ss >> value;
-
-			if(value == 0)
+			if(root.children[0].valueType == "INT")
 			{
-				return true;
+				root.intValue = root.children[0].intValue;
 			}
 			else
 			{
-				return false;
+				root.floatValue = root.children[0].floatValue;
 			}
 		}
-		else if(root.children[0].name == "CONST_FLOAT")
-		{
-			stringstream ss(root.children[0].symbolInfo->GetName());
-			float value;
-
-			ss >> value;
-
-			if(value == 0.0)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		else
-		{
-			return false;
-		}
-	}
-	else if(root.children.size() == 3)
-	{
-		return ExpressionInZero(root.children[1]);
 	}
 	else
 	{
-		return false;
+		
 	}
 }
 
-bool UnaryExpressionIsZero(ParseTreeNode &root)
+void SetLogicExpressionValue(ParseTreeNode &root)
 {
 	if(root.children.size() == 1)
 	{
-		return FactorIsZero(root.children[0]);
+		SetRelExpressionValue(root.children[0]);
+
+		if(root.children[0].valueSet)
+		{
+			root.valueSet = true;
+			root.valueType = root.children[0].valueType;
+
+			if(root.children[0].valueType == "INT")
+			{
+				root.intValue = root.children[0].intValue;
+			}
+			else
+			{
+				root.floatValue = root.children[0].floatValue;
+			}
+		}
 	}
 	else
 	{
-		if(root.children[0].name == "ADDOP")
+		SetRelExpressionValue(root.children[0]);
+		SetRelExpressionValue(root.children[2]);
+
+		if(root.children[0].valueSet && root.children[2].valueSet)
 		{
-			return UnaryExpressionIsZero(root.children[1]);
+			root.valueSet = true;
+			root.valueType = "INT";
+
+			if(root.children[0].valueType == "INT" && root.children[2].valueType == "INT")
+			{
+				if(root.children[1].symbolInfo->GetName() == "&&")
+				{
+					root.intValue = root.children[0].intValue && root.children[2].intValue;
+				}
+				else
+				{
+					root.intValue = root.children[0].intValue || root.children[2].intValue;
+				}
+			}
+			else if(root.children[0].valueType == "INT" && root.children[2].valueType == "FLOAT")
+			{
+				if(root.children[1].symbolInfo->GetName() == "&&")
+				{
+					root.intValue = root.children[0].intValue && (int)root.children[2].floatValue;
+				}
+				else
+				{
+					root.intValue = root.children[0].intValue || (int)root.children[2].floatValue;
+				}
+			}
+			else if(root.children[0].valueType == "FLOAT" && root.children[2].valueType == "INT")
+			{
+				if(root.children[1].symbolInfo->GetName() == "&&")
+				{
+					root.intValue = (int)root.children[0].floatValue && root.children[2].intValue;
+				}
+				else
+				{
+					root.intValue = (int)root.children[0].floatValue || root.children[2].intValue;
+				}
+			}
+			else
+			{
+				if(root.children[1].symbolInfo->GetName() == "&&")
+				{
+					root.intValue = (int)root.children[0].floatValue && (int)root.children[2].floatValue;
+				}
+				else
+				{
+					root.intValue = (int)root.children[0].floatValue || (int)root.children[2].floatValue;
+				}
+			}
 		}
-		else
+	}
+}
+
+void SetExpressionValue(ParseTreeNode &root)
+{
+	if(root.children.size() == 1)
+	{
+		SetLogicExpressionValue(root.children[0]);
+
+		if(root.children[0].valueSet)
 		{
-			return !UnaryExpressionIsZero(root.children[1]);
+			root.valueSet = true;
+			root.valueType = root.children[0].valueType;
+
+			if(root.children[0].valueType == "INT")
+			{
+				root.intValue = root.children[0].intValue;
+			}
+			else
+			{
+				root.floatValue = root.children[0].floatValue;
+			}
+		}
+	}
+	else
+	{
+		SetLogicExpressionValue(root.children[2]);
+
+		if(root.children[2].valueSet)
+		{
+			root.children[0].valueSet = true;
+			root.children[0].valueType = root.children[0].children[0].valueType;
+			root.valueSet = true;
+			root.valueType = root.children[0].valueType;
+
+			if(root.children[0].children[0].valueType == "INT")
+			{
+				root.children[0].intValue = root.children[0].children[0].intValue;
+				root.intValue = root.children[0].intValue;
+			}
+			else
+			{
+				root.children[0].floatValue = root.children[0].children[0].floatValue;
+				root.floatValue = root.children[0].floatValue;
+			}
 		}
 	}
 }
