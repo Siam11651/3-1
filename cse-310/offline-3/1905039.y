@@ -1579,6 +1579,8 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 				
 					SetLine(func_definition_node);
 					parseTreeStack.push(func_definition_node);
+					st->PrintAllScope();
+					st->ExitScope();
 				}
 				|	func_start RPAREN compound_statement
 				{
@@ -1642,6 +1644,8 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 				
 					SetLine(func_definition_node);
 					parseTreeStack.push(func_definition_node);
+					st->PrintAllScope();
+					st->ExitScope();
 				}
  				;
 
@@ -1727,8 +1731,8 @@ compound_statement	:	LCURL statements RCURL
 					{
 						logStream << "compound_statement : LCURL statements RCURL" << std::endl;
 
-						st->PrintAllScope();
-						st->ExitScope();
+						// st->PrintAllScope();
+						// st->ExitScope();
 
 						ParseTreeNode statements_node = parseTreeStack.top();
 
@@ -1743,8 +1747,8 @@ compound_statement	:	LCURL statements RCURL
 					}
  		            |	LCURL RCURL
 					{
-						st->PrintAllScope();
-						st->ExitScope();
+						// st->PrintAllScope();
+						// st->ExitScope();
 
 						logStream << "compund_statement : LCURL RCURL" << std::endl;
 
@@ -1984,6 +1988,8 @@ statement	:   var_declaration
 
 				SetLine(statement_node);
 				parseTreeStack.push(statement_node);
+				st->PrintAllScope();
+				st->ExitScope();
 			}
 			|   WHILE
 			{
@@ -2008,6 +2014,8 @@ statement	:   var_declaration
 
 				SetLine(statement_node);
 				parseTreeStack.push(statement_node);
+				st->PrintAllScope();
+				st->ExitScope();
 			}
 			|   RETURN expression SEMICOLON
 			{
@@ -2043,9 +2051,13 @@ statement	:   var_declaration
 
 				SetLine(statement_node);
 				parseTreeStack.push(statement_node);
+				st->PrintAllScope();
+				st->ExitScope();
 			}
 	  		| IF LPAREN expression RPAREN statement ELSE
 			{
+				st->PrintAllScope();
+				st->ExitScope();
 				st->EnterScope();
 			}
 			statement
@@ -2072,6 +2084,8 @@ statement	:   var_declaration
 
 				SetLine(statement_node);
 				parseTreeStack.push(statement_node);
+				st->PrintAllScope();
+				st->ExitScope();
 			}
 			;
 	  
