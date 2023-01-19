@@ -9,6 +9,7 @@
 #include "1905039_SymbolTable.h"
 
 void PrintParseTree(ParseTreeNode &parseTreeNode, size_t depth);
+void DeleteTerminals(ParseTreeNode &root);
 void SetLine(ParseTreeNode &parseTreeNode);
 void InsertID(ParseTreeNode &root, const std::string dataType, SymbolTable *symbolTable);
 void SetParams(ParseTreeNode &root, std::vector<std::pair<std::string, std::string>> &paramList, bool &error, bool definition);

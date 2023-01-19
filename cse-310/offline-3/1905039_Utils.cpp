@@ -39,6 +39,21 @@ void PrintParseTree(ParseTreeNode &parseTreeNode, size_t depth)
 	}
 }
 
+void DeleteTerminals(ParseTreeNode &root)
+{
+	if(root.terminal)
+	{
+		delete root.symbolInfo;
+	}
+	else
+	{
+		for(size_t i = 0; i < root.children.size(); ++i)
+		{
+			DeleteTerminals(root.children[i]);
+		}
+	}
+}
+
 void SetLine(ParseTreeNode &parseTreeNode)
 {
 	size_t start = SIZE_MAX;

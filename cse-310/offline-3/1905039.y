@@ -951,22 +951,6 @@ variable    :   ID
 
 				SymbolInfo *variablePtr = st->LookUp($1->GetName());
 
-				if(variablePtr == NULL)
-				{
-					// undeclared variable
-				}
-				else
-				{
-					if(variablePtr->GetIDType() == "FUNCTION")
-					{
-						// undeclared variable
-					}
-					else
-					{
-
-					}
-				}
-
 				ParseTreeNode id_node = {"ID", true, {}, $1};
 				ParseTreeNode variable_node = {"variable", false, {id_node}, NULL};
 
@@ -1433,6 +1417,7 @@ int main(int argc,char *argv[])
 
 	yyparse();
 	PrintParseTree(parseTreeStack.top(), 0);
+	DeleteTerminals(parseTreeStack.top());
 
 	logStream << "Total Lines: " << lineCount << std::endl;
 	logStream << "Total Errors: " << errorCount << std::endl;
@@ -1441,6 +1426,8 @@ int main(int argc,char *argv[])
 	parseTreeStream.close();
 	logStream.close();
 	errorStream.close();
+
+	delete st;
 	
 	return 0;
 }
