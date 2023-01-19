@@ -23,6 +23,8 @@ extern size_t lineCount;
 extern size_t errorCount;
 SymbolInfo *function;
 SymbolInfo *present;
+bool inVoidFunction;
+bool functionReturns;
 
 void yyerror(char *s)
 {
@@ -1407,6 +1409,11 @@ func_start	:	type_specifier ID LPAREN
 
 				parseTreeStack.pop();
 
+				if(type_specifier_node.children[0].name == "VOID")
+				{
+					inVoidFunction = true;
+				}
+
 				$2->SetIDType("FUNCTION");
 				$2->SetArray(false);
 				$2->SetDataType(type_specifier_node.children[0].name);
@@ -1462,7 +1469,18 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 						}
 						else
 						{
-							// redeclaration of same function
+							if(present->GetIDType() == "FUNCTION")
+							{
+								errorStream << "Line# " << function->GetSymbolStart() << ": Redefinition of function \'" << function->GetName() << "\'" << std::endl;
+
+								++errorCount;	
+							}
+							else
+							{
+								errorStream << "Line# " << function->GetSymbolStart() << ": \'" << function->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+								++errorCount;
+							}
 						}
 
 						ParseTreeNode rparen_node = {"RPAREN", true, {}, $3};
@@ -1473,6 +1491,10 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 						SetLine(parseTreeStack.top());
 						st->ExitScope();
 						st->FalseScope();
+
+						inVoidFunction = false;
+						function = NULL;
+						present = NULL;
 					}
 		            |	func_start RPAREN SEMICOLON
 					{
@@ -1488,7 +1510,18 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 						}
 						else
 						{
-							// redeclaration
+							if(present->GetIDType() == "FUNCTION")
+							{
+								errorStream << "Line# " << function->GetSymbolStart() << ": Redefinition of function \'" << function->GetName() << "\'" << std::endl;
+
+								++errorCount;	
+							}
+							else
+							{
+								errorStream << "Line# " << function->GetSymbolStart() << ": \'" << function->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+								++errorCount;
+							}
 						}
 
 						ParseTreeNode rparen_node = {"RPAREN", true, {}, $2};
@@ -1499,6 +1532,10 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 						SetLine(parseTreeStack.top());
 						st->ExitScope();
 						st->FalseScope();
+
+						inVoidFunction = false;
+						function = NULL;
+						present = NULL;
 					}
 		            ;
 		 
@@ -1531,7 +1568,9 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 						{
 							if(present->GetDefined())
 							{
-								// redefinition
+								errorStream << "Line# " << function->GetSymbolStart() << ": Redefinition of function \'" << function->GetName() << "\'" << std::endl;
+
+								++errorCount;
 							}
 							else
 							{
@@ -1592,7 +1631,9 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 						}
 						else
 						{
-							
+							errorStream << "Line# " << function->GetSymbolStart() << ": \'" << function->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+							++errorCount;
 						}
 					}
 
@@ -1605,6 +1646,18 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 					st->ExitScope();
 
 					logStream << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement" << std::endl;
+
+					if(!inVoidFunction && !functionReturns)
+					{
+						errorStream << "Line# " << function->GetSymbolStart() << ": Function \'" << function->GetName() << "\' should return something" << std::endl;
+
+						++errorCount;
+					}
+
+					functionReturns = false;
+					inVoidFunction = false;
+					function = NULL;
+					present = NULL;
 				}
 				|	func_start RPAREN compound_statement
 				{
@@ -1628,7 +1681,9 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 						{
 							if(present->GetDefined())
 							{
-								// redefinition
+								errorStream << "Line# " << function->GetSymbolStart() << ": Redefinition of function \'" << function->GetName() << "\'" << std::endl;
+
+								++errorCount;
 							}
 							else
 							{
@@ -1657,7 +1712,9 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 						}
 						else
 						{
-							// redeclared as different kind of symbol
+							errorStream << "Line# " << function->GetSymbolStart() << ": \'" << function->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+							++errorCount;
 						}
 					}
 
@@ -1670,6 +1727,18 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 					st->ExitScope();
 
 					logStream << "func_definition : type_specifier ID LPAREN RPAREN compound_statement" << std::endl;
+
+					if(!inVoidFunction && !functionReturns)
+					{
+						errorStream << "Line# " << function->GetSymbolStart() << ": Function \'" << function->GetName() << "\' should return something" << std::endl;
+
+						++errorCount;
+					}
+
+					functionReturns = false;
+					inVoidFunction = false;
+					function = NULL;
+					present = NULL;
 				}
  				;
 
@@ -2043,6 +2112,15 @@ statement	:   var_declaration
 			}
 			|   RETURN expression SEMICOLON
 			{
+				if(inVoidFunction)
+				{
+					errorStream << "Line# " << $1->GetSymbolStart() << ": Function \'" << function->GetName() << "\' does not return anything" << std::endl;
+
+					++errorCount;
+				}
+
+				functionReturns = true;
+
 				logStream << "statement : RETURN expression SEMICOLON" << std::endl;
 
 				ParseTreeNode expression_node = parseTreeStack.top();
@@ -2609,6 +2687,9 @@ arguments   :   arguments COMMA logic_expression
 
 int main(int argc,char *argv[])
 {
+	functionReturns = false;
+	inVoidFunction = false;
+
 	parseTreeStream.open("1905039_parsetree.txt");
 	logStream.open("1905039_log.txt");
 	errorStream.open("1905039_error.txt");
