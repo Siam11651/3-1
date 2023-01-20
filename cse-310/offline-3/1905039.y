@@ -111,44 +111,32 @@ unit    :   var_declaration
 			SetLine($$);
 		}
         ;
-
-func_start	:	type_specifier ID LPAREN
-			{
-				if($1->children[0]->name == "VOID")
-				{
-					inVoidFunction = true;
-				}
-
-				$2->symbolInfo->SetIDType("FUNCTION");
-				$2->symbolInfo->SetArray(false);
-				$2->symbolInfo->SetDataType($1->children[0]->name);
-				
-				present = st->LookUp($2->symbolInfo->GetName());
-				function = $2->symbolInfo;
-
-				if(present == NULL)
-				{
-					st->Insert($2->symbolInfo);
-				}
-
-				$$ = new ParseTreeNode();
-				*$$ = {"func_start", false, {$1, $2, $3}, NULL};
-
-				st->EnterScope();
-			}
-			;
      
-func_declaration    :	func_start parameter_list RPAREN SEMICOLON
+func_declaration    :	type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 					{
 						logStream << "func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON" << std::endl;
 
+						if($1->children[0]->name == "VOID")
+						{
+							inVoidFunction = true;
+						}
+
+						$2->symbolInfo->SetIDType("FUNCTION");
+						$2->symbolInfo->SetArray(false);
+						$2->symbolInfo->SetDataType($1->children[0]->name);
+						
+						present = st->LookUp($2->symbolInfo->GetName());
+						function = $2->symbolInfo;
+
 						if(present == NULL)
 						{
+							st->Insert($2->symbolInfo);
+
 							std::vector<std::pair<std::string, std::string>> paramList;
 
 							bool error = false;
 
-							SetParams($2, paramList, error, false);
+							SetParams($4, paramList, error, false);
 							function->SetParamList(paramList);
 							function->SetDefined(false);
 						}
@@ -169,22 +157,33 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 						}
 
 						$$ = new ParseTreeNode();
-						*$$ = {"func_declaration", false, {$1->children[0], $1->children[1], $1->children[2], $2, $3, $4}, NULL};
+						*$$ = {"func_declaration", false, {$1, $2, $3, $4, $5, $6}, NULL};
 					
 						SetLine($$);
-						st->ExitScope();
-						st->FalseScope();
 
 						inVoidFunction = false;
 						function = NULL;
 						present = NULL;
 					}
-		            |	func_start RPAREN SEMICOLON
+		            |	type_specifier ID LPAREN RPAREN SEMICOLON
 					{
 						logStream << "func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON" << std::endl;
 
+						if($1->children[0]->name == "VOID")
+						{
+							inVoidFunction = true;
+						}
+
+						$2->symbolInfo->SetIDType("FUNCTION");
+						$2->symbolInfo->SetArray(false);
+						$2->symbolInfo->SetDataType($1->children[0]->name);
+						
+						present = st->LookUp($2->symbolInfo->GetName());
+						function = $2->symbolInfo;
+
 						if(present == NULL)
 						{
+							st->Insert($2->symbolInfo);
 							function->SetDefined(false);
 						}
 						else
@@ -204,11 +203,9 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 						}
 
 						$$ = new ParseTreeNode();
-						*$$ = {"func_declaration", false, {$1->children[0], $1->children[1], $1->children[2], $2, $3}, NULL};
+						*$$ = {"func_declaration", false, {$1, $2, $3, $4, $5}, NULL};
 					
 						SetLine($$);
-						st->ExitScope();
-						st->FalseScope();
 
 						inVoidFunction = false;
 						function = NULL;
@@ -216,15 +213,33 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 					}
 		            ;
 		 
-func_definition	:	func_start parameter_list RPAREN compound_statement
+func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 				{
+					if($1->children[0]->name == "VOID")
+					{
+						inVoidFunction = true;
+					}
+
+					$2->symbolInfo->SetIDType("FUNCTION");
+					$2->symbolInfo->SetArray(false);
+					$2->symbolInfo->SetDataType($1->children[0]->name);
+					
+					present = st->LookUp($2->symbolInfo->GetName());
+					function = $2->symbolInfo;
+
+					if(present == NULL)
+					{
+						st->Insert($2->symbolInfo);
+					}
+
+					st->EnterScope();
+
 					if(present == NULL)
 					{
 						std::vector<std::pair<std::string, std::string>> paramList;
 						bool error = false;
 
-						SetParams($2, paramList, error, true);
-						function->SetDefined(true);
+						SetParams($4, paramList, error, true);
 						function->SetParamList(paramList);
 					}
 					else
@@ -242,7 +257,7 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 								std::vector<std::pair<std::string, std::string>> paramList;
 								bool error = false;
 					
-								SetParams($2, paramList, error, true);
+								SetParams($4, paramList, error, true);
 
 								if(present->GetDataType() == function->GetDataType())
 								{
@@ -301,9 +316,11 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 							++errorCount;
 						}
 					}
-
+				}
+				compound_statement
+				{
 					$$ = new ParseTreeNode();
-					*$$ = {"func_definition", false, {$1->children[0], $1->children[1], $1->children[2], $2, $3, $4}, NULL};
+					*$$ = {"func_definition", false, {$1, $2, $3, $4, $5, $7}, NULL};
 				
 					SetLine($$);
 					st->PrintAllScope();
@@ -323,13 +340,30 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 					function = NULL;
 					present = NULL;
 				}
-				|	func_start RPAREN compound_statement
+				|	type_specifier ID LPAREN RPAREN
 				{
-					function->SetDefined(true);
+					if($1->children[0]->name == "VOID")
+					{
+						inVoidFunction = true;
+					}
+
+					$2->symbolInfo->SetIDType("FUNCTION");
+					$2->symbolInfo->SetArray(false);
+					$2->symbolInfo->SetDataType($1->children[0]->name);
+					
+					present = st->LookUp($2->symbolInfo->GetName());
+					function = $2->symbolInfo;
 
 					if(present == NULL)
 					{
-						
+						st->Insert($2->symbolInfo);
+					}
+
+					st->EnterScope();
+
+					if(present == NULL)
+					{
+								
 					}
 					else
 					{
@@ -373,9 +407,13 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 							++errorCount;
 						}
 					}
+				}
+				compound_statement
+				{
+					function->SetDefined(true);
 
 					$$ = new ParseTreeNode();
-					*$$ = {"func_definition", false, {$1->children[0], $1->children[1], $1->children[2], $2, $3}, NULL};
+					*$$ = {"func_definition", false, {$1, $2, $3, $4, $6}, NULL};
 				
 					SetLine($$);
 					st->PrintAllScope();
@@ -426,7 +464,6 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 					$2->symbolInfo->SetIDType("VARIABLE");
 					$2->symbolInfo->SetDataType($1->children[0]->name);
 					$2->symbolInfo->SetArray(false);
-					st->Insert($2->symbolInfo);
 					
 					$$ = new ParseTreeNode();
 					*$$ = {"parameter_list", false, {$1, $2}, NULL};
