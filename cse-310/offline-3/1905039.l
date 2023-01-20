@@ -1096,6 +1096,8 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                         } 
 
 .   {
+        logStream << "Error at line# " << lineCount << ": UNRECOGNIZED CHAR " << yytext << std::endl;
+
         ++errorCount;
     }
 

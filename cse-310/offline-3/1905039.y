@@ -30,7 +30,7 @@ ParseTreeNode *root;
 
 void yyerror(char *s)
 {
-	//write your code
+	logStream << "Error at line no " << lineCount << " : syntax error" << std::endl;
 }
 
 std::stack<ParseTreeNode> parseTreeStack;
@@ -158,6 +158,57 @@ func_declaration    :	type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 
 						$$ = new ParseTreeNode();
 						*$$ = {"func_declaration", false, {$1, $2, $3, $4, $5, $6}, NULL};
+					
+						SetLine($$);
+
+						inVoidFunction = false;
+						function = NULL;
+						present = NULL;
+					}
+					|	type_specifier ID LPAREN error RPAREN SEMICOLON
+					{
+						errorStream << "Line# " << $2->startLine << ": Syntax error at parameter list of function declaration" << std::endl;
+
+						++errorCount;
+
+						if($1->children[0]->name == "VOID")
+						{
+							inVoidFunction = true;
+						}
+
+						$2->symbolInfo->SetIDType("FUNCTION");
+						$2->symbolInfo->SetArray(false);
+						$2->symbolInfo->SetDataType($1->children[0]->name);
+						
+						present = st->LookUp($2->symbolInfo->GetName());
+						function = $2->symbolInfo;
+
+						if(present == NULL)
+						{
+							
+						}
+						else
+						{
+							if(present->GetIDType() == "FUNCTION")
+							{
+								errorStream << "Line# " << function->GetSymbolStart() << ": Redefinition of function \'" << function->GetName() << "\'" << std::endl;
+
+								++errorCount;	
+							}
+							else
+							{
+								errorStream << "Line# " << function->GetSymbolStart() << ": \'" << function->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+								++errorCount;
+							}
+						}
+
+						SymbolInfo *errorInfo = new SymbolInfo("error", "parameter_list");
+						errorInfo->SetSymbolStart($4->startLine);
+						$4 = new ParseTreeNode();
+						*$4 = {"parameter_list", true, {}, errorInfo};
+						$$ = new ParseTreeNode();
+						*$$ = {"func_declaration", false, {$1, $2, $3, $4, $5}, NULL};
 					
 						SetLine($$);
 
@@ -340,6 +391,87 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					function = NULL;
 					present = NULL;
 				}
+				|	type_specifier ID LPAREN error RPAREN
+				{
+					if($1->children[0]->name == "VOID")
+					{
+						inVoidFunction = true;
+					}
+
+					$2->symbolInfo->SetIDType("FUNCTION");
+					$2->symbolInfo->SetArray(false);
+					$2->symbolInfo->SetDataType($1->children[0]->name);
+					
+					present = st->LookUp($2->symbolInfo->GetName());
+					function = $2->symbolInfo;
+
+					st->EnterScope();
+
+					if(present == NULL)
+					{
+
+					}
+					else
+					{
+						if(present->GetIDType() == "FUNCTION")
+						{
+							if(present->GetDefined())
+							{
+								errorStream << "Line# " << function->GetSymbolStart() << ": Redefinition of function \'" << function->GetName() << "\'" << std::endl;
+
+								++errorCount;
+							}
+							else
+							{
+								if(present->GetDataType() == function->GetDataType())
+								{
+									
+								}
+								else
+								{
+									errorStream << "Line# " << function->GetSymbolStart() << ": Conflicting types for \'" << function->GetName() << "\'" << std::endl;
+
+									++errorCount;
+								}
+							}
+						}
+						else
+						{
+							errorStream << "Line# " << function->GetSymbolStart() << ": \'" << function->GetName() << "\' redeclared as different kind of symbol" << std::endl;
+
+							++errorCount;
+						}
+					}
+				}
+				compound_statement
+				{
+					errorStream << "Line# " << $2->startLine << ": Syntax error at parameter list of function definition" << std::endl;
+
+					++errorCount;
+
+					SymbolInfo *errorInfo = new SymbolInfo("error", "parameter_list");
+					errorInfo->SetSymbolStart($4->startLine);
+					$4 = new ParseTreeNode();
+					*$4 = {"parameter_list", true, {}, errorInfo};
+					$$ = new ParseTreeNode();
+					*$$ = {"func_declaration", false, {$1, $2, $3, $4, $5}, NULL};
+				
+					SetLine($$);
+					st->PrintAllScope();
+					st->ExitScope();
+
+					if(!inVoidFunction && !functionReturns)
+					{
+						errorStream << "Line# " << function->GetSymbolStart() << ": Function \'" << function->GetName() << "\' should return something" << std::endl;
+
+						++errorCount;
+					}
+
+					functionReturns = false;
+					inVoidFunction = false;
+					function = NULL;
+					present = NULL;
+				}
 				|	type_specifier ID LPAREN RPAREN
 				{
 					if($1->children[0]->name == "VOID")
@@ -490,9 +622,24 @@ compound_statement	:	LCURL statements RCURL
 
 						SetLine($$);
 					}
+					|	LCURL error RCURL
+					{
+						SymbolInfo *errorInfo = new SymbolInfo("error", "statements");
+						errorInfo->SetSymbolStart($2->startLine);
+						$2 = new ParseTreeNode();
+						*$2 = {"parameter_list", true, {}, errorInfo};
+						$$ = new ParseTreeNode();
+						*$$ = {"compound_statement", false, {$1, $2, $3}};
+
+						errorStream << "Line# " << $2->startLine << ": Syntax error at statement of compound statement" << std::endl;
+
+						++errorCount;
+
+						SetLine($$);
+					}
  		            |	LCURL RCURL
 					{
-						logStream << "compund_statement : LCURL RCURL" << std::endl;
+						logStream << "compound_statement : LCURL RCURL" << std::endl;
 
 						$$ = new ParseTreeNode();
 						*$$ = {"compound_statement", false, {$1, $2}, NULL};
@@ -511,6 +658,21 @@ var_declaration :   type_specifier declaration_list SEMICOLON
 					SetLine($$);
 
 					InsertID($2, $1->children[0]->name, st);
+				}
+				|	type_specifier error SEMICOLON
+				{					
+					SymbolInfo *errorInfo = new SymbolInfo("error", "declaration_list");
+					errorInfo->SetSymbolStart($2->startLine);
+					$2 = new ParseTreeNode();
+					*$2 = {"declaration_list", true, {}, errorInfo};
+					$$ = new ParseTreeNode();
+					*$$ = {"var_declaration", false, {$1, $2, $3}, NULL};
+
+					errorStream << "Line# " << $1->children[0]->startLine << ": Syntax error at declaration list of variable declaration" << std::endl;
+
+					++errorCount;
+
+					SetLine($$);
 				}
  		        ;
  		 
@@ -741,6 +903,21 @@ expression_statement    :   SEMICOLON
 
 							SetLine($$);
 						}
+						|	error SEMICOLON
+						{
+							SymbolInfo *errorInfo = new SymbolInfo("error", "expression");
+							errorInfo->SetSymbolStart($1->startLine);
+							$1 = new ParseTreeNode();
+							*$1 = {"expression", true, {}, errorInfo};
+							$$ = new ParseTreeNode();
+							*$$ = {"expression_statement", false, {$1}, NULL};
+
+							errorStream << "Line# " << $1->startLine << ": Syntax error at expression of expression statement" << std::endl;
+
+							++errorCount;
+
+							SetLine($$);
+						}
 			            ;
 	  
 variable    :   ID
@@ -953,14 +1130,20 @@ factor  :   variable
 
 				std::vector<std::string> argumentTypeList;
 
-				SetArgumentTypeList($3->children[0], argumentTypeList);
+				if($3->children.size() > 0)
+				{
+					SetArgumentTypeList($3->children[0], argumentTypeList);
+				}
 			}
 			else
 			{
 				std::vector<std::pair<std::string, std::string>> paramList = function->GetParamList();
 				std::vector<std::string> argumentTypeList;
 
-				SetArgumentTypeList($3->children[0], argumentTypeList);
+				if($3->children.size() > 0)
+				{
+					SetArgumentTypeList($3->children[0], argumentTypeList);
+				}
 
 				if(argumentTypeList.size() > paramList.size())
 				{
@@ -1040,7 +1223,24 @@ argument_list   :   arguments
 
 					SetLine($$);
 				}
-			    |
+			    |	arguments error
+				{
+					logStream << "argument_list : arguments" << std::endl;
+
+					SymbolInfo *errorInfo = new SymbolInfo("error", "arguments");
+					errorInfo->SetSymbolStart($2->startLine);
+					$2 = new ParseTreeNode();
+					*$2 = {"parameter_list", true, {}, errorInfo};
+					$$ = new ParseTreeNode();
+					*$$ = {"argument_list", false, {$1, $2}, NULL};
+
+					errorStream << "Line# " << $2->startLine << ": Syntax error at arguments of arguments list" << std::endl;
+
+					++errorCount;
+
+					SetLine($$);
+				}
+				|
                 ;
 	
 arguments   :   arguments COMMA logic_expression
