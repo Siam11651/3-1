@@ -9,7 +9,7 @@ class ParseTreeNode
 public:
     std::string name;
     bool terminal;
-    std::vector<ParseTreeNode> children;
+    std::vector<ParseTreeNode *> children;
     SymbolInfo *symbolInfo;
     size_t startLine, endLine;
     bool valueSet;

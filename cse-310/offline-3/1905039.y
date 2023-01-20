@@ -26,6 +26,7 @@ SymbolInfo *function;
 SymbolInfo *present;
 bool inVoidFunction;
 bool functionReturns;
+ParseTreeNode *root;
 
 void yyerror(char *s)
 {
@@ -40,8 +41,8 @@ std::string GetExpressionDataType(ParseTreeNode &root);
 
 %code requires
 {
-	#include "1905039_SymbolTable.h"
-	#define YYSTYPE SymbolInfo*
+	#include "1905039_ParseTreeNode.h"
+	#define YYSTYPE ParseTreeNode*
 }
 
 %token IF ELSE FOR WHILE DO BREAK INT CHAR FLOAT DOUBLE VOID RETURN SWITCH CASE DEFAULT CONTINUE ADDOP MULOP INCOP RELOP ASSIGNOP LOGICOP BITOP NOT LPAREN RPAREN LCURL RCURL LSQUARE RSQUARE COMMA SEMICOLON CONST_INT CONST_FLOAT CONST_CHAR CONST_STRING ID
@@ -54,14 +55,11 @@ start   :   program
 	    {
 			logStream << "start : program" << std::endl;
 
-			ParseTreeNode program_node = parseTreeStack.top();
+			$$ = new ParseTreeNode();
+			*$$ = {"start", false, {$1}, NULL};
+			root = $$;
 
-			parseTreeStack.pop();
-
-			ParseTreeNode start_node = {"start", false, {program_node}, NULL, 0, 0};
-
-			SetLine(start_node);
-			parseTreeStack.push(start_node);
+			SetLine($$);
 		}
 	    ;
 
@@ -69,31 +67,19 @@ program :   program unit
         {
 			logStream << "program : program unit" << std::endl;
 
-            ParseTreeNode unit_node = parseTreeStack.top();
+			$$ = new ParseTreeNode();
+			*$$ = {"program", false, {$1, $2}, NULL};
 
-			parseTreeStack.pop();
-
-			ParseTreeNode program_node_child = parseTreeStack.top();
-
-			parseTreeStack.pop();
-
-			ParseTreeNode program_node = {"program", false, {program_node_child, unit_node}, NULL};
-
-			SetLine(program_node);
-			parseTreeStack.push(program_node);
+			SetLine($$);
         }
 	    |   unit
         {
 			logStream << "program : unit" << std::endl;
 
-            ParseTreeNode unit_node = parseTreeStack.top();
+            $$ = new ParseTreeNode();
+			*$$ = {"program", false, {$1}, NULL};
 
-			parseTreeStack.pop();
-
-			ParseTreeNode program_node = {"program", false, {unit_node}, NULL};
-
-			SetLine(program_node);
-			parseTreeStack.push(program_node);
+			SetLine($$);
         }
 	    ;
 	
@@ -101,72 +87,53 @@ unit    :   var_declaration
 		{
 			logStream << "unit : var_declaration" << std::endl;
 
-			ParseTreeNode var_declaration_node = parseTreeStack.top();
+			$$ = new ParseTreeNode();
+			*$$ = {"unit", false, {$1}, NULL};
 
-			parseTreeStack.pop();
-
-			ParseTreeNode unit_node = {"unit", false, {var_declaration_node}, NULL};
-
-			SetLine(unit_node);
-			parseTreeStack.push(unit_node);
+			SetLine($$);
 		}
         |   func_declaration
 		{
 			logStream << "unit : func_declaration" << std::endl;
 
-			ParseTreeNode func_declaration_node = parseTreeStack.top();
+			$$ = new ParseTreeNode();
+			*$$ = {"unit", false, {$1}, NULL};
 
-			parseTreeStack.pop();
-
-			ParseTreeNode unit_node = {"unit", false, {func_declaration_node}, NULL};
-
-			SetLine(unit_node);
-			parseTreeStack.push(unit_node);
+			SetLine($$);
 		}
         |   func_definition
 		{
 			logStream << "unit : func_definition" << std::endl;
 
-			ParseTreeNode func_definition_node = parseTreeStack.top();
+			$$ = new ParseTreeNode();
+			*$$ = {"unit", false, {$1}, NULL};
 
-			parseTreeStack.pop();
-
-			ParseTreeNode unit_node = {"unit", false, {func_definition_node}, NULL};
-
-			SetLine(unit_node);
-			parseTreeStack.push(unit_node);
+			SetLine($$);
 		}
         ;
 
 func_start	:	type_specifier ID LPAREN
 			{
-				ParseTreeNode type_specifier_node = parseTreeStack.top();
-
-				parseTreeStack.pop();
-
-				if(type_specifier_node.children[0].name == "VOID")
+				if($1->children[0]->name == "VOID")
 				{
 					inVoidFunction = true;
 				}
 
-				$2->SetIDType("FUNCTION");
-				$2->SetArray(false);
-				$2->SetDataType(type_specifier_node.children[0].name);
+				$2->symbolInfo->SetIDType("FUNCTION");
+				$2->symbolInfo->SetArray(false);
+				$2->symbolInfo->SetDataType($1->children[0]->name);
 				
-				present = st->LookUp($2->GetName());
-				function = $2;
+				present = st->LookUp($2->symbolInfo->GetName());
+				function = $2->symbolInfo;
 
 				if(present == NULL)
 				{
-					st->Insert($2);
+					st->Insert($2->symbolInfo);
 				}
 
-				ParseTreeNode id_node = {"ID", true, {}, $2};
-				ParseTreeNode lparen_node = {"LPAREN", true, {}, $3};
+				$$ = new ParseTreeNode();
+				*$$ = {"func_start", false, {$1, $2, $3}, NULL};
 
-				ParseTreeNode func_start_node = {"func_start", false, {type_specifier_node, id_node, lparen_node}, NULL};
-
-				parseTreeStack.push(func_start_node);
 				st->EnterScope();
 			}
 			;
@@ -175,21 +142,13 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 					{
 						logStream << "func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON" << std::endl;
 
-						ParseTreeNode parameter_list_node = parseTreeStack.top();
-
-						parseTreeStack.pop();
-
-						ParseTreeNode func_start_node = parseTreeStack.top();
-
-						parseTreeStack.pop();
-
 						if(present == NULL)
 						{
 							std::vector<std::pair<std::string, std::string>> paramList;
 
 							bool error = false;
 
-							SetParams(parameter_list_node, paramList, error, false);
+							SetParams($2, paramList, error, false);
 							function->SetParamList(paramList);
 							function->SetDefined(false);
 						}
@@ -209,12 +168,10 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 							}
 						}
 
-						ParseTreeNode rparen_node = {"RPAREN", true, {}, $3};
-						ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $4};
-						ParseTreeNode func_declaration_node = {"func_declaration", false, {func_start_node.children[0], func_start_node.children[1], func_start_node.children[2], parameter_list_node, rparen_node, semicolon_node}, NULL};
+						$$ = new ParseTreeNode();
+						*$$ = {"func_declaration", false, {$1->children[0], $1->children[1], $1->children[2], $2, $3, $4}, NULL};
 					
-						parseTreeStack.push(func_declaration_node);
-						SetLine(parseTreeStack.top());
+						SetLine($$);
 						st->ExitScope();
 						st->FalseScope();
 
@@ -226,10 +183,6 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 					{
 						logStream << "func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON" << std::endl;
 
-						ParseTreeNode func_start_node = parseTreeStack.top();
-
-						parseTreeStack.pop();
-
 						if(present == NULL)
 						{
 							function->SetDefined(false);
@@ -240,7 +193,7 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 							{
 								errorStream << "Line# " << function->GetSymbolStart() << ": Redefinition of function \'" << function->GetName() << "\'" << std::endl;
 
-								++errorCount;	
+								++errorCount;
 							}
 							else
 							{
@@ -250,12 +203,10 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 							}
 						}
 
-						ParseTreeNode rparen_node = {"RPAREN", true, {}, $2};
-						ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $3};
-						ParseTreeNode func_declaration_node = {"func_declaration", false, {func_start_node.children[0], func_start_node.children[1], func_start_node.children[2], rparen_node, semicolon_node}, NULL};
+						$$ = new ParseTreeNode();
+						*$$ = {"func_declaration", false, {$1->children[0], $1->children[1], $1->children[2], $2, $3}, NULL};
 					
-						parseTreeStack.push(func_declaration_node);
-						SetLine(parseTreeStack.top());
+						SetLine($$);
 						st->ExitScope();
 						st->FalseScope();
 
@@ -267,24 +218,12 @@ func_declaration    :	func_start parameter_list RPAREN SEMICOLON
 		 
 func_definition	:	func_start parameter_list RPAREN compound_statement
 				{
-					ParseTreeNode compound_statement_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode parameter_list_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode func_start_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
 					if(present == NULL)
 					{
 						std::vector<std::pair<std::string, std::string>> paramList;
 						bool error = false;
 
-						SetParams(parameter_list_node, paramList, error, true);
+						SetParams($2, paramList, error, true);
 						function->SetDefined(true);
 						function->SetParamList(paramList);
 					}
@@ -303,7 +242,7 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 								std::vector<std::pair<std::string, std::string>> paramList;
 								bool error = false;
 					
-								SetParams(parameter_list_node, paramList, error, true);
+								SetParams($2, paramList, error, true);
 
 								if(present->GetDataType() == function->GetDataType())
 								{
@@ -363,11 +302,10 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 						}
 					}
 
-					ParseTreeNode rparen_node = {"RPAREN", true, {}, $3};
-					ParseTreeNode func_definition_node = {"func_definition", false, {func_start_node.children[0], func_start_node.children[1], func_start_node.children[2], parameter_list_node, rparen_node, compound_statement_node}, NULL};
+					$$ = new ParseTreeNode();
+					*$$ = {"func_definition", false, {$1->children[0], $1->children[1], $1->children[2], $2, $3, $4}, NULL};
 				
-					SetLine(func_definition_node);
-					parseTreeStack.push(func_definition_node);
+					SetLine($$);
 					st->PrintAllScope();
 					st->ExitScope();
 
@@ -387,14 +325,6 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 				}
 				|	func_start RPAREN compound_statement
 				{
-					ParseTreeNode compound_statement_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode func_start_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
 					function->SetDefined(true);
 
 					if(present == NULL)
@@ -430,7 +360,7 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 								}
 								else
 								{
-									errorStream << "Line# " << func_start_node.children[1].startLine << ": Conflicting types for \'" << func_start_node.children[1].name << "\'" << std::endl;
+									errorStream << "Line# " << function->GetSymbolStart() << ": Conflicting types for \'" << function->GetName() << "\'" << std::endl;
 
 									++errorCount;
 								}
@@ -444,11 +374,10 @@ func_definition	:	func_start parameter_list RPAREN compound_statement
 						}
 					}
 
-					ParseTreeNode rparen_node = {"RPAREN", true, {}, $2};
-					ParseTreeNode func_definition_node = {"func_definition", false, {func_start_node.children[0], func_start_node.children[1], func_start_node.children[2], rparen_node, compound_statement_node}, NULL};
+					$$ = new ParseTreeNode();
+					*$$ = {"func_definition", false, {$1->children[0], $1->children[1], $1->children[2], $2, $3}, NULL};
 				
-					SetLine(func_definition_node);
-					parseTreeStack.push(func_definition_node);
+					SetLine($$);
 					st->PrintAllScope();
 					st->ExitScope();
 
@@ -472,77 +401,46 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 				{
 					logStream << "parameter_list  : parameter_list COMMA type_specifier ID" << std::endl;
 
-					ParseTreeNode type_specifier_node = parseTreeStack.top();
+					$4->symbolInfo->SetIDType("VARIABLE");
+					$4->symbolInfo->SetDataType($3->children[0]->name);
+					$4->symbolInfo->SetArray(false);
 
-					$4->SetIDType("VARIABLE");
-					$4->SetDataType(type_specifier_node.children[0].name);
-					$4->SetArray(false);
-					//st->Insert($4);
+					$$ = new ParseTreeNode();
+					*$$ = {"parameter_list", false, {$1, $2, $3, $4}, NULL};
 
-					parseTreeStack.pop();
-
-					ParseTreeNode parameter_list_node_child = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode comma_node = {"COMMA", true, {}, $2};
-					ParseTreeNode id_node = {"ID", true, {}, $4};
-					ParseTreeNode parameter_list_node = {"parameter_list", false, {parameter_list_node_child, comma_node, type_specifier_node, id_node}, NULL};
-
-					SetLine(parameter_list_node);
-					parseTreeStack.push(parameter_list_node);
+					SetLine($$);
 				}
 				|	parameter_list COMMA type_specifier
 				{
 					logStream << "parameter_list  : parameter_list COMMA type_specifier" << std::endl;
 
-					ParseTreeNode type_specifier_node = parseTreeStack.top();
+					$$ = new ParseTreeNode();
+					*$$ = {"parameter_list", false, {$1, $2, $3}, NULL};
 
-					parseTreeStack.pop();
-
-					ParseTreeNode parameter_list_node_child = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode comma_node = {"COMMA", true, {}, $2};
-					ParseTreeNode parameter_list_node = {"parameter_list", false, {parameter_list_node_child, comma_node, type_specifier_node}, NULL};
-
-					SetLine(parameter_list_node);
-					parseTreeStack.push(parameter_list_node);
+					SetLine($$);
 				}
  				|	type_specifier ID
 				{
 					logStream << "parameter_list  : type_specifier ID" << std::endl;
 
-					ParseTreeNode type_specifier_node = parseTreeStack.top();
-
-					$2->SetIDType("VARIABLE");
-					$2->SetDataType(type_specifier_node.children[0].name);
-					$2->SetArray(false);
-					st->Insert($2);
-
-					// std::cout << "Line no: " << $2->GetSymbolStart() << ' ' << $2 << ' ' << $2->GetName() << std::endl;
-
-					parseTreeStack.pop();
+					$2->symbolInfo->SetIDType("VARIABLE");
+					$2->symbolInfo->SetDataType($1->children[0]->name);
+					$2->symbolInfo->SetArray(false);
+					st->Insert($2->symbolInfo);
 					
-					ParseTreeNode id_node = {"ID", true, {}, $2};
-					ParseTreeNode parameter_list_node = {"parameter_list", false, {type_specifier_node, id_node}, NULL};
+					$$ = new ParseTreeNode();
+					*$$ = {"parameter_list", false, {$1, $2}, NULL};
 
-					SetLine(parameter_list_node);
-					parseTreeStack.push(parameter_list_node);
+					SetLine($$);
 				}
 				|	type_specifier
 				{
 					logStream << "parameter_list  : type_specifier" << std::endl;
-
-					ParseTreeNode type_specifier_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
 					
-					ParseTreeNode parameter_list_node = {"parameter_list", false, {type_specifier_node}, NULL};
+					$$ = new ParseTreeNode();
+					*$$ = {"parameter_list", false, {$1}, NULL};
 
-					SetLine(parameter_list_node);
-					parseTreeStack.push(parameter_list_node);
+					SetLine($$);
 				}
  				;
 
@@ -550,55 +448,32 @@ compound_statement	:	LCURL statements RCURL
 					{
 						logStream << "compound_statement : LCURL statements RCURL" << std::endl;
 
-						// st->PrintAllScope();
-						// st->ExitScope();
+						$$ = new ParseTreeNode();
+						*$$ = {"compound_statement", false, {$1, $2, $3}};
 
-						ParseTreeNode statements_node = parseTreeStack.top();
-
-						parseTreeStack.pop();
-
-						ParseTreeNode lcurl_node = {"LCURL", true, {}, $1};
-						ParseTreeNode rcurl_node = {"RCURL", true, {}, $3};
-						ParseTreeNode compound_statement_node = {"compound_statement", false, {lcurl_node, statements_node, rcurl_node}};
-
-						SetLine(compound_statement_node);
-						parseTreeStack.push(compound_statement_node);
+						SetLine($$);
 					}
  		            |	LCURL RCURL
 					{
-						// st->PrintAllScope();
-						// st->ExitScope();
-
 						logStream << "compund_statement : LCURL RCURL" << std::endl;
 
-						ParseTreeNode lcurl_node = {"LCURL", true, {}, $1};
-						ParseTreeNode rcurl_node = {"RCURL", true, {}, $2};
-						ParseTreeNode compound_statement_node = {"compound_statement", false, {lcurl_node, rcurl_node}, NULL};
+						$$ = new ParseTreeNode();
+						*$$ = {"compound_statement", false, {$1, $2}, NULL};
 
-						SetLine(compound_statement_node);
-						parseTreeStack.push(compound_statement_node);
+						SetLine($$);
 					}
  		            ;
  		    
 var_declaration :   type_specifier declaration_list SEMICOLON
 				{
 					logStream << "var_declaration : type_specifier declaration_list SEMICOLON" << std::endl;
+					
+					$$ = new ParseTreeNode();
+					*$$ = {"var_declaration", false, {$1, $2, $3}, NULL};
 
-					ParseTreeNode declaration_list_node = parseTreeStack.top();
+					SetLine($$);
 
-					parseTreeStack.pop();
-
-					ParseTreeNode type_specifier_node = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $3};
-					ParseTreeNode var_declaration_node = {"var_declaration", false, {type_specifier_node, declaration_list_node, semicolon_node}, NULL};
-
-					SetLine(var_declaration_node);
-					parseTreeStack.push(var_declaration_node);
-
-					InsertID(declaration_list_node, type_specifier_node.children[0].name, st);
+					InsertID($2, $1->children[0]->name, st);
 				}
  		        ;
  		 
@@ -606,99 +481,78 @@ type_specifier  :   INT
 				{
 					logStream << "type_specifier\t: INT" << std::endl;
 
-					ParseTreeNode int_node = {"INT", true, {}, $1};
-					ParseTreeNode type_specifier_node = {"type_specifier", false, {int_node}, NULL};
+					$$ = new ParseTreeNode();
+					*$$ = {"type_specifier", false, {$1}, NULL};
 					
-					SetLine(type_specifier_node);
-					parseTreeStack.push(type_specifier_node);
+					SetLine($$);
 				}
  		        |   FLOAT
 				{
 					logStream << "type_specifier\t: FLOAT" << std::endl;
 
-					ParseTreeNode float_node = {"FLOAT", true, {}, $1};
-					ParseTreeNode type_specifier_node = {"type_specifier", false, {float_node}, NULL};
+					$$ = new ParseTreeNode();
+					*$$ = {"type_specifier", false, {$1}, NULL};
 					
-					SetLine(type_specifier_node);
-					parseTreeStack.push(type_specifier_node);
+					SetLine($$);
 				}
  		        |   VOID
 				{
 					logStream << "type_specifier\t: VOID" << std::endl;
 
-					ParseTreeNode void_node = {"VOID", true, {}, $1};
-					ParseTreeNode type_specifier_node = {"type_specifier", false, {void_node}, NULL};
+					$$ = new ParseTreeNode();
+					*$$ = {"type_specifier", false, {$1}, NULL};
 					
-					SetLine(type_specifier_node);
-					parseTreeStack.push(type_specifier_node);
+					SetLine($$);
 				}
  		        ;
  		
 declaration_list    :   declaration_list COMMA ID
 					{
-						$3->SetIDType("VARIABLE");
-						$3->SetArray(false);
+						$3->symbolInfo->SetIDType("VARIABLE");
+						$3->symbolInfo->SetArray(false);
 
 						logStream << "declaration_list : declaration_list COMMA ID" << std::endl;
 
-						ParseTreeNode declaration_list_node_child = parseTreeStack.top();
-						ParseTreeNode comma_node = {"COMMA", true, {}, $2};
-						ParseTreeNode id_node = {"ID", true, {}, $3};
-						ParseTreeNode declaration_list_node = {"declaration_list", false, {declaration_list_node_child, comma_node, id_node}, NULL};
+						$$ = new ParseTreeNode();
+						*$$ = {"declaration_list", false, {$1, $2, $3}, NULL};
 
-						parseTreeStack.pop();
-						SetLine(declaration_list_node);
-						parseTreeStack.push(declaration_list_node);
+						SetLine($$);
 					}
  		            |   declaration_list COMMA ID LSQUARE CONST_INT RSQUARE
 					{
-						$3->SetIDType("VARIABLE");
-						$3->SetArray(true);
+						$3->symbolInfo->SetIDType("VARIABLE");
+						$3->symbolInfo->SetArray(true);
 
 						logStream << "declaration_list : declaration_list COMMA ID LSQUARE CONST_INT RSQUARE" << std::endl;
 
-						ParseTreeNode declaration_list_node_child = parseTreeStack.top();
+						$$ = new ParseTreeNode();
+						*$$ = {"declaration_list", false, {$1, $2, $3, $4, $5, $6}, NULL};
 
-						parseTreeStack.pop();
-
-						ParseTreeNode comma_node = {"COMMA", true, {}, $2};
-						ParseTreeNode id_node = {"ID", true, {}, $3};
-						ParseTreeNode lsquare_node = {"LSQUARE", true, {}, $4};
-						ParseTreeNode const_int_node = {"CONST_INT", true, {}, $5};
-						ParseTreeNode rsquare_node = {"RSQUARE", true, {}, $6};
-						ParseTreeNode declaration_list_node = {"declaration_list", false, {declaration_list_node_child, comma_node, id_node, lsquare_node, const_int_node, rsquare_node}, NULL};
-
-						SetLine(declaration_list_node);
-						parseTreeStack.push(declaration_list_node);
+						SetLine($$);
 					}
  		            |   ID
 					{
-						$1->SetIDType("VARIABLE");
-						$1->SetArray(false);
+						$1->symbolInfo->SetIDType("VARIABLE");
+						$1->symbolInfo->SetArray(false);
 
 						logStream << "declaration_list : ID" << std::endl;
 
-						ParseTreeNode id_node = {"ID", true, {}, $1};
-						ParseTreeNode declaration_list_node = {"declaration_list", false, {id_node}, NULL};
+						$$ = new ParseTreeNode();
+						*$$ = {"declaration_list", false, {$1}, NULL};
 						
-						SetLine(declaration_list_node);
-						parseTreeStack.push(declaration_list_node);
+						SetLine($$);
 					}
  		            |   ID LSQUARE CONST_INT RSQUARE
 					{
-						$1->SetIDType("VARIABLE");
-						$1->SetArray(true);
+						$1->symbolInfo->SetIDType("VARIABLE");
+						$1->symbolInfo->SetArray(true);
 
 						logStream << "declaration_list : ID LSQUARE CONST_INT RSQUARE" << std::endl;
 
-						ParseTreeNode id_node = {"ID", true, {}, $1};
-						ParseTreeNode lsquare_node = {"LSQUARE", true, {}, $2};
-						ParseTreeNode const_int_node = {"CONST_INT", true, {}, $3};
-						ParseTreeNode rsquare_node = {"RSQUARE", true, {}, $4};
-						ParseTreeNode declaration_list_node = {"declaration_list", false, {id_node, lsquare_node, const_int_node, rsquare_node}, NULL};
+						$$ = new ParseTreeNode();
+						*$$ = {"declaration_list", false, {$1, $2, $3, $4}, NULL};
 
-						SetLine(declaration_list_node);
-						parseTreeStack.push(declaration_list_node);
+						SetLine($$);
 					}
  		            ;
  		  
@@ -706,31 +560,19 @@ statements  :   statement
 			{
 				logStream << "statements : statement" << std::endl;
 
-				ParseTreeNode statement_node = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"statements", false, {$1}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode statements_node = {"statements", false, {statement_node}, NULL};
-
-				SetLine(statements_node);
-				parseTreeStack.push(statements_node);
+				SetLine($$);
 			}
 	        |   statements statement
 			{
 				logStream << "statements : statements statement" << std::endl;
 
-				ParseTreeNode statement_node = parseTreeStack.top();
-				
-				parseTreeStack.pop();
+				$$ = new ParseTreeNode();
+				*$$ = {"statements", false, {$1, $2}, NULL};
 
-				ParseTreeNode statements_node_child = parseTreeStack.top();
-
-				parseTreeStack.pop();
-
-				ParseTreeNode statements_node = {"statements", false, {statements_node_child, statement_node}, NULL};
-
-				SetLine(statements_node);
-				parseTreeStack.push(statements_node);
+				SetLine($$);
 			}
 	        ;
 
@@ -738,27 +580,19 @@ statement	:   var_declaration
 			{
 				logStream << "statement : var_declaration" << std::endl;
 
-				ParseTreeNode var_declaration_node = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"statement", false, {$1}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode statement_node = {"statement", false, {var_declaration_node}, NULL};
-
-				SetLine(statement_node);
-				parseTreeStack.push(statement_node);
+				SetLine($$);
 			}
 			|   expression_statement
 			{
 				logStream << "statement : expression_statement" << std::endl;
 
-				ParseTreeNode expression_statement_node = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"statement", false, {$1}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode statement_node = {"statement", false, {expression_statement_node}, NULL};
-
-				SetLine(statement_node);
-				parseTreeStack.push(statement_node);
+				SetLine($$);
 			}
 			|   compound_statement
 			{
@@ -767,14 +601,10 @@ statement	:   var_declaration
 
 				logStream << "statement : compound_statement" << std::endl;
 
-				ParseTreeNode compound_statement_node = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"statement", false, {$1}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode statement_node = {"statement", false, {compound_statement_node}, NULL};
-
-				SetLine(statement_node);
-				parseTreeStack.push(statement_node);
+				SetLine($$);
 			}
 			|   FOR 
 			{
@@ -784,29 +614,10 @@ statement	:   var_declaration
 			{
 				logStream << "statement : FOR LPAREN expression_statement expression_statement expression RPAREN statement" << std::endl;
 
-				ParseTreeNode statement_node_child = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"statement", false, {$1, $2, $3, $4, $5, $6, $7}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode expression_node = parseTreeStack.top();
-
-				parseTreeStack.pop();
-
-				ParseTreeNode expression_statement_node2 = parseTreeStack.top();
-
-				parseTreeStack.pop();
-
-				ParseTreeNode expression_statement_node1 = parseTreeStack.top();
-
-				parseTreeStack.pop();
-
-				ParseTreeNode for_node = {"FOR", true, {}, $1};
-				ParseTreeNode lparen_node = {"LPAREN", true, {}, $2};
-				ParseTreeNode rparen_node = {"RPAREN", true, {}, $6};
-				ParseTreeNode statement_node = {"statement", false, {for_node, lparen_node, expression_statement_node1, expression_statement_node2, expression_node, rparen_node, statement_node_child}, NULL};
-
-				SetLine(statement_node);
-				parseTreeStack.push(statement_node);
+				SetLine($$);
 				st->PrintAllScope();
 				st->ExitScope();
 			}
@@ -818,21 +629,10 @@ statement	:   var_declaration
 			{
 				logStream << "statement : WHILE LPAREN expression RPAREN statement" << std::endl;
 
-				ParseTreeNode statement_node_child = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"statement", false, {$1, $2, $3, $4, $5}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode expression_node = parseTreeStack.top();
-
-				parseTreeStack.pop();
-
-				ParseTreeNode while_node = {"WHILE", true, {}, $1};
-				ParseTreeNode lparen_node = {"LPAREN", true, {}, $2};
-				ParseTreeNode rparen_node = {"RPAREN", true, {}, $4};
-				ParseTreeNode statement_node = {"statement", false, {while_node, lparen_node, expression_node, rparen_node, statement_node_child}, NULL};
-
-				SetLine(statement_node);
-				parseTreeStack.push(statement_node);
+				SetLine($$);
 				st->PrintAllScope();
 				st->ExitScope();
 			}
@@ -840,7 +640,7 @@ statement	:   var_declaration
 			{
 				if(inVoidFunction)
 				{
-					errorStream << "Line# " << $1->GetSymbolStart() << ": Function \'" << function->GetName() << "\' does not return anything" << std::endl;
+					errorStream << "Line# " << $1->symbolInfo->GetSymbolStart() << ": Function \'" << function->GetName() << "\' does not return anything" << std::endl;
 
 					++errorCount;
 				}
@@ -849,36 +649,19 @@ statement	:   var_declaration
 
 				logStream << "statement : RETURN expression SEMICOLON" << std::endl;
 
-				ParseTreeNode expression_node = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"statement", false, {$1, $2, $3}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode return_node = {"RETURN", true, {}, $1};
-				ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $3};
-				ParseTreeNode statement_node = {"statement", false, {return_node, expression_node, semicolon_node}, NULL};
-
-				SetLine(statement_node);
-				parseTreeStack.push(statement_node);
+				SetLine($$);
 			}
 			| IF LPAREN expression RPAREN statement
 			{
 				logStream << "statement : IF LPAREN expression RPAREN statement" << std::endl;
 
-				ParseTreeNode statement_node_child = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"statement", false, {$1, $2, $3, $4, $5}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode expression_node = parseTreeStack.top();
-
-				parseTreeStack.pop();
-
-				ParseTreeNode if_node = {"IF", true, {}, $1};
-				ParseTreeNode lparen_node = {"LPAREN", true, {}, $2};
-				ParseTreeNode rparen_node = {"RPAREN", true, {}, $4};
-				ParseTreeNode statement_node = {"statement", false, {if_node, lparen_node, expression_node, rparen_node, statement_node_child}, NULL};
-
-				SetLine(statement_node);
-				parseTreeStack.push(statement_node);
+				SetLine($$);
 				st->PrintAllScope();
 				st->ExitScope();
 			}
@@ -892,26 +675,10 @@ statement	:   var_declaration
 			{
 				logStream << "statement : IF LPAREN expression RPAREN statement ELSE statement" << std::endl;
 
-				ParseTreeNode statement_node2 = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"statement", false, {$1, $2, $3, $4, $5, $6, $7}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode statement_node1 = parseTreeStack.top();
-
-				parseTreeStack.pop();
-
-				ParseTreeNode expression_node = parseTreeStack.top();
-
-				parseTreeStack.pop();
-
-				ParseTreeNode if_node = {"IF", true, {}, $1};
-				ParseTreeNode lparen_node = {"LPAREN", true, {}, $2};
-				ParseTreeNode rparen_node = {"RPAREN", true, {}, $4};
-				ParseTreeNode else_node = {"ELSE", true, {}, $6};
-				ParseTreeNode statement_node = {"statement", false, {if_node, lparen_node, expression_node, rparen_node, statement_node1, else_node, statement_node2}, NULL};
-
-				SetLine(statement_node);
-				parseTreeStack.push(statement_node);
+				SetLine($$);
 				st->PrintAllScope();
 				st->ExitScope();
 			}
@@ -921,27 +688,21 @@ expression_statement    :   SEMICOLON
 						{
 							logStream << "expression_statement : SEMICOLON" << std::endl;
 
-							ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $1};
-							ParseTreeNode expression_statement_node = {"expression_statement", false, {semicolon_node}, NULL};
+							$$ = new ParseTreeNode();
+							*$$ = {"expression_statement", false, {$1}, NULL};
 
-							SetLine(expression_statement_node);
-							parseTreeStack.push(expression_statement_node);
+							SetLine($$);
 						}
 			            |   expression SEMICOLON
 						{
 							logStream << "expression_statement : expression SEMICOLON" << std::endl;
 
-							ParseTreeNode expression_node = parseTreeStack.top();
+							GetExpressionDataType($1);
 
-							parseTreeStack.pop();
+							$$ = new ParseTreeNode();
+							*$$ = {"expression_statement", false, {$1, $2}, NULL};
 
-							GetExpressionDataType(expression_node);
-
-							ParseTreeNode semicolon_node = {"SEMICOLON", true, {}, $2};
-							ParseTreeNode expression_statement_node = {"expression_statement", false, {expression_node, semicolon_node}, NULL};
-
-							SetLine(expression_statement_node);
-							parseTreeStack.push(expression_statement_node);
+							SetLine($$);
 						}
 			            ;
 	  
@@ -949,23 +710,18 @@ variable    :   ID
 			{
 				logStream << "variable : ID" << std::endl;
 
-				SymbolInfo *variablePtr = st->LookUp($1->GetName());
+				SymbolInfo *variablePtr = st->LookUp($1->symbolInfo->GetName());
 
-				ParseTreeNode id_node = {"ID", true, {}, $1};
-				ParseTreeNode variable_node = {"variable", false, {id_node}, NULL};
+				$$ = new ParseTreeNode();
+				*$$ = {"variable", false, {$1}, NULL};
 
-				SetLine(variable_node);
-				parseTreeStack.push(variable_node);
+				SetLine($$);
 			}
 	        |   ID LSQUARE expression RSQUARE
 			{
 				logStream << "variable : ID LSQUARE expression RSQUARE" << std::endl;
 
-				SymbolInfo *variablePtr = st->LookUp($1->GetName());
-
-				ParseTreeNode expression_node = parseTreeStack.top();
-
-				parseTreeStack.pop();
+				SymbolInfo *variablePtr = st->LookUp($1->symbolInfo->GetName());
 
 				if(variablePtr == NULL)
 				{
@@ -981,33 +737,30 @@ variable    :   ID
 					{
 						if(variablePtr->IsArray())
 						{
-							if(GetExpressionDataType(expression_node) == "INT")
+							if(GetExpressionDataType($3) == "INT")
 							{
 
 							}
 							else
 							{
-								errorStream << "Line# " << $1->GetSymbolStart() << ": Array subscript is not an integer" << std::endl;
+								errorStream << "Line# " << $1->symbolInfo->GetSymbolStart() << ": Array subscript is not an integer" << std::endl;
 
 								++errorCount;
 							}
 						}
 						else
 						{
-							errorStream << "Line# " << $1->GetSymbolStart() << ": \'" << $1->GetName() << "\' is not an array" << std::endl;
+							errorStream << "Line# " << $1->symbolInfo->GetSymbolStart() << ": \'" << $1->symbolInfo->GetName() << "\' is not an array" << std::endl;
 
 							++errorCount;
 						}
 					}
 				}
 
-				ParseTreeNode id_node = {"ID", true, {}, $1};
-				ParseTreeNode lsquare_node = {"LSQUARE", true, {}, $2};
-				ParseTreeNode rsquare_node = {"RSQUARE", true, {}, $4};
-				ParseTreeNode variable_node = {"variable", false, {id_node, lsquare_node, expression_node, rsquare_node}, NULL};
+				$$ = new ParseTreeNode();
+				*$$ = {"variable", false, {$1, $2, $3, $4}, NULL};
 
-				SetLine(variable_node);
-				parseTreeStack.push(variable_node);
+				SetLine($$);
 			}
 	        ;
 	 
@@ -1015,32 +768,19 @@ expression  :   logic_expression
 			{
 				logStream << "expression \t: logic_expression" << std::endl;
 
-				ParseTreeNode logic_expression_node = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"expression", false, {$1}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode expression_node = {"expression", false, {logic_expression_node}, NULL};
-
-				SetLine(expression_node);
-				parseTreeStack.push(expression_node);
+				SetLine($$);
 			}
 	        |   variable ASSIGNOP logic_expression
 			{
 				logStream << "expression \t: variable ASSIGNOP logic_expression" << std::endl;
 
-				ParseTreeNode logic_expression_node = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"expression", false, {$1, $2, $3}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode variable_node = parseTreeStack.top();
-
-				parseTreeStack.pop();
-
-				ParseTreeNode assignop_node = {"ASSIGNOP", true, {}, $2};
-				ParseTreeNode expression_node = {"expression", false, {variable_node, assignop_node, logic_expression_node}, NULL};
-
-				SetLine(expression_node);
-				parseTreeStack.push(expression_node);
+				SetLine($$);
 			}
 	        ;
 			
@@ -1048,32 +788,19 @@ logic_expression    :   rel_expression
 					{
 						logStream << "logic_expression : rel_expression" << std::endl;
 
-						ParseTreeNode rel_expression_node = parseTreeStack.top();
+						$$ = new ParseTreeNode();
+						*$$ = {"logic_expression", false, {$1}, NULL};
 
-						parseTreeStack.pop();
-
-						ParseTreeNode logic_expression_node = {"logic_expression", false, {rel_expression_node}, NULL};
-
-						SetLine(logic_expression_node);
-						parseTreeStack.push(logic_expression_node);
+						SetLine($$);
 					}
 		            |   rel_expression LOGICOP rel_expression
 					{
 						logStream << "logic_expression : rel_expression LOGICOP rel_expression" << std::endl;
 
-						ParseTreeNode rel_expression_node2 = parseTreeStack.top();
+						$$ = new ParseTreeNode();
+						*$$ = {"logic_expression", false, {$1, $2, $3}, NULL};
 
-						parseTreeStack.pop();
-
-						ParseTreeNode rel_expression_node1 = parseTreeStack.top();
-
-						parseTreeStack.pop();
-
-						ParseTreeNode logicop_node = {"LOGICOP", true, {}, $2};
-						ParseTreeNode logic_expression_node = {"logic_expression", false, {rel_expression_node1, logicop_node, rel_expression_node2}, NULL};
-
-						SetLine(logic_expression_node);
-						parseTreeStack.push(logic_expression_node);
+						SetLine($$);
 					}
 		            ;
 			
@@ -1081,32 +808,19 @@ rel_expression  :   simple_expression
 				{
 					logStream << "rel_expression\t: simple_expression" << std::endl;
 
-					ParseTreeNode simple_expression_node = parseTreeStack.top();
+					$$ = new ParseTreeNode();
+					*$$ = {"rel_expression", false, {$1}, NULL};
 
-					parseTreeStack.pop();
-
-					ParseTreeNode rel_expression_node = {"rel_expression", false, {simple_expression_node}, NULL};
-
-					SetLine(rel_expression_node);
-					parseTreeStack.push(rel_expression_node);
+					SetLine($$);
 				}
 		        |   simple_expression RELOP simple_expression
 				{
 					logStream << "rel_expression\t: simple_expression RELOP simple_expression" << std::endl;
 
-					ParseTreeNode simple_expression_node2 = parseTreeStack.top();
+					$$ = new ParseTreeNode();
+					*$$ = {"rel_expression", false, {$1, $2, $3}, NULL};
 
-					parseTreeStack.pop();
-
-					ParseTreeNode simple_expression_node1 = parseTreeStack.top();
-
-					parseTreeStack.pop();
-
-					ParseTreeNode relop_node = {"RELOP", true, {}, $2};
-					ParseTreeNode rel_expression_node = {"rel_expression", false, {simple_expression_node1, relop_node, simple_expression_node2}, NULL};
-
-					SetLine(rel_expression_node);
-					parseTreeStack.push(rel_expression_node);
+					SetLine($$);
 				}
 		        ;
 				
@@ -1114,32 +828,19 @@ simple_expression   :   term
 					{
 						logStream << "simple_expression : term" << std::endl;
 
-						ParseTreeNode term_node = parseTreeStack.top();
+						$$ = new ParseTreeNode();
+						*$$ = {"simple_expression", false, {$1}, NULL};
 
-						parseTreeStack.pop();
-
-						ParseTreeNode simple_expression_node = {"simple_expression", false, {term_node}, NULL};
-
-						SetLine(simple_expression_node);
-						parseTreeStack.push(simple_expression_node);
+						SetLine($$);
 					}
 		            |   simple_expression ADDOP term
 					{
 						logStream << "simple_expression : simple_expression ADDOP term" << std::endl;
 
-						ParseTreeNode term_node = parseTreeStack.top();
+						$$ = new ParseTreeNode();
+						*$$ = {"simple_expression", false, {$1, $2, $3}, NULL};
 
-						parseTreeStack.pop();
-
-						ParseTreeNode simple_expression_node_child = parseTreeStack.top();
-
-						parseTreeStack.pop();
-
-						ParseTreeNode addop_node = {"ADDOP", true, {}, $2};
-						ParseTreeNode simple_expression_node = {"simple_expression", false, {simple_expression_node_child, addop_node, term_node}, NULL};
-
-						SetLine(simple_expression_node);
-						parseTreeStack.push(simple_expression_node);
+						SetLine($$);
 					}
 		            ;
 					
@@ -1147,32 +848,19 @@ term    :	unary_expression
 		{
 			logStream << "term :\tunary_expression" << std::endl;
 
-			ParseTreeNode unary_expression_node = parseTreeStack.top();
+			$$ = new ParseTreeNode();
+			*$$ = {"term", false, {$1}, NULL};
 
-			parseTreeStack.pop();
-
-			ParseTreeNode term_node = {"term", false, {unary_expression_node}, NULL};
-
-			SetLine(term_node);
-			parseTreeStack.push(term_node);
+			SetLine($$);
 		}
         |   term MULOP unary_expression
 		{
 			logStream << "term :\tterm MULOP unary_expression" << std::endl;
 
-			ParseTreeNode unary_expression_node = parseTreeStack.top();
+			$$ = new ParseTreeNode();
+			*$$ = {"term", false, {$1, $2, $3}, NULL};
 
-			parseTreeStack.pop();
-
-			ParseTreeNode term_node_child = parseTreeStack.top();
-
-			parseTreeStack.pop();
-
-			ParseTreeNode mulop_node = {"MULOP", true, {}, $2};
-			ParseTreeNode term_node = {"term", false, {term_node_child, mulop_node, unary_expression_node}, NULL};
-
-			SetLine(term_node);
-			parseTreeStack.push(term_node);
+			SetLine($$);
 		}
         ;
 
@@ -1180,42 +868,28 @@ unary_expression    :   ADDOP unary_expression
 					{
 						logStream << "unary_expression : ADDOP unary_expression" << std::endl;
 
-						ParseTreeNode unary_expression_node_child = parseTreeStack.top();
+						$$ = new ParseTreeNode();
+						*$$ = {"unary_expression", false, {$1, $2}, NULL};
 
-						parseTreeStack.pop();
-
-						ParseTreeNode addop_node = {"ADDOP", true, {}, $1};
-						ParseTreeNode unary_expression_node = {"unary_expression", false, {addop_node, unary_expression_node_child}, NULL};
-
-						SetLine(unary_expression_node);
-						parseTreeStack.push(unary_expression_node);
+						SetLine($$);
 					}
 		            |   NOT unary_expression
 					{
 						logStream << "unary_expression : NOT unary_expression" << std::endl;
 
-						ParseTreeNode unary_expression_node_child = parseTreeStack.top();
+						$$ = new ParseTreeNode();
+						*$$ = {"unary_expression", false, {$1, $2}, NULL};
 
-						parseTreeStack.pop();
-
-						ParseTreeNode not_node = {"NOT", true, {}, $1};
-						ParseTreeNode unary_expression_node = {"unary_expression", false, {not_node, unary_expression_node_child}, NULL};
-
-						SetLine(unary_expression_node);
-						parseTreeStack.push(unary_expression_node);
+						SetLine($$);
 					}
 		            |   factor
 					{
 						logStream << "unary_expression : factor" << std::endl;
 
-						ParseTreeNode factor_node = parseTreeStack.top();
+						$$ = new ParseTreeNode();
+						*$$ = {"unary_expression", false, {$1}, NULL};
 
-						parseTreeStack.pop();
-
-						ParseTreeNode unary_expression_node = {"unary_expression", false, {factor_node}, NULL};
-
-						SetLine(unary_expression_node);
-						parseTreeStack.push(unary_expression_node);
+						SetLine($$);
 					}
 		            ;
 	
@@ -1223,51 +897,43 @@ factor  :   variable
 		{
 			logStream << "factor\t: variable" << std::endl;
 
-			ParseTreeNode variable_node = parseTreeStack.top();
+			$$ = new ParseTreeNode();
+			*$$ = {"factor", false, {$1}, NULL};
 
-			parseTreeStack.pop();
-
-			ParseTreeNode factor_node = {"factor", false, {variable_node}, NULL};
-
-			SetLine(factor_node);
-			parseTreeStack.push(factor_node);
+			SetLine($$);
 		}
 	    |   ID LPAREN argument_list RPAREN
 		{
-			SymbolInfo *function = st->LookUpFunction($1->GetName());
+			SymbolInfo *function = st->LookUpFunction($1->symbolInfo->GetName());
 
 			logStream << "factor\t: ID LPAREN argument_list RPAREN" << std::endl;
 
-			ParseTreeNode argument_list_node = parseTreeStack.top();
-
-			parseTreeStack.pop();
-
 			if(function == NULL)
 			{
-				errorStream << "Line# " << $1->GetSymbolStart() << ": Undeclared function \'" << $1->GetName() << "\'" << std::endl;
+				errorStream << "Line# " << $1->symbolInfo->GetSymbolStart() << ": Undeclared function \'" << $1->symbolInfo->GetName() << "\'" << std::endl;
 
 				++errorCount;
 
 				std::vector<std::string> argumentTypeList;
 
-				SetArgumentTypeList(argument_list_node.children[0], argumentTypeList);
+				SetArgumentTypeList($3->children[0], argumentTypeList);
 			}
 			else
 			{
 				std::vector<std::pair<std::string, std::string>> paramList = function->GetParamList();
 				std::vector<std::string> argumentTypeList;
 
-				SetArgumentTypeList(argument_list_node.children[0], argumentTypeList);
+				SetArgumentTypeList($3->children[0], argumentTypeList);
 
 				if(argumentTypeList.size() > paramList.size())
 				{
-					errorStream << "Line# " << $1->GetSymbolStart() << ": Too many arguments to function \'" << function->GetName() << "\'" << std::endl;
+					errorStream << "Line# " << $1->symbolInfo->GetSymbolStart() << ": Too many arguments to function \'" << function->GetName() << "\'" << std::endl;
 
 					++errorCount;
 				}
 				else if(argumentTypeList.size() < paramList.size())
 				{
-					errorStream << "Line# " << $1->GetSymbolStart() << ": Too few arguments to function \'" << function->GetName() << "\'" << std::endl;
+					errorStream << "Line# " << $1->symbolInfo->GetSymbolStart() << ": Too few arguments to function \'" << function->GetName() << "\'" << std::endl;
 
 					++errorCount;
 				}
@@ -1277,7 +943,7 @@ factor  :   variable
 					{
 						if(argumentTypeList[i] != "" && paramList[i].first != argumentTypeList[i])
 						{
-							errorStream << "Line# " << $1->GetSymbolStart() << ": Type mismatch for argument " << i + 1 << " of \'" << function->GetName() << "\'" << std::endl;
+							errorStream << "Line# " << $1->symbolInfo->GetSymbolStart() << ": Type mismatch for argument " << i + 1 << " of \'" << function->GetName() << "\'" << std::endl;
 
 							++errorCount;
 						}
@@ -1285,62 +951,46 @@ factor  :   variable
 				}
 			}
 
-			ParseTreeNode id_node = {"ID", true, {}, $1};
-			ParseTreeNode lparen_node = {"LPAREN", true, {}, $2};
-			ParseTreeNode rparen_node = {"RPAREN", true, {}, $4};
-			ParseTreeNode factor_node = {"factor", false, {id_node, lparen_node, argument_list_node, rparen_node}, NULL};
+			$$ = new ParseTreeNode();
+			*$$ = {"factor", false, {$1, $2, $3, $4}, NULL};
 
-			SetLine(factor_node);
-			parseTreeStack.push(factor_node);
+			SetLine($$);
 		}
 	    |   LPAREN expression RPAREN
 		{
 			logStream << "factor\t: LPAREN expression RPAREN" << std::endl;
 
-			ParseTreeNode expression_node = parseTreeStack.top();
+			$$ = new ParseTreeNode();
+			*$$ = {"factor", false, {$1, $2, $3}, NULL};
 
-			parseTreeStack.pop();
-
-			ParseTreeNode lparen_node = {"LPAREN", true, {}, $1};
-			ParseTreeNode rparen_node = {"RPAREN", true, {}, $3};
-			ParseTreeNode factor_node = {"factor", false, {lparen_node, expression_node, rparen_node}, NULL};
-
-			SetLine(factor_node);
-			parseTreeStack.push(factor_node);
+			SetLine($$);
 		}
 	    |   CONST_INT
 		{
 			logStream << "factor\t: CONST_INT" << std::endl;
 
-			ParseTreeNode const_int_node = {"CONST_INT", true, {}, $1};
-			ParseTreeNode factor_node = {"factor", false, {const_int_node}, NULL};
+			$$ = new ParseTreeNode();
+			*$$ = {"factor", false, {$1}, NULL};
 
-			SetLine(factor_node);
-			parseTreeStack.push(factor_node);
+			SetLine($$);
 		}
 	    |   CONST_FLOAT
 		{
 			logStream << "factor\t: CONST_FLOAT" << std::endl;
 
-			ParseTreeNode const_float_node = {"CONST_FLOAT", true, {}, $1};
-			ParseTreeNode factor_node = {"factor", false, {const_float_node}, NULL};
+			$$ = new ParseTreeNode();
+			*$$ = {"factor", false, {$1}, NULL};
 
-			SetLine(factor_node);
-			parseTreeStack.push(factor_node);
+			SetLine($$);
 		}
 	    |   variable INCOP
 		{
 			logStream << "factor\t: variable INCOP" << std::endl;
 
-			ParseTreeNode variable_node = parseTreeStack.top();
+			$$ = new ParseTreeNode();
+			*$$ = {"factor", false, {$1, $2}, NULL};
 
-			parseTreeStack.pop();
-
-			ParseTreeNode incop_node = {"INCOP", true, {}, $2};
-			ParseTreeNode factor_node = {"factor", false, {variable_node, incop_node}, NULL};
-
-			SetLine(factor_node);
-			parseTreeStack.push(factor_node);
+			SetLine($$);
 		}
 	    ;
 	
@@ -1348,14 +998,10 @@ argument_list   :   arguments
 				{
 					logStream << "argument_list : arguments" << std::endl;
 
-					ParseTreeNode arguments_node = parseTreeStack.top();
+					$$ = new ParseTreeNode();
+					*$$ = {"argument_list", false, {$1}, NULL};
 
-					parseTreeStack.pop();
-
-					ParseTreeNode argument_list_node = {"argument_list", false, {arguments_node}, NULL};
-
-					SetLine(argument_list_node);
-					parseTreeStack.push(argument_list_node);
+					SetLine($$);
 				}
 			    |
                 ;
@@ -1364,32 +1010,19 @@ arguments   :   arguments COMMA logic_expression
 			{
 				logStream << "arguments : arguments COMMA logic_expression" << std::endl;
 
-				ParseTreeNode logic_expression_node = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"arguments", false, {$1, $2, $3}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode arguments_node_child = parseTreeStack.top();
-
-				parseTreeStack.pop();
-
-				ParseTreeNode comma_node = {"COMMA", true, {}, $2};
-				ParseTreeNode arguments_node = {"arguments", false, {arguments_node_child, comma_node, logic_expression_node}, NULL};
-
-				SetLine(arguments_node);
-				parseTreeStack.push(arguments_node);
+				SetLine($$);
 			}
 	        |   logic_expression
 			{
 				logStream << "arguments : logic_expression" << std::endl;
 
-				ParseTreeNode logic_expression_node = parseTreeStack.top();
+				$$ = new ParseTreeNode();
+				*$$ = {"arguments", false, {$1}, NULL};
 
-				parseTreeStack.pop();
-
-				ParseTreeNode arguments_node = {"arguments", false, {logic_expression_node}, NULL};
-
-				SetLine(arguments_node);
-				parseTreeStack.push(arguments_node);
+				SetLine($$);
 			}
 	        ;
  
@@ -1416,8 +1049,7 @@ int main(int argc,char *argv[])
 	yyin = fp;
 
 	yyparse();
-	PrintParseTree(parseTreeStack.top(), 0);
-	DeleteTerminals(parseTreeStack.top());
+	PrintParseTree(root, 0);
 
 	logStream << "Total Lines: " << lineCount << std::endl;
 	logStream << "Total Errors: " << errorCount << std::endl;

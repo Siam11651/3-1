@@ -9,6 +9,7 @@
 #include <string>
 #include "1905039.tab.h"
 #include "1905039_SymbolTable.h"
+#include "1905039_ParseTreeNode.h"
 
 using namespace std;
 
@@ -142,12 +143,20 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 
             logStream << "Line# " << lineCount << ": Token <IF> Lexeme " << yytext << " found" << std::endl;
 
-            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "IF");
+            SymbolInfo *symbolInfo = new SymbolInfo(yytext, "IF");
 
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "IF";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return IF;
 		}
@@ -160,7 +169,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "ELSE";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return ELSE;
 		}
@@ -173,7 +190,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "FOR";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return FOR;
         }
@@ -186,7 +211,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "WHILE";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return WHILE;
         }
@@ -199,7 +232,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "DO";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return DO;
         }
@@ -212,7 +253,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "BREAK";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return BREAK;
         }
@@ -225,7 +274,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "INT";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return INT;
         }
@@ -238,7 +295,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "CHAR";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return CHAR;
         }
@@ -251,7 +316,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "FLOAT";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return FLOAT;
         }
@@ -264,7 +337,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                 symbolInfo->SetSymbolStart(lineCount);
                 symbolInfo->SetSymbolEnd(lineCount);
 
-                yylval = symbolInfo;
+                ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+                parseTreeNode->name = "DOUBLE";
+                parseTreeNode->terminal = true;
+                parseTreeNode->startLine = lineCount;
+                parseTreeNode->endLine = lineCount;
+                parseTreeNode->symbolInfo = symbolInfo;
+
+                yylval = parseTreeNode;
 
                 return DOUBLE;
             }
@@ -277,7 +358,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "VOID";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return VOID;
         }
@@ -290,7 +379,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                 symbolInfo->SetSymbolStart(lineCount);
                 symbolInfo->SetSymbolEnd(lineCount);
 
-                yylval = symbolInfo;
+                ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+                parseTreeNode->name = "RETURN";
+                parseTreeNode->terminal = true;
+                parseTreeNode->startLine = lineCount;
+                parseTreeNode->endLine = lineCount;
+                parseTreeNode->symbolInfo = symbolInfo;
+
+                yylval = parseTreeNode;
 
                 return RETURN;
             }
@@ -303,7 +400,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                 symbolInfo->SetSymbolStart(lineCount);
                 symbolInfo->SetSymbolEnd(lineCount);
 
-                yylval = symbolInfo;
+                ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+                parseTreeNode->name = "SWITCH";
+                parseTreeNode->terminal = true;
+                parseTreeNode->startLine = lineCount;
+                parseTreeNode->endLine = lineCount;
+                parseTreeNode->symbolInfo = symbolInfo;
+
+                yylval = parseTreeNode;
 
                 return SWITCH;
             }
@@ -316,7 +421,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "CASE";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return CASE;
         }
@@ -329,7 +442,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                 symbolInfo->SetSymbolStart(lineCount);
                 symbolInfo->SetSymbolEnd(lineCount);
 
-                yylval = symbolInfo;
+                ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+                parseTreeNode->name = "DEFAULT";
+                parseTreeNode->terminal = true;
+                parseTreeNode->startLine = lineCount;
+                parseTreeNode->endLine = lineCount;
+                parseTreeNode->symbolInfo = symbolInfo;
+
+                yylval = parseTreeNode;
 
                 return DEFAULT;
             }
@@ -342,7 +463,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                 symbolInfo->SetSymbolStart(lineCount);
                 symbolInfo->SetSymbolEnd(lineCount);
 
-                yylval = symbolInfo;
+                ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+                parseTreeNode->name = "CONTINUE";
+                parseTreeNode->terminal = true;
+                parseTreeNode->startLine = lineCount;
+                parseTreeNode->endLine = lineCount;
+                parseTreeNode->symbolInfo = symbolInfo;
+
+                yylval = parseTreeNode;
 
                 return CONTINUE;
             }
@@ -357,7 +486,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "ADDOP";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return ADDOP;
 		}
@@ -374,7 +511,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "MULOP";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return MULOP;
 		}
@@ -389,7 +534,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "INCOP";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return INCOP;
 		}
@@ -412,7 +565,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "RELOP";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return RELOP;
 		}
@@ -425,7 +586,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "ASSIGNOP";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return ASSIGNOP;
 		}
@@ -440,7 +609,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "LOGICOP";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return LOGICOP;
 		}
@@ -461,7 +638,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "BITOP";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return BITOP;
 		}
@@ -474,7 +659,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "NOT";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return NOT;
 		}
@@ -487,7 +680,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "LPAREN";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return LPAREN;
 		}
@@ -500,7 +701,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "RPAREN";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return RPAREN;
 		}
@@ -513,7 +722,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "LCURL";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return LCURL;
 		}
@@ -526,7 +743,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "RCURL";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return RCURL;
 		}
@@ -539,7 +764,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "LSQUARE";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return LSQUARE;
 		}
@@ -552,7 +785,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "RSQUARE";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return RSQUARE;
 		}
@@ -565,7 +806,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "COMMA";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return COMMA;
 		}
@@ -578,7 +827,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "SEMICOLON";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return SEMICOLON;
 		}
@@ -591,7 +848,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                 symbolInfo->SetSymbolStart(lineCount);
                 symbolInfo->SetSymbolEnd(lineCount);
 
-                yylval = symbolInfo;
+                ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+                parseTreeNode->name = "CONST_INT";
+                parseTreeNode->terminal = true;
+                parseTreeNode->startLine = lineCount;
+                parseTreeNode->endLine = lineCount;
+                parseTreeNode->symbolInfo = symbolInfo;
+
+                yylval = parseTreeNode;
 
                 return CONST_INT;
 			}
@@ -604,7 +869,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                 symbolInfo->SetSymbolStart(lineCount);
                 symbolInfo->SetSymbolEnd(lineCount);
 
-                yylval = symbolInfo;
+                ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+                parseTreeNode->name = "CONST_FLOAT";
+                parseTreeNode->terminal = true;
+                parseTreeNode->startLine = lineCount;
+                parseTreeNode->endLine = lineCount;
+                parseTreeNode->symbolInfo = symbolInfo;
+
+                yylval = parseTreeNode;
 
                 return CONST_FLOAT;
 			}
@@ -619,7 +892,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                     symbolInfo->SetSymbolStart(lineCount);
                     symbolInfo->SetSymbolEnd(lineCount);
 
-                    yylval = symbolInfo;
+                    ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+                    parseTreeNode->name = "CONST_CHAR";
+                    parseTreeNode->terminal = true;
+                    parseTreeNode->startLine = lineCount;
+                    parseTreeNode->endLine = lineCount;
+                    parseTreeNode->symbolInfo = symbolInfo;
+
+                    yylval = parseTreeNode;
 
                     return CONST_CHAR;
                 }
@@ -635,7 +916,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                                 symbolInfo->SetSymbolStart(lineCount);
                                 symbolInfo->SetSymbolEnd(lineCount);
 
-                                yylval = symbolInfo;
+                                ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+                                parseTreeNode->name = "CONST_STRING";
+                                parseTreeNode->terminal = true;
+                                parseTreeNode->startLine = lineCount;
+                                parseTreeNode->endLine = lineCount;
+                                parseTreeNode->symbolInfo = symbolInfo;
+
+                                yylval = parseTreeNode;
 
                                 return CONST_STRING;
                             }
@@ -660,7 +949,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 
                                 symbolInfo->SetSymbolEnd(lineCount);
 
-                                yylval = symbolInfo;
+                                ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+                                parseTreeNode->name = "CONST_STRING";
+                                parseTreeNode->terminal = true;
+                                parseTreeNode->startLine = lineCount;
+                                parseTreeNode->endLine = lineCount;
+                                parseTreeNode->symbolInfo = symbolInfo;
+
+                                yylval = parseTreeNode;
 
                                 return CONST_STRING;
                             }
@@ -673,7 +970,15 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            yylval = symbolInfo;
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "ID";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
 
             return ID;
         }
