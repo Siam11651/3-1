@@ -49,6 +49,14 @@ std::string GetExpressionDataType(ParseTreeNode &root);
 %nonassoc RPAREN
 %nonassoc ELSE
 
+%destructor
+{
+	DeleteTree($$);
+
+	$$ = NULL;
+}
+<>
+
 %%
 
 start   :   program
@@ -57,9 +65,10 @@ start   :   program
 
 			$$ = new ParseTreeNode();
 			*$$ = {"start", false, {$1}, NULL};
-			root = $$;
+			// root = $$;
 
 			SetLine($$);
+			PrintParseTree($$, 0);
 		}
 	    ;
 
@@ -204,7 +213,11 @@ func_declaration    :	type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 						}
 
 						SymbolInfo *errorInfo = new SymbolInfo("error", "parameter_list");
-						errorInfo->SetSymbolStart($4->startLine);
+						errorInfo->SetSymbolStart($3->startLine);
+
+						// DeleteTree($4);
+						DeleteTree($6);
+
 						$4 = new ParseTreeNode();
 						*$4 = {"parameter_list", true, {}, errorInfo};
 						$$ = new ParseTreeNode();
@@ -450,12 +463,16 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					++errorCount;
 
 					SymbolInfo *errorInfo = new SymbolInfo("error", "parameter_list");
-					errorInfo->SetSymbolStart($4->startLine);
+					errorInfo->SetSymbolStart($3->startLine);
+
+					// DeleteTree($4);
+
 					$4 = new ParseTreeNode();
 					*$4 = {"parameter_list", true, {}, errorInfo};
 					$$ = new ParseTreeNode();
 					*$$ = {"func_declaration", false, {$1, $2, $3, $4, $5}, NULL};
-				
+
+					DeleteTree($7);				
 					SetLine($$);
 					st->PrintAllScope();
 					st->ExitScope();
@@ -625,13 +642,16 @@ compound_statement	:	LCURL statements RCURL
 					|	LCURL error RCURL
 					{
 						SymbolInfo *errorInfo = new SymbolInfo("error", "statements");
-						errorInfo->SetSymbolStart($2->startLine);
+						errorInfo->SetSymbolStart($1->startLine);
+
+						// DeleteTree($2);
+
 						$2 = new ParseTreeNode();
 						*$2 = {"parameter_list", true, {}, errorInfo};
 						$$ = new ParseTreeNode();
 						*$$ = {"compound_statement", false, {$1, $2, $3}};
 
-						errorStream << "Line# " << $2->startLine << ": Syntax error at statement of compound statement" << std::endl;
+						errorStream << "Line# " << $1->startLine << ": Syntax error at statement of compound statement" << std::endl;
 
 						++errorCount;
 
@@ -662,7 +682,10 @@ var_declaration :   type_specifier declaration_list SEMICOLON
 				|	type_specifier error SEMICOLON
 				{					
 					SymbolInfo *errorInfo = new SymbolInfo("error", "declaration_list");
-					errorInfo->SetSymbolStart($2->startLine);
+					errorInfo->SetSymbolStart($1->startLine);
+
+					// DeleteTree($2);
+
 					$2 = new ParseTreeNode();
 					*$2 = {"declaration_list", true, {}, errorInfo};
 					$$ = new ParseTreeNode();
@@ -814,7 +837,7 @@ statement	:   var_declaration
 				logStream << "statement : FOR LPAREN expression_statement expression_statement expression RPAREN statement" << std::endl;
 
 				$$ = new ParseTreeNode();
-				*$$ = {"statement", false, {$1, $2, $3, $4, $5, $6, $7}, NULL};
+				*$$ = {"statement", false, {$1, $3, $4, $5, $6, $7, $8}, NULL};
 
 				SetLine($$);
 				st->PrintAllScope();
@@ -829,7 +852,7 @@ statement	:   var_declaration
 				logStream << "statement : WHILE LPAREN expression RPAREN statement" << std::endl;
 
 				$$ = new ParseTreeNode();
-				*$$ = {"statement", false, {$1, $2, $3, $4, $5}, NULL};
+				*$$ = {"statement", false, {$1, $3, $4, $5, $6}, NULL};
 
 				SetLine($$);
 				st->PrintAllScope();
@@ -875,7 +898,7 @@ statement	:   var_declaration
 				logStream << "statement : IF LPAREN expression RPAREN statement ELSE statement" << std::endl;
 
 				$$ = new ParseTreeNode();
-				*$$ = {"statement", false, {$1, $2, $3, $4, $5, $6, $7}, NULL};
+				*$$ = {"statement", false, {$1, $2, $3, $4, $5, $6, $8}, NULL};
 
 				SetLine($$);
 				st->PrintAllScope();
@@ -906,11 +929,14 @@ expression_statement    :   SEMICOLON
 						|	error SEMICOLON
 						{
 							SymbolInfo *errorInfo = new SymbolInfo("error", "expression");
-							errorInfo->SetSymbolStart($1->startLine);
+							errorInfo->SetSymbolStart($2->startLine);
+
+							// DeleteTree($1);
+
 							$1 = new ParseTreeNode();
 							*$1 = {"expression", true, {}, errorInfo};
 							$$ = new ParseTreeNode();
-							*$$ = {"expression_statement", false, {$1}, NULL};
+							*$$ = {"expression_statement", false, {$1, $2}, NULL};
 
 							errorStream << "Line# " << $1->startLine << ": Syntax error at expression of expression statement" << std::endl;
 
@@ -1228,13 +1254,16 @@ argument_list   :   arguments
 					logStream << "argument_list : arguments" << std::endl;
 
 					SymbolInfo *errorInfo = new SymbolInfo("error", "arguments");
-					errorInfo->SetSymbolStart($2->startLine);
+					errorInfo->SetSymbolStart($1->startLine);
+
+					// DeleteTree($2);
+
 					$2 = new ParseTreeNode();
 					*$2 = {"parameter_list", true, {}, errorInfo};
 					$$ = new ParseTreeNode();
 					*$$ = {"argument_list", false, {$1, $2}, NULL};
 
-					errorStream << "Line# " << $2->startLine << ": Syntax error at arguments of arguments list" << std::endl;
+					errorStream << "Line# " << $1->startLine << ": Syntax error at arguments of arguments list" << std::endl;
 
 					++errorCount;
 
@@ -1286,7 +1315,7 @@ int main(int argc,char *argv[])
 	yyin = fp;
 
 	yyparse();
-	PrintParseTree(root, 0);
+	// PrintParseTree(root, 0);
 
 	logStream << "Total Lines: " << lineCount << std::endl;
 	logStream << "Total Errors: " << errorCount << std::endl;
@@ -1296,6 +1325,7 @@ int main(int argc,char *argv[])
 	logStream.close();
 	errorStream.close();
 
+	// DeleteTree(root);
 	delete st;
 	
 	return 0;

@@ -5,16 +5,16 @@ extern std::ofstream errorStream;
 extern SymbolTable *st;
 extern size_t errorCount;
 
-void PrintParseTree(ParseTreeNode *parseTreeNode, size_t depth)
+void PrintParseTree(ParseTreeNode *root, size_t depth)
 {
-	if(parseTreeNode->terminal)
+	if(root->terminal)
 	{
 		for(size_t i = 0; i < depth; ++i)
 		{
 			parseTreeStream << ' ';
 		}
 
-		parseTreeStream << parseTreeNode->name << " : " << parseTreeNode->symbolInfo->GetName() << "\t<Line: " << parseTreeNode->symbolInfo->GetSymbolStart() << '>' << std::endl;
+		parseTreeStream << root->name << " : " << root->symbolInfo->GetName() << "\t<Line: " << root->symbolInfo->GetSymbolStart() << '>' << std::endl;
 	}
 	else
 	{
@@ -23,30 +23,48 @@ void PrintParseTree(ParseTreeNode *parseTreeNode, size_t depth)
 			parseTreeStream << ' ';
 		}
 
-		parseTreeStream << parseTreeNode->name << " : ";
+		parseTreeStream << root->name << " : ";
 
-		for(size_t i = 0; i < parseTreeNode->children.size(); ++i)
+		for(size_t i = 0; i < root->children.size(); ++i)
 		{
-			parseTreeStream << parseTreeNode->children[i]->name << ' ';
+			parseTreeStream << root->children[i]->name << ' ';
 		}
 
-		parseTreeStream << "\t<Line: " << parseTreeNode->startLine << '-' << parseTreeNode->endLine << '>' << std::endl;
+		parseTreeStream << "\t<Line: " << root->startLine << '-' << root->endLine << '>' << std::endl;
 
-		for(size_t i = 0; i < parseTreeNode->children.size(); ++i)
+		for(size_t i = 0; i < root->children.size(); ++i)
 		{
-			PrintParseTree(parseTreeNode->children[i], depth + 1);
+			PrintParseTree(root->children[i], depth + 1);
 		}
 	}
 }
 
-void SetLine(ParseTreeNode *parseTreeNode)
+void DeleteTree(ParseTreeNode *root)
+{
+	if(root != NULL)
+	{
+		if(root->symbolInfo != NULL)
+		{
+			delete root->symbolInfo;
+		}
+
+		for(size_t i = 0; i < root->children.size(); ++i)
+		{
+			DeleteTree(root->children[i]);
+		}
+
+		delete root;
+	}
+}
+
+void SetLine(ParseTreeNode *root)
 {
 	size_t start = SIZE_MAX;
 	size_t end = 0;
 
-	for(size_t i = 0; i < parseTreeNode->children.size(); ++i)
+	for(size_t i = 0; i < root->children.size(); ++i)
 	{
-		ParseTreeNode *child = parseTreeNode->children[i];
+		ParseTreeNode *child = root->children[i];
 
 		if(child->terminal)
 		{
@@ -60,8 +78,8 @@ void SetLine(ParseTreeNode *parseTreeNode)
 		}
 	}
 
-	parseTreeNode->startLine = start;
-	parseTreeNode->endLine = end;
+	root->startLine = start;
+	root->endLine = end;
 }
 
 void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symbolTable)
