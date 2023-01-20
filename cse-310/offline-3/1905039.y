@@ -1315,7 +1315,6 @@ int main(int argc,char *argv[])
 	yyin = fp;
 
 	yyparse();
-	// PrintParseTree(root, 0);
 
 	logStream << "Total Lines: " << lineCount << std::endl;
 	logStream << "Total Errors: " << errorCount << std::endl;
