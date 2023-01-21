@@ -45,7 +45,7 @@ std::string GetExpressionDataType(ParseTreeNode &root);
 	#define YYSTYPE ParseTreeNode*
 }
 
-%token IF ELSE FOR WHILE DO BREAK INT CHAR FLOAT DOUBLE VOID RETURN SWITCH CASE DEFAULT CONTINUE ADDOP MULOP INCOP RELOP ASSIGNOP LOGICOP BITOP NOT LPAREN RPAREN LCURL RCURL LSQUARE RSQUARE COMMA SEMICOLON CONST_INT CONST_FLOAT CONST_CHAR CONST_STRING ID
+%token IF ELSE FOR WHILE DO BREAK INT CHAR FLOAT DOUBLE VOID RETURN SWITCH CASE DEFAULT CONTINUE ADDOP MULOP INCOP RELOP ASSIGNOP LOGICOP BITOP NOT LPAREN RPAREN LCURL RCURL LSQUARE RSQUARE COMMA SEMICOLON CONST_INT CONST_FLOAT CONST_CHAR CONST_STRING ID PRINTLN
 %nonassoc RPAREN
 %nonassoc ELSE
 
@@ -903,6 +903,24 @@ statement	:   var_declaration
 				SetLine($$);
 				st->PrintAllScope();
 				st->ExitScope();
+			}
+			|	PRINTLN LPAREN ID RPAREN SEMICOLON
+			{
+				logStream << "statement : PRINTLN LPAREN ID RPAREN SEMICOLON" << std::endl;
+
+				SymbolInfo *variablePtr = st->LookUp($3->symbolInfo->GetName());
+
+				if(variablePtr == NULL)
+				{
+					errorStream << "Line# " << $3->startLine << ": Undeclared variable \'" << $3->symbolInfo->GetName() << "\'" << std::endl;
+
+					++errorCount;
+				}
+
+				$$ = new ParseTreeNode();
+				*$$ = {"statement", false, {$1, $2, $3, $4, $5}, NULL};
+
+				SetLine($$);
 			}
 			;
 	  

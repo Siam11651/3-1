@@ -476,6 +476,27 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                 return CONTINUE;
             }
 
+"println"   {
+                logStream << "Line# " << lineCount << ": Token <PRINTLN> Lexeme " << yytext << " found" << std::endl;
+
+                SymbolInfo* symbolInfo = new SymbolInfo(yytext, "PRINTLN");
+
+                symbolInfo->SetSymbolStart(lineCount);
+                symbolInfo->SetSymbolEnd(lineCount);
+
+                ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+                parseTreeNode->name = "PRINTLN";
+                parseTreeNode->terminal = true;
+                parseTreeNode->startLine = lineCount;
+                parseTreeNode->endLine = lineCount;
+                parseTreeNode->symbolInfo = symbolInfo;
+
+                yylval = parseTreeNode;
+
+                return CONTINUE;
+            }
+
 "+"		|
 
 "-"		{
