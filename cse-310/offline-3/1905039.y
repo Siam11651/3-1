@@ -27,6 +27,8 @@ SymbolInfo *present;
 bool inVoidFunction;
 bool functionReturns;
 ParseTreeNode *root;
+extern bool newScope;
+bool endCompoundStatement;
 
 void yyerror(char *s)
 {
@@ -45,7 +47,7 @@ std::string GetExpressionDataType(ParseTreeNode &root);
 	#define YYSTYPE ParseTreeNode*
 }
 
-%token IF ELSE FOR WHILE DO BREAK INT CHAR FLOAT DOUBLE VOID RETURN SWITCH CASE DEFAULT CONTINUE ADDOP MULOP INCOP RELOP ASSIGNOP LOGICOP BITOP NOT LPAREN RPAREN LCURL RCURL LSQUARE RSQUARE COMMA SEMICOLON CONST_INT CONST_FLOAT CONST_CHAR CONST_STRING ID PRINTLN
+%token IF ELSE FOR WHILE DO BREAK INT CHAR FLOAT DOUBLE VOID RETURN SWITCH CASE DEFAULT CONTINUE ADDOP MULOP INCOP DECOP RELOP ASSIGNOP LOGICOP BITOP LPAREN RPAREN LCURL RCURL LSQUARE RSQUARE COMMA SEMICOLON CONST_INT CONST_FLOAT CONST_CHAR CONST_STRING ID PRINTLN
 %nonassoc RPAREN
 %nonassoc ELSE
 
@@ -65,7 +67,6 @@ start   :   program
 
 			$$ = new ParseTreeNode();
 			*$$ = {"start", false, {$1}, NULL};
-			// root = $$;
 
 			SetLine($$);
 			PrintParseTree($$, 0);
@@ -296,6 +297,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 						st->Insert($2->symbolInfo);
 					}
 
+					newScope = true;
+
 					st->EnterScope();
 
 					if(present == NULL)
@@ -331,9 +334,9 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 
 									if(paramList.size() == presentParamList.size())
 									{
-										for(size_t i = 0; paramList.size(); ++i)
+										for(size_t i = 0; i < paramList.size(); ++i)
 										{
-											if(paramList[i] != presentParamList[i])
+											if(paramList[i].first != presentParamList[i].first)
 											{
 												ok = false;
 
@@ -387,8 +390,6 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					*$$ = {"func_definition", false, {$1, $2, $3, $4, $5, $7}, NULL};
 				
 					SetLine($$);
-					st->PrintAllScope();
-					st->ExitScope();
 
 					logStream << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement" << std::endl;
 
@@ -417,6 +418,13 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					
 					present = st->LookUp($2->symbolInfo->GetName());
 					function = $2->symbolInfo;
+
+					if(present == NULL)
+					{
+						st->Insert($2->symbolInfo);
+					}
+
+					newScope = true;
 
 					st->EnterScope();
 
@@ -474,8 +482,6 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 
 					DeleteTree($7);				
 					SetLine($$);
-					st->PrintAllScope();
-					st->ExitScope();
 
 					if(!inVoidFunction && !functionReturns)
 					{
@@ -507,6 +513,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					{
 						st->Insert($2->symbolInfo);
 					}
+
+					newScope = true;
 
 					st->EnterScope();
 
@@ -565,8 +573,6 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					*$$ = {"func_definition", false, {$1, $2, $3, $4, $6}, NULL};
 				
 					SetLine($$);
-					st->PrintAllScope();
-					st->ExitScope();
 
 					logStream << "func_definition : type_specifier ID LPAREN RPAREN compound_statement" << std::endl;
 
@@ -630,7 +636,21 @@ parameter_list	:	parameter_list COMMA type_specifier ID
 				}
  				;
 
-compound_statement	:	LCURL statements RCURL
+lcurl	:	LCURL
+		{
+			$$ = $1;
+
+			if(newScope)
+			{
+				newScope = false;
+			}
+			else
+			{
+			st->EnterScope(); 
+			}
+		}
+
+compound_statement	:	lcurl statements RCURL
 					{
 						logStream << "compound_statement : LCURL statements RCURL" << std::endl;
 
@@ -638,8 +658,12 @@ compound_statement	:	LCURL statements RCURL
 						*$$ = {"compound_statement", false, {$1, $2, $3}};
 
 						SetLine($$);
+						st->PrintAllScope();
+						st->ExitScope();
+
+						endCompoundStatement = true;
 					}
-					|	LCURL error RCURL
+					|	lcurl error RCURL
 					{
 						SymbolInfo *errorInfo = new SymbolInfo("error", "statements");
 						errorInfo->SetSymbolStart($1->startLine);
@@ -656,8 +680,12 @@ compound_statement	:	LCURL statements RCURL
 						++errorCount;
 
 						SetLine($$);
+						st->PrintAllScope();
+						st->ExitScope();
+
+						endCompoundStatement = true;
 					}
- 		            |	LCURL RCURL
+ 		            |	lcurl RCURL
 					{
 						logStream << "compound_statement : LCURL RCURL" << std::endl;
 
@@ -665,6 +693,10 @@ compound_statement	:	LCURL statements RCURL
 						*$$ = {"compound_statement", false, {$1, $2}, NULL};
 
 						SetLine($$);
+						st->PrintAllScope();
+						st->ExitScope();
+
+						endCompoundStatement = true;
 					}
  		            ;
  		    
@@ -818,9 +850,6 @@ statement	:   var_declaration
 			}
 			|   compound_statement
 			{
-				st->PrintAllScope();
-				st->ExitScope();
-
 				logStream << "statement : compound_statement" << std::endl;
 
 				$$ = new ParseTreeNode();
@@ -830,33 +859,53 @@ statement	:   var_declaration
 			}
 			|   FOR 
 			{
+				logStream << "statement : FOR LPAREN expression_statement expression_statement expression RPAREN statement" << std::endl;
+
+				newScope = true;
+
 				st->EnterScope();
 			}
 			LPAREN expression_statement expression_statement expression RPAREN statement
 			{
-				logStream << "statement : FOR LPAREN expression_statement expression_statement expression RPAREN statement" << std::endl;
-
 				$$ = new ParseTreeNode();
 				*$$ = {"statement", false, {$1, $3, $4, $5, $6, $7, $8}, NULL};
 
 				SetLine($$);
-				st->PrintAllScope();
-				st->ExitScope();
+
+				if(endCompoundStatement)
+				{
+					endCompoundStatement = false;
+				}
+				else
+				{
+					st->PrintAllScope();
+					st->ExitScope();
+				}
 			}
 			|   WHILE
 			{
+				logStream << "statement : WHILE LPAREN expression RPAREN statement" << std::endl;
+
+				newScope = true;
+
 				st->EnterScope();
 			}
 			LPAREN expression RPAREN statement
 			{
-				logStream << "statement : WHILE LPAREN expression RPAREN statement" << std::endl;
-
 				$$ = new ParseTreeNode();
 				*$$ = {"statement", false, {$1, $3, $4, $5, $6}, NULL};
 
 				SetLine($$);
-				st->PrintAllScope();
-				st->ExitScope();
+
+				if(endCompoundStatement)
+				{
+					endCompoundStatement = false;
+				}
+				else
+				{
+					st->PrintAllScope();
+					st->ExitScope();
+				}
 			}
 			|   RETURN expression SEMICOLON
 			{
@@ -884,25 +933,41 @@ statement	:   var_declaration
 				*$$ = {"statement", false, {$1, $2, $3, $4, $5}, NULL};
 
 				SetLine($$);
-				st->PrintAllScope();
-				st->ExitScope();
+
+				if(endCompoundStatement)
+				{
+					endCompoundStatement = false;
+				}
+				else
+				{
+					st->PrintAllScope();
+					st->ExitScope();
+				}
 			}
 	  		| IF LPAREN expression RPAREN statement ELSE
 			{
-				st->PrintAllScope();
-				st->ExitScope();
+				logStream << "statement : IF LPAREN expression RPAREN statement ELSE statement" << std::endl;
+
+				newScope = true;
+
 				st->EnterScope();
 			}
 			statement
 			{
-				logStream << "statement : IF LPAREN expression RPAREN statement ELSE statement" << std::endl;
-
 				$$ = new ParseTreeNode();
 				*$$ = {"statement", false, {$1, $2, $3, $4, $5, $6, $8}, NULL};
 
 				SetLine($$);
-				st->PrintAllScope();
-				st->ExitScope();
+
+				if(endCompoundStatement)
+				{
+					endCompoundStatement = false;
+				}
+				else
+				{
+					st->PrintAllScope();
+					st->ExitScope();
+				}
 			}
 			|	PRINTLN LPAREN ID RPAREN SEMICOLON
 			{
@@ -1131,9 +1196,9 @@ unary_expression    :   ADDOP unary_expression
 
 						SetLine($$);
 					}
-		            |   NOT unary_expression
+		            |   LOGICOP unary_expression
 					{
-						logStream << "unary_expression : NOT unary_expression" << std::endl;
+						logStream << "unary_expression : LOGICOP unary_expression" << std::endl;
 
 						$$ = new ParseTreeNode();
 						*$$ = {"unary_expression", false, {$1, $2}, NULL};
@@ -1164,15 +1229,22 @@ factor  :   variable
 		{
 			SymbolInfo *function = st->LookUpFunction($1->symbolInfo->GetName());
 
-			logStream << "factor\t: ID LPAREN argument_list RPAREN" << std::endl;
+			if($3->children.size() == 0)
+			{
+				logStream << "factor\t: ID LPAREN RPAREN" << std::endl;
+			}
+			else
+			{
+				logStream << "factor\t: ID LPAREN argument_list RPAREN" << std::endl;
+			}
 
 			if(function == NULL)
 			{
+				std::vector<std::string> argumentTypeList;
+
 				errorStream << "Line# " << $1->symbolInfo->GetSymbolStart() << ": Undeclared function \'" << $1->symbolInfo->GetName() << "\'" << std::endl;
 
 				++errorCount;
-
-				std::vector<std::string> argumentTypeList;
 
 				if($3->children.size() > 0)
 				{
@@ -1216,7 +1288,15 @@ factor  :   variable
 			}
 
 			$$ = new ParseTreeNode();
-			*$$ = {"factor", false, {$1, $2, $3, $4}, NULL};
+
+			if($3->children.size() == 0)
+			{
+				*$$ = {"factor", false, {$1, $2, $4}, NULL};
+			}
+			else
+			{
+				*$$ = {"factor", false, {$1, $2, $3, $4}, NULL};
+			}
 
 			SetLine($$);
 		}
@@ -1256,6 +1336,15 @@ factor  :   variable
 
 			SetLine($$);
 		}
+		| variable DECOP
+		{
+			logStream << "factor\t: variable DECOP" << std::endl;
+
+			$$ = new ParseTreeNode();
+			*$$ = {"factor", false, {$1, $2}, NULL};
+
+			SetLine($$);
+		}
 	    ;
 	
 argument_list   :   arguments
@@ -1288,6 +1377,15 @@ argument_list   :   arguments
 					SetLine($$);
 				}
 				|
+				{
+					logStream << "argument_list : " << std::endl;
+
+
+					$$ = new ParseTreeNode();
+					*$$ = {"argument_list", false, {}, NULL};
+
+					SetLine($$);
+				}
                 ;
 	
 arguments   :   arguments COMMA logic_expression
@@ -1314,6 +1412,8 @@ arguments   :   arguments COMMA logic_expression
 
 int main(int argc,char *argv[])
 {
+	endCompoundStatement = false;
+	newScope = false;
 	functionReturns = false;
 	inVoidFunction = false;
 

@@ -20,6 +20,7 @@ size_t lineCount = 1;
 size_t errorCount = 0;
 std::ofstream logStream;
 std::stringstream symbolTablePrinter;
+bool newScope;
 
 std::string FormatLiteral(const std::string yytext)
 {
@@ -139,6 +140,8 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
                 }
 
 "if"	{
+            newScope = true;
+
             st->EnterScope();
 
             logStream << "Line# " << lineCount << ": Token <IF> Lexeme " << yytext << " found" << std::endl;
@@ -494,7 +497,7 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 
                 yylval = parseTreeNode;
 
-                return CONTINUE;
+                return PRINTLN;
             }
 
 "+"		|
@@ -545,10 +548,8 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             return MULOP;
 		}
 
-"++"    |
-
-"--"    {
-			logStream << "Line# " << lineCount << ": Token <INCOP> Lexeme " << yytext << " found" << std::endl;
+"++"    {
+            logStream << "Line# " << lineCount << ": Token <INCOP> Lexeme " << yytext << " found" << std::endl;
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "INCOP");
 
@@ -566,6 +567,27 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             yylval = parseTreeNode;
 
             return INCOP;
+        }
+
+"--"    {
+			logStream << "Line# " << lineCount << ": Token <DECOP> Lexeme " << yytext << " found" << std::endl;
+
+            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "DECOP");
+
+            symbolInfo->SetSymbolStart(lineCount);
+            symbolInfo->SetSymbolEnd(lineCount);
+
+            ParseTreeNode *parseTreeNode = new ParseTreeNode();
+
+            parseTreeNode->name = "DECOP";
+            parseTreeNode->terminal = true;
+            parseTreeNode->startLine = lineCount;
+            parseTreeNode->endLine = lineCount;
+            parseTreeNode->symbolInfo = symbolInfo;
+
+            yylval = parseTreeNode;
+
+            return DECOP;
 		}
 
 "<"     |
@@ -622,7 +644,9 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 
 "&&"    |
 
-"||"    {
+"||"    |
+
+"!"     {
 			logStream << "Line# " << lineCount << ": Token <LOGICOP> Lexeme " << yytext << " found" << std::endl;
 
             SymbolInfo* symbolInfo = new SymbolInfo(yytext, "LOGICOP");
@@ -670,27 +694,6 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             yylval = parseTreeNode;
 
             return BITOP;
-		}
-
-"!"     {
-			logStream << "Line# " << lineCount << ": Token <NOT> Lexeme " << yytext << " found" << std::endl;
-
-            SymbolInfo* symbolInfo = new SymbolInfo(yytext, "NOT");
-
-            symbolInfo->SetSymbolStart(lineCount);
-            symbolInfo->SetSymbolEnd(lineCount);
-
-            ParseTreeNode *parseTreeNode = new ParseTreeNode();
-
-            parseTreeNode->name = "NOT";
-            parseTreeNode->terminal = true;
-            parseTreeNode->startLine = lineCount;
-            parseTreeNode->endLine = lineCount;
-            parseTreeNode->symbolInfo = symbolInfo;
-
-            yylval = parseTreeNode;
-
-            return NOT;
 		}
 
 "("     {

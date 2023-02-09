@@ -435,6 +435,10 @@ void SetUnaryExpressionValue(ParseTreeNode *root)
 				{
 					root->intValue = root->children[1]->intValue;
 				}
+				else if(root->children[0]->symbolInfo->GetName() == "-")
+				{
+					root->intValue = -root->children[1]->intValue;
+				}
 				else
 				{
 					root->intValue = !root->children[1]->intValue;
@@ -445,6 +449,10 @@ void SetUnaryExpressionValue(ParseTreeNode *root)
 				if(root->children[0]->symbolInfo->GetName() == "+")
 				{
 					root->floatValue = root->children[1]->floatValue;
+				}
+				else if(root->children[0]->symbolInfo->GetName() == "-")
+				{
+					root->floatValue = -root->children[1]->floatValue;
 				}
 				else
 				{
@@ -981,7 +989,23 @@ std::string GetFactorDataType(ParseTreeNode *root)
 	}
 	else if(root->children.size() == 3)
 	{
-		return GetExpressionDataType(root->children[1]);
+		if(root->children[0]->name == "LPAREN")
+		{
+			return GetExpressionDataType(root->children[1]);
+		}
+		else
+		{
+			SymbolInfo* calledFunction = st->LookUpFunction(root->children[0]->symbolInfo->GetName());
+
+			if(calledFunction == NULL)
+			{
+				return "";
+			}
+			else
+			{
+				return calledFunction->GetDataType();
+			}
+		}
 	}
 	else
 	{
