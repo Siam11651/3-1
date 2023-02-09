@@ -1,42 +1,40 @@
 #include "1905039_Utils.h"
 
-extern std::ofstream parseTreeStream;
-extern std::ofstream errorStream;
 extern SymbolTable *st;
 extern size_t errorCount;
 
 void PrintParseTree(ParseTreeNode *root, size_t depth)
 {
-	if(root->terminal)
-	{
-		for(size_t i = 0; i < depth; ++i)
-		{
-			parseTreeStream << ' ';
-		}
+	// if(root->terminal)
+	// {
+	// 	for(size_t i = 0; i < depth; ++i)
+	// 	{
+	// 		parseTreeStream << ' ';
+	// 	}
 
-		parseTreeStream << root->name << " : " << root->symbolInfo->GetName() << "\t<Line: " << root->symbolInfo->GetSymbolStart() << '>' << std::endl;
-	}
-	else
-	{
-		for(size_t i = 0; i < depth; ++i)
-		{
-			parseTreeStream << ' ';
-		}
+	// 	parseTreeStream << root->name << " : " << root->symbolInfo->GetName() << "\t<Line: " << root->symbolInfo->GetSymbolStart() << '>' << std::endl;
+	// }
+	// else
+	// {
+	// 	for(size_t i = 0; i < depth; ++i)
+	// 	{
+	// 		parseTreeStream << ' ';
+	// 	}
 
-		parseTreeStream << root->name << " : ";
+	// 	parseTreeStream << root->name << " : ";
 
-		for(size_t i = 0; i < root->children.size(); ++i)
-		{
-			parseTreeStream << root->children[i]->name << ' ';
-		}
+	// 	for(size_t i = 0; i < root->children.size(); ++i)
+	// 	{
+	// 		parseTreeStream << root->children[i]->name << ' ';
+	// 	}
 
-		parseTreeStream << "\t<Line: " << root->startLine << '-' << root->endLine << '>' << std::endl;
+	// 	parseTreeStream << "\t<Line: " << root->startLine << '-' << root->endLine << '>' << std::endl;
 
-		for(size_t i = 0; i < root->children.size(); ++i)
-		{
-			PrintParseTree(root->children[i], depth + 1);
-		}
-	}
+	// 	for(size_t i = 0; i < root->children.size(); ++i)
+	// 	{
+	// 		PrintParseTree(root->children[i], depth + 1);
+	// 	}
+	// }
 }
 
 void DeleteTree(ParseTreeNode *root)
@@ -89,9 +87,7 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 		InsertID(root->children[0], dataType, st);
 
 		if(dataType == "VOID")
-		{
-			errorStream << "Line# " << root->children[2]->symbolInfo->GetSymbolStart() << ": Variable or field '" << root->children[2]->symbolInfo->GetName() << "' declared void" << std::endl;
-			
+		{			
 			++errorCount;
 		}
 		else
@@ -110,21 +106,15 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 				{
 					if(thisScopeSymbol->GetDataType() == dataType)
 					{
-						errorStream << "Line# " << root->children[2]->symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root->children[2]->symbolInfo->GetName() << "\'" << std::endl;
-
 						++errorCount;
 					}
 					else
 					{
-						errorStream << "Line# " << root->children[2]->symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root->children[2]->symbolInfo->GetName() << "\'" << std::endl;
-
 						++errorCount;
 					}
 				}
 				else
 				{
-					errorStream << "Line# " << root->children[2]->symbolInfo->GetSymbolStart() << ": \'" << root->children[2]->symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
-
 					++errorCount;
 				}
 			}
@@ -133,9 +123,7 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 	else if(root->children.size() == 4)
 	{
 		if(dataType == "VOID")
-		{
-			errorStream << "Line# " << root->children[0]->symbolInfo->GetSymbolStart() << ": Variable or field '" << root->children[0]->symbolInfo->GetName() << "' declared void" << std::endl;
-			
+		{			
 			++errorCount;
 		}
 		else
@@ -154,21 +142,15 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 				{
 					if(thisScopeSymbol->GetDataType() == dataType)
 					{
-						errorStream << "Line# " << root->children[0]->symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root->children[0]->symbolInfo->GetName() << "\'" << std::endl;
-
 						++errorCount;
 					}
 					else
 					{
-						errorStream << "Line# " << root->children[0]->symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root->children[0]->symbolInfo->GetName() << "\'" << std::endl;
-
 						++errorCount;
 					}
 				}
 				else
 				{
-					errorStream << "Line# " << root->children[0]->symbolInfo->GetSymbolStart() << ": \'" << root->children[0]->symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
-
 					++errorCount;
 				}
 			}
@@ -179,9 +161,7 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 		InsertID(root->children[0], dataType, st);
 
 		if(dataType == "VOID")
-		{
-			errorStream << "Line# " << root->children[2]->symbolInfo->GetSymbolStart() << ": Variable or field '" << root->children[2]->symbolInfo->GetName() << "' declared void" << std::endl;
-			
+		{			
 			++errorCount;
 		}
 		else
@@ -199,21 +179,15 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 				{
 					if(thisScopeSymbol->GetDataType() == dataType)
 					{
-						errorStream << "Line# " << root->children[2]->symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root->children[2]->symbolInfo->GetName() << "\'" << std::endl;
-
 						++errorCount;
 					}
 					else
 					{
-						errorStream << "Line# " << root->children[2]->symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root->children[2]->symbolInfo->GetName() << "\'" << std::endl;
-
 						++errorCount;
 					}
 				}
 				else
 				{
-					errorStream << "Line# " << root->children[2]->symbolInfo->GetSymbolStart() << ": \'" << root->children[2]->symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
-
 					++errorCount;
 				}
 			}
@@ -222,9 +196,7 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 	else
 	{
 		if(dataType == "VOID")
-		{
-			errorStream << "Line# " << root->children[0]->symbolInfo->GetSymbolStart() << ": Variable or field '" << root->children[0]->symbolInfo->GetName() << "' declared void" << std::endl;
-			
+		{			
 			++errorCount;
 		}
 		else
@@ -242,21 +214,15 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 				{
 					if(thisScopeSymbol->GetDataType() == dataType)
 					{
-						errorStream << "Line# " << root->children[0]->symbolInfo->GetSymbolStart() << ": Redefinition of variable \'" << root->children[0]->symbolInfo->GetName() << "\'" << std::endl;
-
 						++errorCount;
 					}
 					else
 					{
-						errorStream << "Line# " << root->children[0]->symbolInfo->GetSymbolStart() << ": Conflicting types for\'" << root->children[0]->symbolInfo->GetName() << "\'" << std::endl;
-
 						++errorCount;
 					}
 				}
 				else
 				{
-					errorStream << "Line# " << root->children[0]->symbolInfo->GetSymbolStart() << ": \'" << root->children[0]->symbolInfo->GetName() << "\' redeclared as different kind of symbol" << std::endl;
-
 					++errorCount;
 				}
 			}
@@ -297,8 +263,6 @@ void SetParams(ParseTreeNode *root, std::vector<std::pair<std::string, std::stri
 
 		if(redefinition)
 		{
-			errorStream << "Line# " << root->children[3]->symbolInfo->GetSymbolStart() << ": Redefinition of parameter \'" << root->children[3]->symbolInfo->GetName() << "\'" << std::endl;
-
 			++errorCount;
 			error = true;
 		}
@@ -336,8 +300,6 @@ void SetParams(ParseTreeNode *root, std::vector<std::pair<std::string, std::stri
 
 		if(redefinition)
 		{
-			errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Redefinition of parameter \'" << root->children[1]->symbolInfo->GetName() << "\'" << std::endl;
-
 			++errorCount;
 			error = true;
 		}
@@ -951,8 +913,6 @@ std::string GetVariableDataType(ParseTreeNode *root)
 
 	if(variable == NULL)
 	{
-		errorStream << "Line# " << root->children[0]->symbolInfo->GetSymbolStart() << ": Undeclared variable \'" << root->children[0]->symbolInfo->GetName() << "\'" << std::endl;
-
 		++errorCount;
 
 		return "";
@@ -1034,8 +994,6 @@ std::string GetUnaryExpressionDataType(ParseTreeNode *root)
 
 		if(type == "VOID")
 		{
-			errorStream << "Line# " << root->children[0]->symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
-
 			++errorCount;
 
 			return "";
@@ -1064,8 +1022,6 @@ std::string GetTermDataType(ParseTreeNode *root)
 		}
 		else if(unaryExpession == "VOID" || term == "VOID")
 		{
-			errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
-
 			++errorCount;
 
 			return "";
@@ -1076,8 +1032,6 @@ std::string GetTermDataType(ParseTreeNode *root)
 			{
 				if(root->children[1]->symbolInfo->GetName() == "%")
 				{
-					errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Operands of modulus must be integers " << std::endl;
-
 					++errorCount;
 
 					SetTermValue(root->children[2]);
@@ -1088,8 +1042,6 @@ std::string GetTermDataType(ParseTreeNode *root)
 						{
 							if(root->children[2]->intValue == 0)
 							{
-								errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
-
 								++errorCount;
 							}
 						}
@@ -1097,8 +1049,6 @@ std::string GetTermDataType(ParseTreeNode *root)
 						{
 							if(root->children[2]->floatValue == 0.0)
 							{
-								errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
-
 								++errorCount;
 							}
 						}
@@ -1118,8 +1068,6 @@ std::string GetTermDataType(ParseTreeNode *root)
 							{
 								if(root->children[2]->intValue == 0)
 								{
-									errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
-
 									++errorCount;
 								}
 							}
@@ -1127,8 +1075,6 @@ std::string GetTermDataType(ParseTreeNode *root)
 							{
 								if(root->children[2]->floatValue == 0.0)
 								{
-									errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
-
 									++errorCount;
 								}
 							}
@@ -1150,8 +1096,6 @@ std::string GetTermDataType(ParseTreeNode *root)
 						{
 							if(root->children[2]->intValue == 0)
 							{
-								errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
-
 								++errorCount;
 							}
 						}
@@ -1159,8 +1103,6 @@ std::string GetTermDataType(ParseTreeNode *root)
 						{
 							if(root->children[2]->floatValue == 0.0)
 							{
-								errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Warning: division by zero" << std::endl;
-
 								++errorCount;
 							}
 						}
@@ -1190,8 +1132,6 @@ std::string GetSimpleExpressionDataType(ParseTreeNode *root)
 		}
 		else if(simpleExpression == "VOID" || term == "VOID")
 		{
-			errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
-
 			++errorCount;
 
 			return "";
@@ -1224,8 +1164,6 @@ std::string GetRelExpressionDataType(ParseTreeNode *root)
 		}
 		else if(simpleExpression1 == "VOID" || simpleExpression2 == "VOID")
 		{
-			errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
-
 			++errorCount;
 
 			return "";
@@ -1254,8 +1192,6 @@ std::string GetLogicExpressionDataType(ParseTreeNode *root)
 		}
 		else if(relExpression1 == "VOID" || relExpression2 == "VOID")
 		{
-			errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
-
 			++errorCount;
 
 			return "";
@@ -1280,16 +1216,12 @@ std::string GetExpressionDataType(ParseTreeNode *root)
 
 		if(rhsType == "VOID")
 		{
-			errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Void cannot be used in expression" << std::endl;
-
 			++errorCount;
 		}
 		else
 		{
 			if(lhsType == "INT" && rhsType == "FLOAT")
 			{
-				errorStream << "Line# " << root->children[1]->symbolInfo->GetSymbolStart() << ": Warning: possible loss of data in assignment of FLOAT to INT" << std::endl;
-
 				++errorCount;
 			}
 		}

@@ -65,7 +65,9 @@ start   :   program
 			*$$ = {"start", false, {$1}, NULL};
 
 			SetLine($$);
-			PrintParseTree($$, 0);
+			
+			icgStream << ".MODEL SMALL" << std::endl;
+			icgStream << ".STACK 1000H" << std::endl;
 		}
 	    ;
 
@@ -1197,7 +1199,7 @@ int main(int argc,char *argv[])
 
 	icgStream.open("1905039_i_code.asm");
 
-	st = new SymbolTable(11, &logStream);
+	st = new SymbolTable(11, NULL);
 	FILE *fp = fopen(argv[1], "r");
 
 	if(fp == NULL)
