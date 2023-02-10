@@ -59,15 +59,16 @@ bool ScopeTable::Insert(SymbolInfo *symbol)
     }
 
     symbol->SetNext(buckets[index]);
+    symbol->SetScopeID(id);
 
     buckets[index] = symbol;
     ++bucketSizes[index];
 
     if(symbol->GetIDType() == "VARIABLE")
     {
-        symbol->SetStackOffset(currentStackOffset);
-
         currentStackOffset += 2;
+
+        symbol->SetStackOffset(currentStackOffset);
     }
 
     return true;

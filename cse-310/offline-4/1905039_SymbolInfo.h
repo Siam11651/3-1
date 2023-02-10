@@ -13,6 +13,7 @@ private:
     std::vector<std::pair<std::string, std::string>> paramList;
     bool defined;
     size_t stackOffset;
+    size_t scopeId;
 public:
     SymbolInfo(const std::string &name, const std::string &type);
     void SetName(const std::string &name);
@@ -37,4 +38,6 @@ public:
     bool GetDefined() const;
     size_t GetStackOffset() const;
     void SetStackOffset(size_t offset);
+    void SetScopeID(size_t scopeId);
+    size_t GetScopeID() const;
 };

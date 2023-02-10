@@ -116,3 +116,13 @@ void SymbolInfo::SetStackOffset(size_t offset)
 {
     stackOffset = offset;
 }
+
+void SymbolInfo::SetScopeID(size_t scopeId)
+{
+    this->scopeId = scopeId;
+}
+
+size_t SymbolInfo::GetScopeID() const
+{
+    return scopeId;
+}
