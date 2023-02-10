@@ -2,6 +2,7 @@
 
 extern SymbolTable *st;
 extern size_t errorCount;
+extern std::ofstream icgStream;
 
 void PrintParseTree(ParseTreeNode *root, size_t depth)
 {
@@ -1240,5 +1241,150 @@ void SetArgumentTypeList(ParseTreeNode *root, std::vector<std::string> &argument
 	else
 	{
 		argumentTypeList.push_back(GetLogicExpressionDataType(root->children[0]));
+	}
+}
+
+void GenerateICG(ParseTreeNode *root)
+{
+	icgStream << ".MODEL SMALL" << std::endl;
+	icgStream << ".STACK 1000H" << std::endl;
+	icgStream << ".DATA" << std::endl;
+	icgStream << "\tCR EQU 0DH" << std::endl;
+	icgStream << "\tLF EQU 0AH" << std::endl;
+
+	std::vector<SymbolInfo *> globalVariables = st->GetCurrentScope()->GetVariables();
+
+	for(int i = 0; i < globalVariables.size(); ++i)
+	{
+		icgStream << "\t" << globalVariables[i]->GetName() << " " << "DW 1 DUP (0000H)" << std::endl;
+	}
+
+	icgStream << ".CODE" << std::endl;
+
+	std::vector<ParseTreeNode *> functionDefinitions = GetFunctionDefinitions(root->children[0]);
+
+	for(int i = 0; i < functionDefinitions.size(); ++i)
+	{
+		ParseTreeNode *functionDefinition = functionDefinitions[i];
+		std::string functionName = functionDefinition->children[1]->symbolInfo->GetName();
+
+		icgStream << functionName << " PROC" << std::endl;
+
+		if(functionName == "main")
+		{
+			icgStream << "\tMOV AX, @DATA" << std::endl;
+			icgStream << "\tMOV DS, AX" << std::endl;
+		}
+
+		icgStream << "\tPUSH BP" << std::endl;
+		icgStream << "\tMOV BP, SP" << std::endl;
+
+		st->EnterScope();
+
+		std::vector<ParseTreeNode *> paramVars;
+		ParseTreeNode *compoundStatementNode;
+
+		if(functionDefinition->children.size() == 6)
+		{
+			paramVars = GetParamVars(root->children[3]);
+			compoundStatementNode = functionDefinition->children[5];
+		}
+		else
+		{
+			compoundStatementNode = functionDefinition->children[4];
+		}
+
+		std::vector<ParseTreeNode *> statements;
+
+		if(compoundStatementNode->children.size() == 3)
+		{
+			ParseTreeNode *statementsNode = compoundStatementNode->children[1];
+
+			if(statementsNode->name == "statements")
+			{
+				statements = GetStatements(statementsNode);
+			}
+		}
+
+		icgStream << functionName << " ENDP" << std::endl;
+
+		st->ExitScope();
+	}
+
+	icgStream << "END main" << std::endl;
+}
+
+std::vector<ParseTreeNode *> GetStatements(ParseTreeNode *root)
+{
+	if(root->children.size() == 1)
+	{
+		ParseTreeNode *statement = root->children[0];
+		std::vector<ParseTreeNode *> toReturn = {statement};
+
+		return toReturn;
+	}
+	else
+	{
+		std::vector<ParseTreeNode *> toReturn = GetStatements(root->children[0]);
+		ParseTreeNode *statement = root->children[1];
+
+		toReturn.push_back(statement);
+
+		return toReturn;
+	}
+}
+
+std::vector<ParseTreeNode *> GetParamVars(ParseTreeNode *root)
+{
+	if(root->children.size() == 4)
+	{
+		std::vector<ParseTreeNode *> toReturn = GetParamVars(root->children[0]);
+		ParseTreeNode *idNode = root->children[3];
+
+		toReturn.push_back(idNode);
+
+		st->Insert(idNode->symbolInfo);
+
+		return toReturn;
+	}
+	else // size 2
+	{
+		ParseTreeNode *idNode = root->children[1];
+		std::vector<ParseTreeNode *> toReturn = {idNode};
+
+		st->Insert(idNode->symbolInfo);
+
+		return toReturn;
+	}
+}
+
+std::vector<ParseTreeNode *> GetFunctionDefinitions(ParseTreeNode *root)
+{
+	if(root->children.size() == 1)
+	{
+		ParseTreeNode *unit = root->children[0]->children[0];
+
+		if(unit->name == "func_definition")
+		{
+			std::vector<ParseTreeNode *> toReturn = {unit};
+
+			return toReturn;
+		}
+		else
+		{
+			return std::vector<ParseTreeNode *>();
+		}
+	}
+	else // size 2
+	{
+		std::vector<ParseTreeNode *> toReturn = GetFunctionDefinitions(root->children[0]);
+		ParseTreeNode *unit = root->children[1]->children[0];
+
+		if(unit->name == "func_definition")
+		{
+			toReturn.push_back(unit);
+		}
+
+		return toReturn;
 	}
 }

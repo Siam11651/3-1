@@ -29,3 +29,7 @@ std::string GetRelExpressionDataType(ParseTreeNode *root);
 std::string GetLogicExpressionDataType(ParseTreeNode *root);
 std::string GetExpressionDataType(ParseTreeNode *root);
 void SetArgumentTypeList(ParseTreeNode *root, std::vector<std::string> &argumentTypeList);
+void GenerateICG(ParseTreeNode *root);
+std::vector<ParseTreeNode *> GetFunctionDefinitions(ParseTreeNode *root);
+std::vector<ParseTreeNode *> GetParamVars(ParseTreeNode *root);
+std::vector<ParseTreeNode *> GetStatements(ParseTreeNode *root);

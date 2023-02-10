@@ -212,6 +212,28 @@ size_t ScopeTable::GetID()
     return id;
 }
 
+std::vector<SymbolInfo *> ScopeTable::GetVariables() const
+{
+    std::vector<SymbolInfo *> toReturn;
+
+    for(size_t i = 0; i < numberOfBuckets; ++i)
+    {
+        SymbolInfo *now = buckets[i];
+
+        while(now != NULL)
+        {
+            if(now->GetIDType() == "VARIABLE")
+            {
+                toReturn.push_back(now);
+            }
+
+            now = now->GetNext();
+        }
+    }
+
+    return toReturn;
+}
+
 ScopeTable::~ScopeTable()
 {
     delete[] buckets;
