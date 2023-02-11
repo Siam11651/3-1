@@ -1,5 +1,7 @@
+.vscode/
 sample_input/
 1905039.tab.c
 1905039.tab.h
 lex.yy.c
 main
+1905039_i_code.asm
