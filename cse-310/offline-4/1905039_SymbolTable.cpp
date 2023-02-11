@@ -127,6 +127,11 @@ void SymbolTable::FalseScope()
     --maxScopeCount;
 }
 
+ScopeTable *SymbolTable::GetCurrentScope() const
+{
+    return currentScope;
+}
+
 SymbolTable::~SymbolTable()
 {
     ScopeTable *next = currentScope;

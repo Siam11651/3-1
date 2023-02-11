@@ -15,7 +15,7 @@ private:
     void PrintScope(ScopeTable *scope, size_t &start);
 public:
     SymbolTable(size_t numberOfBuckets, std::ostream *output = NULL);
-    ScopeTable *GetCurrentScope();
+    ScopeTable *GetCurrentScope() const;
     void EnterScope();
     void ExitScope();
     bool Insert(SymbolInfo *symbol);

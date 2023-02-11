@@ -24,5 +24,6 @@ public:
     void Print(size_t &start, size_t scopeCount);
     ScopeTable *GetParent();
     size_t GetID();
+    std::vector<SymbolInfo *> GetVariables() const;
     ~ScopeTable();
 };

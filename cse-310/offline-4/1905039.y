@@ -65,9 +65,7 @@ start   :   program
 			*$$ = {"start", false, {$1}, NULL};
 
 			SetLine($$);
-			
-			icgStream << ".MODEL SMALL" << std::endl;
-			icgStream << ".STACK 1000H" << std::endl;
+			GenerateICG($$);
 		}
 	    ;
 

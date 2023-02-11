@@ -59,15 +59,16 @@ bool ScopeTable::Insert(SymbolInfo *symbol)
     }
 
     symbol->SetNext(buckets[index]);
+    symbol->SetScopeID(id);
 
     buckets[index] = symbol;
     ++bucketSizes[index];
 
     if(symbol->GetIDType() == "VARIABLE")
     {
-        symbol->SetStackOffset(currentStackOffset);
-
         currentStackOffset += 2;
+
+        symbol->SetStackOffset(currentStackOffset);
     }
 
     return true;
@@ -210,6 +211,28 @@ ScopeTable *ScopeTable::GetParent()
 size_t ScopeTable::GetID()
 {
     return id;
+}
+
+std::vector<SymbolInfo *> ScopeTable::GetVariables() const
+{
+    std::vector<SymbolInfo *> toReturn;
+
+    for(size_t i = 0; i < numberOfBuckets; ++i)
+    {
+        SymbolInfo *now = buckets[i];
+
+        while(now != NULL)
+        {
+            if(now->GetIDType() == "VARIABLE")
+            {
+                toReturn.push_back(now);
+            }
+
+            now = now->GetNext();
+        }
+    }
+
+    return toReturn;
 }
 
 ScopeTable::~ScopeTable()
