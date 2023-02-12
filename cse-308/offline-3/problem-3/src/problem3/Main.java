@@ -8,18 +8,19 @@ public class Main
     {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Set project name:");
+        System.out.println("Set company name:");
 
         String name = scanner.nextLine();
         SoftwareCompany softwareCompany = new SoftwareCompany(name);
 
         while(true)
         {
-            System.out.println("Add project? [y/n]");
+            System.out.println("[1] Add project");
+            System.out.println("[2] Remove project");
 
             name = scanner.nextLine();
 
-            if(name.equalsIgnoreCase("y"))
+            if(name.equalsIgnoreCase("1"))
             {
                 System.out.println("Set project name:");
 
@@ -35,11 +36,12 @@ public class Main
 
                 while(true)
                 {
-                    System.out.println("Add developer? [y/n]");
+                    System.out.println("[1] Add Developer");
+                    System.out.println("[2] Remove Developer");
 
                     name = scanner.nextLine();
 
-                    if(name.equalsIgnoreCase("y"))
+                    if(name.equalsIgnoreCase("1"))
                     {
                         System.out.println("Set developer name:");
 
@@ -49,17 +51,35 @@ public class Main
 
                         projectManager.AddChild(developer);
                     }
+                    else if(name.equalsIgnoreCase("2"))
+                    {
+                        System.out.println("Set developer index:");
+
+                        int index = scanner.nextInt();
+
+                        projectManager.RemoveChild(index);
+                    }
                     else
                     {
                         break;
                     }
                 }
             }
+            else if(name.equals("2"))
+            {
+                System.out.println("Set project index:");
+                
+                int index = scanner.nextInt();
+
+                softwareCompany.RemoveChild(index);
+            }
             else
             {
                 break;
             }
         }
+
+        softwareCompany.PrintHeirarchy();
 
         scanner.close();
     }
