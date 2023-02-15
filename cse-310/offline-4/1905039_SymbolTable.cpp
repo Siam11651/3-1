@@ -144,3 +144,13 @@ SymbolTable::~SymbolTable()
         delete toDelete;
     }
 }
+
+void SymbolInfo::SetParam(bool isParam)
+{
+    this->isParam = isParam;
+}
+
+bool SymbolInfo::IsParam() const
+{
+    return isParam;
+}

@@ -14,6 +14,7 @@ private:
     bool defined;
     size_t stackOffset;
     size_t scopeId;
+    bool isParam;
 public:
     SymbolInfo(const std::string &name, const std::string &type);
     void SetName(const std::string &name);
@@ -40,4 +41,6 @@ public:
     void SetStackOffset(size_t offset);
     void SetScopeID(size_t scopeId);
     size_t GetScopeID() const;
+    void SetParam(bool isParam);
+    bool IsParam() const;
 };

@@ -14,6 +14,7 @@ private:
     size_t *bucketSizes;
     std::ostream *output;
     size_t currentStackOffset;
+    size_t currentParamStackOffset;
 
     size_t Hash(const std::string &symbolName);
 public:

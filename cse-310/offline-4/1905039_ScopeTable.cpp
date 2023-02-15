@@ -19,6 +19,7 @@ ScopeTable::ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent, st
 
     this->output = output;
     currentStackOffset = 0;
+    currentParamStackOffset = 2;
 }
 
 size_t ScopeTable::Hash(const std::string &symbolName)
@@ -66,9 +67,18 @@ bool ScopeTable::Insert(SymbolInfo *symbol)
 
     if(symbol->GetIDType() == "VARIABLE")
     {
-        currentStackOffset += 2;
+        if(symbol->IsParam())
+        {
+            currentParamStackOffset += 2;
 
-        symbol->SetStackOffset(currentStackOffset);
+            symbol->SetStackOffset(currentParamStackOffset);
+        }
+        else
+        {
+            currentStackOffset += 2;
+
+            symbol->SetStackOffset(currentStackOffset);
+        }
     }
 
     return true;
