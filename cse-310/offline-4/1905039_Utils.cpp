@@ -1772,21 +1772,21 @@ void ExecuteSimpleExpression(ParseTreeNode *root, size_t &statementId)
 	}
 	else // size 3
 	{
-		ExecuteTerm(root->children[2], statementId);
+		ExecuteSimpleExpression(root->children[0], statementId);		
 
 		icgStream << "\tMOV DX, AX" << std::endl;
 
-		ExecuteSimpleExpression(root->children[0], statementId);	
+		ExecuteTerm(root->children[2], statementId);
 
 		std::string opName = root->children[1]->symbolInfo->GetName();
 
 		if(opName == "+")
 		{
-			icgStream << "\tADD AX, DX" << std::endl;
+			icgStream << "\tADD DX, AX" << std::endl;
 		}
 		else
 		{
-			icgStream << "\tSUB AX, DX" << std::endl;
+			icgStream << "\tSUB DX, AX" << std::endl;
 		}
 
 		icgStream << "\tPUSH AX" << std::endl;
