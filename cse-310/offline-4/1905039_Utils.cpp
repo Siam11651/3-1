@@ -1326,6 +1326,9 @@ void GenerateICG(ParseTreeNode *root)
 		st->ExitScope();
 	}
 
+	PrintNewLine();
+	PrintOutput();
+
 	icgStream << "END main" << std::endl;
 }
 
@@ -1592,43 +1595,51 @@ void ExecuteLogicExpression(ParseTreeNode *root, size_t &statementId)
 
 		if(opName == "||")
 		{
-			icgStream << "\tJNE L" << statementId + 2 << std::endl;
-			icgStream << "\tJMP L" << statementId + 1 << std::endl;
+			size_t trueLabel = statementId + 1;
+			size_t falseLabel = statementId + 2;
+			statementId += 2;
+
+			icgStream << "\tJNE L" << trueLabel << std::endl;
+			icgStream << "\tJMP L" << falseLabel << std::endl;
 			icgStream << "L" << statementId + 1 << ":" << std::endl;
 
 			ExecuteRelExpression(root->children[2], statementId);
 
 			icgStream << "\tCMP AX, 0" << std::endl;
-			icgStream << "\tJNE L" << statementId + 2 << std::endl;
-			icgStream << "\tJMP L" << statementId + 4 << std::endl;
-			icgStream << "L" << statementId + 2 << ":" << std::endl;
+			icgStream << "\tJNE L" << trueLabel << std::endl;
+			icgStream << "\tJMP L" << falseLabel << std::endl;
+			icgStream << "L" << trueLabel << ":" << std::endl;
 			icgStream << "\tMOV AX, 1" << std::endl;
-			icgStream << "\tJMP L" << statementId + 3 << std::endl;
-			icgStream << "L" << statementId + 4 << ":" << std::endl;
+			icgStream << "\tJMP L" << statementId + 2 << std::endl;
+			icgStream << "L" << falseLabel << ":" << std::endl;
 			icgStream << "\tMOV AX, 0" << std::endl;
-			icgStream << "L" << statementId + 3 << ":" << std::endl;
 
-			statementId += 4;
+			statementId += 2;
+
+			icgStream << "L" << statementId << ":" << std::endl;
 		}
 		else if(opName == "&&")
 		{
-			icgStream << "\tJNE L" << statementId + 1 << std::endl;
-			icgStream << "\tJMP L" << statementId + 4 << std::endl;
+			size_t trueLabel = statementId + 1;
+			size_t falseLabel = statementId + 2;
+			statementId += 2;
+
+			icgStream << "\tJE L" << falseLabel << std::endl;
 			icgStream << "L" << statementId + 1 << ":" << std::endl;
 
 			ExecuteRelExpression(root->children[2], statementId);
 
 			icgStream << "\tCMP AX, 0" << std::endl;
-			icgStream << "\tJNE L" << statementId + 2 << std::endl;
-			icgStream << "\tJMP L" << statementId +  4 << std::endl;
-			icgStream << "L" << statementId + 2 << ":" << std::endl;
+			icgStream << "\tJE L" << falseLabel << std::endl;
+			icgStream << "L" << trueLabel << ":" << std::endl;
 			icgStream << "\tMOV AX, 1" << std::endl;
-			icgStream << "\tJMP L" << statementId + 3 << std::endl;
-			icgStream << "L" << statementId + 4 << ":" << std::endl;
+			icgStream << "\tJMP L" << statementId + 2 << std::endl;
+			icgStream << "L" << falseLabel << ":" << std::endl;
 			icgStream << "\tMOV AX, 0" << std::endl;
-			icgStream << "L" << statementId + 3 << ":" << std::endl;
 
-			statementId += 4;
+			statementId += 2;
+
+			icgStream << "L" << statementId << ":" << std::endl;
 		}	
 	}
 }
@@ -1661,7 +1672,7 @@ void ExecuteRelExpression(ParseTreeNode *root, size_t &statementId)
 
 		icgStream << "\tCMP AX, DX" << std::endl;
 
-		std::string opName = root->children[1]->name;
+		std::string opName = root->children[1]->symbolInfo->GetName();
 
 		if(opName == "<")
 		{
@@ -1688,13 +1699,13 @@ void ExecuteRelExpression(ParseTreeNode *root, size_t &statementId)
 			icgStream << "\tJNE L" << statementId + 1 << std::endl;
 		}
 
-		icgStream << "\tJMP L" << statementId + 3 << std::endl;
+		icgStream << "\tJMP L" << statementId + 2 << std::endl;
 		icgStream << "L" << statementId + 1 << ":" << std::endl;
 		icgStream << "\tMOV AX, 1" << std::endl;
-		icgStream << "\tJMP L" << statementId + 2 << std::endl;
-		icgStream << "L" << statementId + 3 << ":" << std::endl;
-		icgStream << "\tMOV AX, 0" << std::endl;
+		icgStream << "\tJMP L" << statementId + 3 << std::endl;
 		icgStream << "L" << statementId + 2 << ":" << std::endl;
+		icgStream << "\tMOV AX, 0" << std::endl;
+		icgStream << "L" << statementId + 3 << ":" << std::endl;
 
 		statementId += 3;
 	}
@@ -1775,8 +1786,11 @@ void ExecuteSimpleExpression(ParseTreeNode *root, size_t &statementId)
 		ExecuteSimpleExpression(root->children[0], statementId);		
 
 		icgStream << "\tMOV DX, AX" << std::endl;
+		icgStream << "\tPUSH DX" << std::endl;
 
 		ExecuteTerm(root->children[2], statementId);
+
+		icgStream << "\tPOP DX" << std::endl;
 
 		std::string opName = root->children[1]->symbolInfo->GetName();
 
@@ -1789,7 +1803,7 @@ void ExecuteSimpleExpression(ParseTreeNode *root, size_t &statementId)
 			icgStream << "\tSUB DX, AX" << std::endl;
 		}
 
-		icgStream << "\tPUSH AX" << std::endl;
+		icgStream << "\tPUSH DX" << std::endl;
 		icgStream << "\tPOP AX" << std::endl;
 	}
 }
@@ -1933,6 +1947,10 @@ void ExecuteFactor(ParseTreeNode *root, size_t &statementId)
 			icgStream << "\tCALL " << root->children[0]->symbolInfo->GetName() << std::endl;
 			icgStream << "\tPUSH AX" << std::endl;
 			icgStream << "\tPOP AX" << std::endl;	
+		}
+		else
+		{
+			ExecuteExpression(root->children[1], statementId);
 		}
 	}
 	else if(root->children.size() == 4)
@@ -2199,4 +2217,63 @@ std::vector<ParseTreeNode *> GetParams(ParseTreeNode *root)
 
 		return toReturn;
 	}
+}
+
+void PrintNewLine()
+{
+	icgStream << "new_line proc" << std::endl;
+	icgStream << "\tpush ax" << std::endl;
+	icgStream << "\tpush dx" << std::endl;
+	icgStream << "\tmov ah,2" << std::endl;
+	icgStream << "\tmov dl,cr" << std::endl;
+	icgStream << "\tint 21h" << std::endl;
+	icgStream << "\tmov ah,2" << std::endl;
+	icgStream << "\tmov dl,lf" << std::endl;
+	icgStream << "\tint 21h" << std::endl;
+	icgStream << "\tpop dx" << std::endl;
+	icgStream << "\tpop ax" << std::endl;
+	icgStream << "\tret" << std::endl;
+	icgStream << "new_line endp" << std::endl;
+}
+
+void PrintOutput()
+{
+	icgStream << "print_output proc" << std::endl;
+	icgStream << "\tpush ax" << std::endl;
+	icgStream << "\tpush bx" << std::endl;
+	icgStream << "\tpush cx" << std::endl;
+	icgStream << "\tpush dx" << std::endl;
+	icgStream << "\tpush si" << std::endl;
+	icgStream << "\tlea si,number" << std::endl;
+	icgStream << "\tmov bx,10" << std::endl;
+	icgStream << "\tadd si,4" << std::endl;
+	icgStream << "\tcmp ax,0" << std::endl;
+	icgStream << "\tjnge negate" << std::endl;
+	icgStream << "\tprint:" << std::endl;
+	icgStream << "\txor dx,dx" << std::endl;
+	icgStream << "\tdiv bx" << std::endl;
+	icgStream << "\tmov [si],dl" << std::endl;
+	icgStream << "\tadd [si],'0'" << std::endl;
+	icgStream << "\tdec si" << std::endl;
+	icgStream << "\tcmp ax,0" << std::endl;
+	icgStream << "\tjne print" << std::endl;
+	icgStream << "\tinc si" << std::endl;
+	icgStream << "\tlea dx,si" << std::endl;
+	icgStream << "\tmov ah,9" << std::endl;
+	icgStream << "\tint 21h" << std::endl;
+	icgStream << "\tpop si" << std::endl;
+	icgStream << "\tpop dx" << std::endl;
+	icgStream << "\tpop cx" << std::endl;
+	icgStream << "\tpop bx" << std::endl;
+	icgStream << "\tpop ax" << std::endl;
+	icgStream << "\tret" << std::endl;
+	icgStream << "\tnegate:" << std::endl;
+	icgStream << "\tpush ax" << std::endl;
+	icgStream << "\tmov ah,2" << std::endl;
+	icgStream << "\tmov dl,'-'" << std::endl;
+	icgStream << "\tint 21h" << std::endl;
+	icgStream << "\tpop ax" << std::endl;
+	icgStream << "\tneg ax" << std::endl;
+	icgStream << "\tjmp print" << std::endl;
+	icgStream << "print_output endp" << std::endl;
 }

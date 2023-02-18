@@ -53,3 +53,5 @@ size_t CountStatementInStatement(ParseTreeNode *root);
 size_t CountStatementInCompundStatement(ParseTreeNode *root);
 std::vector<ParseTreeNode *> GetArguments(ParseTreeNode *root);
 std::vector<ParseTreeNode *> GetParams(ParseTreeNode *root);
+void PrintNewLine();
+void PrintOutput();
