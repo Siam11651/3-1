@@ -1419,85 +1419,96 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 		{
 			if(root->children.size() == 5) // if
 			{
+				size_t falseStatementId;
+				falseStatementId = ++statementId;
+
 				size_t variableCount = 0;
 
 				st->EnterScope();
-				ExecuteExpressionBranch(root->children[2], statementId, 'i');
+				ExecuteExpression(root->children[2], statementId);
+				
+				icgStream << "\tCMP AX, 0" << std::endl;
+				icgStream << "\tJE L" << falseStatementId << std::endl;
+
+				++statementId;
+
 				ExecuteStatement(root->children[4], statementId, variableCount);
 				st->ExitScope();
 
-				// ++statementId;
+				icgStream << "L" << falseStatementId << ":" << std::endl;
 			}
 			else // if-else
 			{
+				size_t falseStatementId, doneStatementId;
+				falseStatementId = ++statementId;
+				doneStatementId = ++statementId;
+
 				size_t variableCount = 0;
 
 				st->EnterScope();
-				ExecuteExpressionBranch(root->children[2], statementId, 'i');
+				ExecuteExpression(root->children[2], statementId);
+
+				icgStream << "\tCMP AX, 0" << std::endl;
+				icgStream << "\tJE L" << falseStatementId << std::endl;
+
+				++statementId;
+
 				ExecuteStatement(root->children[4], statementId, variableCount);
 
-				size_t statementCount = CountStatementInStatement(root->children[6]);
+				icgStream << "\tJMP L" << doneStatementId << std::endl;
+				icgStream << "L" << falseStatementId << ":" << std::endl;
 
-				icgStream << "\tJMP L" << statementId + statementCount << std::endl;
-
-				st->ExitScope();
-
-				// ++statementId;
 				variableCount = 0;
 
-				st->EnterScope();
 				ExecuteStatement(root->children[6], statementId, variableCount);
 				st->ExitScope();
+
+				icgStream << "L" << doneStatementId << ":" << std::endl;
 			}
 		}
 		else if(statement->name == "FOR")
 		{
 			ExecuteExpressionStatement(root->children[2], statementId);
-			ExecuteExpressionStatementBranch(root->children[3], statementId, 'f');
 
-			size_t count = CountStatementInStatement(root->children[6]);
+			size_t checkStatementId, doneStatementId;
+			checkStatementId = ++statementId;
+			doneStatementId = ++statementId;
 
-			icgStream << "\tJMP L" << statementId + count + 1 << std::endl;
-			icgStream << "\tPOP AX" << std::endl;
+			icgStream << "L" << checkStatementId << ":" << std::endl;
 
-			size_t jumpStatementId = statementId;
+			ExecuteExpressionStatement(root->children[3], statementId);
 
-			icgStream << "L" << statementId << ":" << std::endl;
-
-			ExecuteExpression(root->children[4], statementId);
-
-			icgStream << "\tJMP L" << statementId - 1 << std::endl;
-
-			++statementId;
+			icgStream << "\tCMP AX, 0" << std::endl;
+			icgStream << "\tJE L" << doneStatementId << std::endl;
 
 			size_t variableCount = 0;
 
 			ExecuteStatement(root->children[6], statementId, variableCount);
+			ExecuteExpression(root->children[4], statementId);
 
-			icgStream << "\tJMP L" << jumpStatementId << std::endl;
+			icgStream << "\tJMP L" << checkStatementId << std::endl;
+			icgStream << "L" << doneStatementId << ":" << std::endl;
 		}
 		else if(statement->name == "WHILE")
 		{
-			++statementId;
+			size_t checkStatementId, doneStatementId;
+			checkStatementId = ++statementId;
+			doneStatementId = ++statementId;
 
-			icgStream << "L" << statementId << ":" << std::endl;
+			icgStream << "L" << checkStatementId << ":" << std::endl;
 
-			++statement;
+			ExecuteExpression(root->children[2], statementId);
 
-			size_t currentStatement = statementId;
-
-			ExecuteExpressionBranch(root->children[2], statementId, 'w');
-
-			size_t count = CountStatementInStatement(root->children[4]);
-
-			icgStream << "\tJMP L" << statementId + count + 1 << std::endl;
+			icgStream << "\tCMP AX, 0" << std::endl;
+			icgStream << "\tJE L" << doneStatementId << std::endl;
 
 			++statementId;
 			size_t variableCount = 0;
 
 			ExecuteStatement(root->children[4], statementId, variableCount);
 
-			icgStream << "\tJMP L" << currentStatement << std::endl;
+			icgStream << "\tJMP L" << checkStatementId << std::endl;
+			icgStream << "L" << doneStatementId << ":" << std::endl;
 		}
 	}
 
