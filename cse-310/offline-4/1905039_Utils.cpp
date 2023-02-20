@@ -94,6 +94,8 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 		if(dataType == "VOID")
 		{			
 			++errorCount;
+
+			std::cerr << "Line " << root->startLine << ": Variable cannot be void" << std::endl;
 		}
 		else
 		{
@@ -107,21 +109,9 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 			}
 			else
 			{
-				if(thisScopeSymbol->GetIDType() == "VARIABLE")
-				{
-					if(thisScopeSymbol->GetDataType() == dataType)
-					{
-						++errorCount;
-					}
-					else
-					{
-						++errorCount;
-					}
-				}
-				else
-				{
-					++errorCount;
-				}
+				++errorCount;
+
+				std::cerr << "Line " << root->startLine << ": Another identifier of same name" << std::endl;
 			}
 		}
 	}
@@ -130,6 +120,8 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 		if(dataType == "VOID")
 		{			
 			++errorCount;
+
+			std::cerr << "Line " << root->startLine << ": Variable cannot be void" << std::endl;
 		}
 		else
 		{
@@ -143,21 +135,9 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 			}
 			else
 			{
-				if(thisScopeSymbol->GetIDType() == "VARIABLE")
-				{
-					if(thisScopeSymbol->GetDataType() == dataType)
-					{
-						++errorCount;
-					}
-					else
-					{
-						++errorCount;
-					}
-				}
-				else
-				{
-					++errorCount;
-				}
+				++errorCount;
+
+				std::cerr << "Line " << root->startLine << ": Another identifier of same name" << std::endl;
 			}
 		}
 	}
@@ -168,6 +148,8 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 		if(dataType == "VOID")
 		{			
 			++errorCount;
+
+			std::cerr << "Line " << root->startLine << ": Variable cannot be void" << std::endl;
 		}
 		else
 		{
@@ -180,21 +162,9 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 			}
 			else
 			{
-				if(thisScopeSymbol->GetIDType() == "VARIABLE")
-				{
-					if(thisScopeSymbol->GetDataType() == dataType)
-					{
-						++errorCount;
-					}
-					else
-					{
-						++errorCount;
-					}
-				}
-				else
-				{
-					++errorCount;
-				}
+				++errorCount;
+
+				std::cerr << "Line " << root->startLine << ": Another identifier of same name" << std::endl;
 			}
 		}
 	}
@@ -203,6 +173,8 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 		if(dataType == "VOID")
 		{			
 			++errorCount;
+
+			std::cerr << "Line " << root->startLine << ": Variable cannot be void" << std::endl;
 		}
 		else
 		{
@@ -215,21 +187,9 @@ void InsertID(ParseTreeNode *root, const std::string dataType, SymbolTable *symb
 			}
 			else
 			{
-				if(thisScopeSymbol->GetIDType() == "VARIABLE")
-				{
-					if(thisScopeSymbol->GetDataType() == dataType)
-					{
-						++errorCount;
-					}
-					else
-					{
-						++errorCount;
-					}
-				}
-				else
-				{
-					++errorCount;
-				}
+				++errorCount;
+
+				std::cout << "Line " << root->startLine << ": Another identifier of same name" << std::endl;
 			}
 		}
 	}
@@ -270,6 +230,8 @@ void SetParams(ParseTreeNode *root, std::vector<std::pair<std::string, std::stri
 		{
 			++errorCount;
 			error = true;
+
+			std::cout << "Line " << root->startLine << ": Redefinition of parameter" << std::endl;
 		}
 		else
 		{
@@ -307,6 +269,8 @@ void SetParams(ParseTreeNode *root, std::vector<std::pair<std::string, std::stri
 		{
 			++errorCount;
 			error = true;
+
+			std::cout << "Line " << root->startLine << ": Redefinition of parameter" << std::endl;
 		}
 		else
 		{
@@ -1001,6 +965,8 @@ std::string GetUnaryExpressionDataType(ParseTreeNode *root)
 		{
 			++errorCount;
 
+			std::cerr << "Line " << root->startLine << ": Expression cannot have void variable" << std::endl;
+
 			return "";
 		}
 		else
@@ -1029,6 +995,8 @@ std::string GetTermDataType(ParseTreeNode *root)
 		{
 			++errorCount;
 
+			std::cerr << "Line " << root->startLine << ": Expression cannot have void variable" << std::endl;
+
 			return "";
 		}
 		else
@@ -1038,6 +1006,8 @@ std::string GetTermDataType(ParseTreeNode *root)
 				if(root->children[1]->symbolInfo->GetName() == "%")
 				{
 					++errorCount;
+
+					std::cerr << "Line " << root->startLine << ": Cannot \% on float" << std::endl;
 
 					SetTermValue(root->children[2]);
 
@@ -1074,6 +1044,8 @@ std::string GetTermDataType(ParseTreeNode *root)
 								if(root->children[2]->intValue == 0)
 								{
 									++errorCount;
+
+									std::cout << "Line " << root->startLine << ": Cannot divide by zero" << std::endl;
 								}
 							}
 							else
@@ -1081,6 +1053,8 @@ std::string GetTermDataType(ParseTreeNode *root)
 								if(root->children[2]->floatValue == 0.0)
 								{
 									++errorCount;
+
+									std::cout << "Line " << root->startLine << ": Cannot divide by zero" << std::endl;
 								}
 							}
 						}
@@ -1102,6 +1076,8 @@ std::string GetTermDataType(ParseTreeNode *root)
 							if(root->children[2]->intValue == 0)
 							{
 								++errorCount;
+
+								std::cout << "Line " << root->startLine << ": Cannot divide by zero" << std::endl;
 							}
 						}
 						else
@@ -1109,6 +1085,8 @@ std::string GetTermDataType(ParseTreeNode *root)
 							if(root->children[2]->floatValue == 0.0)
 							{
 								++errorCount;
+
+								std::cout << "Line " << root->startLine << ": Cannot divide by zero" << std::endl;
 							}
 						}
 					}
@@ -1138,6 +1116,8 @@ std::string GetSimpleExpressionDataType(ParseTreeNode *root)
 		else if(simpleExpression == "VOID" || term == "VOID")
 		{
 			++errorCount;
+
+			std::cerr << "Line " << root->startLine << ": Expression cannot have void variable" << std::endl;
 
 			return "";
 		}
@@ -1171,6 +1151,8 @@ std::string GetRelExpressionDataType(ParseTreeNode *root)
 		{
 			++errorCount;
 
+			std::cerr << "Line " << root->startLine << ": Expression cannot have void variable" << std::endl;
+
 			return "";
 		}
 		else
@@ -1199,6 +1181,8 @@ std::string GetLogicExpressionDataType(ParseTreeNode *root)
 		{
 			++errorCount;
 
+			std::cerr << "Line " << root->startLine << ": Expression cannot have void variable" << std::endl;
+
 			return "";
 		}
 		else
@@ -1222,12 +1206,16 @@ std::string GetExpressionDataType(ParseTreeNode *root)
 		if(rhsType == "VOID")
 		{
 			++errorCount;
+
+			std::cerr << "Line " << root->startLine << ": Expression cannot have void variable" << std::endl;
 		}
 		else
 		{
 			if(lhsType == "INT" && rhsType == "FLOAT")
 			{
 				++errorCount;
+
+				std::cerr << "Line " << root->startLine << ": Left hand side data type do not match right hand side" << std::endl;
 			}
 		}
 

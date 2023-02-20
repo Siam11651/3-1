@@ -142,11 +142,15 @@ func_declaration    :	type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 						{
 							if(present->GetIDType() == "FUNCTION")
 							{
-								++errorCount;	
+								++errorCount;
+
+								std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Function already declared" << std::endl;
 							}
 							else
 							{
 								++errorCount;
+
+								std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Another identifier of same name" << std::endl;
 							}
 						}
 
@@ -163,6 +167,8 @@ func_declaration    :	type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 					{
 						++errorCount;
 
+						std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Invalid parameters" << std::endl;
+
 						if($1->children[0]->name == "VOID")
 						{
 							inVoidFunction = true;
@@ -177,17 +183,23 @@ func_declaration    :	type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 
 						if(present == NULL)
 						{
-							
+							++errorCount;
+
+							std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Function already declared" << std::endl;
 						}
 						else
 						{
 							if(present->GetIDType() == "FUNCTION")
 							{
-								++errorCount;	
+								++errorCount;
+
+								std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Function already declared" << std::endl;	
 							}
 							else
 							{
 								++errorCount;
+
+								std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Another identifier of same name" << std::endl;
 							}
 						}
 
@@ -231,10 +243,14 @@ func_declaration    :	type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 							if(present->GetIDType() == "FUNCTION")
 							{
 								++errorCount;
+
+								std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Function already declared" << std::endl;
 							}
 							else
 							{
 								++errorCount;
+
+								std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Another identifier of same name" << std::endl;
 							}
 						}
 
@@ -287,6 +303,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 							if(present->GetDefined())
 							{
 								++errorCount;
+
+								std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Function already defined" << std::endl;
 							}
 							else
 							{
@@ -320,12 +338,16 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 										else
 										{
 											++errorCount;
+
+											std::cerr << "Line " << ": Definition parameter does not match with declaration" << std::endl;
 										}
 									}
 									else
 									{
 										++errorCount;
 										ok = false;
+
+										std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Definition parameter does not match with declaration" << std::endl;
 									}
 
 									if(ok)
@@ -336,12 +358,16 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 								else
 								{
 									++errorCount;
+
+									std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Definition return type does not match declarration" << std::endl;
 								}
 							}
 						}
 						else
 						{
 							++errorCount;
+
+							std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Another identifier of same name" << std::endl;
 						}
 					}
 				}
@@ -355,6 +381,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					if(!inVoidFunction && !functionReturns)
 					{
 						++errorCount;
+
+						std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Non void function not returning anything" << std::endl;
 					}
 
 					functionReturns = false;
@@ -364,6 +392,10 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 				}
 				|	type_specifier ID LPAREN error RPAREN
 				{
+					++errorCount;
+
+					std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Invalid parameters" << std::endl;
+
 					if($1->children[0]->name == "VOID")
 					{
 						inVoidFunction = true;
@@ -396,6 +428,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 							if(present->GetDefined())
 							{
 								++errorCount;
+
+								std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Redefinition of function" << std::endl;
 							}
 							else
 							{
@@ -406,19 +440,21 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 								else
 								{
 									++errorCount;
+
+									std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Definition return type does not match declarration" << std::endl;
 								}
 							}
 						}
 						else
 						{
 							++errorCount;
+
+							std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Another identifier of same name" << std::endl;
 						}
 					}
 				}
 				compound_statement
 				{
-					++errorCount;
-
 					SymbolInfo *errorInfo = new SymbolInfo("error", "parameter_list");
 					errorInfo->SetSymbolStart($3->startLine);
 
@@ -433,6 +469,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					if(!inVoidFunction && !functionReturns)
 					{
 						++errorCount;
+
+						std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Non void function not returning anything" << std::endl;						
 					}
 
 					functionReturns = false;
@@ -474,6 +512,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 							if(present->GetDefined())
 							{
 								++errorCount;
+
+								std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Redefinition of function" << std::endl;
 							}
 							else
 							{
@@ -484,6 +524,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 									if(presentParamList.size() > 0)
 									{
 										++errorCount;
+
+										std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Missing parameters" << std::endl;
 									}
 									else
 									{
@@ -493,12 +535,16 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 								else
 								{
 									++errorCount;
+
+									std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Non void function not returning anything" << std::endl;
 								}
 							}
 						}
 						else
 						{
 							++errorCount;
+
+							std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Another identifier of same name" << std::endl;
 						}
 					}
 				}
@@ -514,6 +560,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					if(!inVoidFunction && !functionReturns)
 					{
 						++errorCount;
+
+						std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Non void function not returning anything" << std::endl;
 					}
 
 					functionReturns = false;
@@ -597,6 +645,8 @@ compound_statement	:	lcurl statements RCURL
 						*$$ = {"compound_statement", false, {$1, $2, $3}};
 						++errorCount;
 
+						std::cerr << "Line " << $3->symbolInfo->GetSymbolStart() << ": Invalid compund statement" << std::endl;
+
 						SetLine($$);
 						st->PrintAllScope();
 						st->ExitScope();
@@ -636,6 +686,8 @@ var_declaration :   type_specifier declaration_list SEMICOLON
 					*$$ = {"var_declaration", false, {$1, $2, $3}, NULL};
 
 					++errorCount;
+
+					std::cerr << "Line " << $3->symbolInfo->GetSymbolStart() << ": Invalid variable declaration" << std::endl;
 
 					SetLine($$);
 				}
@@ -888,6 +940,8 @@ expression_statement    :   SEMICOLON
 							*$$ = {"expression_statement", false, {$1, $2}, NULL};
 							++errorCount;
 
+							std::cerr << "Line " << $2->symbolInfo->GetSymbolStart() << ": Invalid expression statement" << std::endl;
+
 							SetLine($$);
 						}
 			            ;
@@ -907,13 +961,17 @@ variable    :   ID
 
 				if(variablePtr == NULL)
 				{
-					// undeclared variable
+					++errorCount;
+
+					std::cerr << "Line " << $1->symbolInfo->GetSymbolStart() << ": Undeclared variable" << std::endl;
 				}
 				else
 				{
 					if(variablePtr->GetIDType() == "FUNCTION")
 					{
-						// undeclared variable
+						++errorCount;
+
+						std::cerr << "Line " << $1->symbolInfo->GetSymbolStart() << ": Undeclared variable" << std::endl;
 					}
 					else
 					{
@@ -926,11 +984,15 @@ variable    :   ID
 							else
 							{
 								++errorCount;
+
+								std::cerr << "Line " << $1->symbolInfo->GetSymbolStart() << ": Array index not integer" << std::endl;
 							}
 						}
 						else
 						{
 							++errorCount;
+
+							std::cerr << "Line " << $1->symbolInfo->GetSymbolStart() << ": Not an array" << std::endl;
 						}
 					}
 				}
@@ -1080,10 +1142,14 @@ factor  :   variable
 				if(argumentTypeList.size() > paramList.size())
 				{
 					++errorCount;
+
+					std::cerr << "Line " << $1->symbolInfo->GetSymbolStart() << ": Too many arguments" << std::endl;
 				}
 				else if(argumentTypeList.size() < paramList.size())
 				{
 					++errorCount;
+
+					std::cerr << "Line " << $1->symbolInfo->GetSymbolStart() << ": Too few arguments" << std::endl;
 				}
 				else
 				{
@@ -1092,6 +1158,8 @@ factor  :   variable
 						if(argumentTypeList[i] != "" && paramList[i].first != argumentTypeList[i])
 						{
 							++errorCount;
+
+							std::cerr << "Line " << $1->symbolInfo->GetSymbolStart() << ": Unmatched arguments" << std::endl;
 						}
 					}
 				}
@@ -1165,6 +1233,8 @@ argument_list   :   arguments
 					*$$ = {"argument_list", false, {$1, $2}, NULL};
 
 					++errorCount;
+
+					std::cerr << "Line " << $1->startLine << ": Invalid arguments" << std::endl;
 
 					SetLine($$);
 				}

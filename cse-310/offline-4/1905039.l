@@ -982,14 +982,20 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 
 {TOO_MANY_DECIMAL_POINTS}   {
                                 ++errorCount;
+
+                                std::cerr << "Line " << lineCount << ": Too many decimal points" << std::endl;
                             }
 
 {ILLFORMED_NUMBER}  {
                         ++errorCount;
+
+                        std::cerr << "Line " << lineCount << ": Illformed number" << std::endl;
                     }
 
 {INVALID_ID_SUFFIX_NUM_PREFIX}  {
                                     ++errorCount;
+
+                                    std::cerr << "Line " << lineCount << ": Invalid identifier suffix" << std::endl;
                                 }
 
 {UNFINISHED_CONST_CHAR} {
@@ -1039,6 +1045,8 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 
 .   {
         ++errorCount;
+
+        std::cerr << "Line " << lineCount << ": Invalid character" << std::endl;
     }
 
 %%
