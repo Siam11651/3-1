@@ -140,13 +140,13 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
 
 "if"	{
             newScope = true;
-
-            st->EnterScope();
-
             SymbolInfo *symbolInfo = new SymbolInfo(yytext, "IF");
 
+            symbolInfo->SetScopeID(st->GetCurrentScope()->GetID());
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
+
+            st->EnterScope();
 
             ParseTreeNode *parseTreeNode = new ParseTreeNode();
 

@@ -741,6 +741,8 @@ statement	:   var_declaration
 			}
 			|   FOR 
 			{
+				$1->symbolInfo->SetScopeID(st->GetCurrentScope()->GetID());
+
 				newScope = true;
 
 				st->EnterScope();
@@ -752,18 +754,25 @@ statement	:   var_declaration
 
 				SetLine($$);
 
-				if(endCompoundStatement)
+				if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
 				{
-					endCompoundStatement = false;
-				}
-				else
-				{
-					st->PrintAllScope();
 					st->ExitScope();
 				}
+
+				// if(endCompoundStatement)
+				// {
+				// 	endCompoundStatement = false;
+				// }
+				// else
+				// {
+				// 	st->PrintAllScope();
+				// 	st->ExitScope();
+				// }
 			}
 			|   WHILE
 			{
+				$1->symbolInfo->SetScopeID(st->GetCurrentScope()->GetID());
+
 				newScope = true;
 
 				st->EnterScope();
@@ -775,15 +784,20 @@ statement	:   var_declaration
 
 				SetLine($$);
 
-				if(endCompoundStatement)
+				if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
 				{
-					endCompoundStatement = false;
-				}
-				else
-				{
-					st->PrintAllScope();
 					st->ExitScope();
 				}
+
+				// if(endCompoundStatement)
+				// {
+				// 	endCompoundStatement = false;
+				// }
+				// else
+				// {
+				// 	st->PrintAllScope();
+				// 	st->ExitScope();
+				// }
 			}
 			|   RETURN expression SEMICOLON
 			{
@@ -805,19 +819,29 @@ statement	:   var_declaration
 
 				SetLine($$);
 
-				if(endCompoundStatement)
+				if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
 				{
-					endCompoundStatement = false;
-				}
-				else
-				{
-					st->PrintAllScope();
 					st->ExitScope();
 				}
+
+				// if(endCompoundStatement)
+				// {
+				// 	endCompoundStatement = false;
+				// }
+				// else
+				// {
+				// 	st->PrintAllScope();
+				// 	st->ExitScope();
+				// }
 			}
 	  		| IF LPAREN expression RPAREN statement ELSE
 			{
 				newScope = true;
+
+				if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
+				{
+					st->ExitScope();
+				}
 
 				st->EnterScope();
 			}
@@ -828,15 +852,20 @@ statement	:   var_declaration
 
 				SetLine($$);
 
-				if(endCompoundStatement)
+				if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
 				{
-					endCompoundStatement = false;
-				}
-				else
-				{
-					st->PrintAllScope();
 					st->ExitScope();
 				}
+
+				// if(endCompoundStatement)
+				// {
+				// 	endCompoundStatement = false;
+				// }
+				// else
+				// {
+				// 	st->PrintAllScope();
+				// 	st->ExitScope();
+				// }
 			}
 			|	PRINTLN LPAREN ID RPAREN SEMICOLON
 			{
