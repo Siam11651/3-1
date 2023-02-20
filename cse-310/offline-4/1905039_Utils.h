@@ -46,8 +46,6 @@ void ExecuteUnaryExpression(ParseTreeNode *root, size_t &statementId);
 void ExecuteFactor(ParseTreeNode *root, size_t &statementId);
 void ExecuteVariable(ParseTreeNode *root, size_t &statementId);
 void ExecuteCompoundStatement(ParseTreeNode *root, size_t &statementId, size_t &variableCount);
-size_t CountStatementInStatement(ParseTreeNode *root);
-size_t CountStatementInCompundStatement(ParseTreeNode *root);
 std::vector<ParseTreeNode *> GetArguments(ParseTreeNode *root);
 std::vector<ParseTreeNode *> GetParams(ParseTreeNode *root);
 void PrintNewLine();

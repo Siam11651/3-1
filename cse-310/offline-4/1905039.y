@@ -65,7 +65,11 @@ start   :   program
 			*$$ = {"start", false, {$1}, NULL};
 
 			SetLine($$);
-			GenerateICG($$);
+
+			if(errorCount == 0)
+			{
+				GenerateICG($$);	
+			}
 		}
 	    ;
 
@@ -642,7 +646,7 @@ type_specifier  :   INT
 					$$ = new ParseTreeNode();
 					*$$ = {"type_specifier", false, {$1}, NULL};
 					
-					SetLine($$);
+					// SetLine($$);
 				}
  		        |   FLOAT
 				{
@@ -772,16 +776,6 @@ statement	:   var_declaration
 				{
 					st->ExitScope();
 				}
-
-				// if(endCompoundStatement)
-				// {
-				// 	endCompoundStatement = false;
-				// }
-				// else
-				// {
-				// 	st->PrintAllScope();
-				// 	st->ExitScope();
-				// }
 			}
 			|   WHILE
 			{
@@ -802,16 +796,6 @@ statement	:   var_declaration
 				{
 					st->ExitScope();
 				}
-
-				// if(endCompoundStatement)
-				// {
-				// 	endCompoundStatement = false;
-				// }
-				// else
-				// {
-				// 	st->PrintAllScope();
-				// 	st->ExitScope();
-				// }
 			}
 			|   RETURN expression SEMICOLON
 			{
@@ -837,16 +821,6 @@ statement	:   var_declaration
 				{
 					st->ExitScope();
 				}
-
-				// if(endCompoundStatement)
-				// {
-				// 	endCompoundStatement = false;
-				// }
-				// else
-				// {
-				// 	st->PrintAllScope();
-				// 	st->ExitScope();
-				// }
 			}
 	  		| IF LPAREN expression RPAREN statement ELSE
 			{
@@ -870,20 +844,10 @@ statement	:   var_declaration
 				{
 					st->ExitScope();
 				}
-
-				// if(endCompoundStatement)
-				// {
-				// 	endCompoundStatement = false;
-				// }
-				// else
-				// {
-				// 	st->PrintAllScope();
-				// 	st->ExitScope();
-				// }
 			}
-			|	PRINTLN LPAREN ID RPAREN SEMICOLON
+			|	PRINTLN LPAREN variable RPAREN SEMICOLON
 			{
-				SymbolInfo *variablePtr = st->LookUp($3->symbolInfo->GetName());
+				SymbolInfo *variablePtr = st->LookUp($3->children[0]->symbolInfo->GetName());
 
 				if(variablePtr == NULL)
 				{
