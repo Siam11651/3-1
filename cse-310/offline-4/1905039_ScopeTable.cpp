@@ -76,14 +76,28 @@ bool ScopeTable::Insert(SymbolInfo *symbol)
         }
         else
         {
-            currentStackOffset += 2;
-
-            if(id > 1)
+            if(symbol->IsArray())
             {
-                symbolTable->SetGlobalStackOffset(symbolTable->GetGlobalStackOffset() + 2);
+                currentStackOffset += 2 * symbol->GetArraySize();
+
+                if(id > 1)
+                {
+                    symbolTable->SetGlobalStackOffset(symbolTable->GetGlobalStackOffset() + 2 * symbol->GetArraySize());
+                }
+                
+                symbol->SetStackOffset(symbolTable->GetGlobalStackOffset());
             }
-            
-            symbol->SetStackOffset(symbolTable->GetGlobalStackOffset());
+            else
+            {
+                currentStackOffset += 2;
+
+                if(id > 1)
+                {
+                    symbolTable->SetGlobalStackOffset(symbolTable->GetGlobalStackOffset() + 2);
+                }
+                
+                symbol->SetStackOffset(symbolTable->GetGlobalStackOffset());
+            }
         }
     }
 

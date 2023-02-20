@@ -16,6 +16,7 @@ private:
     size_t stackOffset;
     size_t scopeId;
     bool isParam;
+    size_t arraySize;
 public:
     SymbolInfo(const std::string &name, const std::string &type);
     void SetName(const std::string &name);
@@ -44,4 +45,6 @@ public:
     size_t GetScopeID() const;
     void SetParam(bool isParam);
     bool IsParam() const;
+    void SetArraySize(size_t arraySize);
+    size_t GetArraySize() const;
 };

@@ -675,6 +675,13 @@ declaration_list    :   declaration_list COMMA ID
 						$3->symbolInfo->SetIDType("VARIABLE");
 						$3->symbolInfo->SetArray(true);
 
+						std::stringstream ss($5->symbolInfo->GetName());
+						size_t arraySize;
+
+						ss >> arraySize;
+
+						$3->symbolInfo->SetArraySize(arraySize);
+
 						$$ = new ParseTreeNode();
 						*$$ = {"declaration_list", false, {$1, $2, $3, $4, $5, $6}, NULL};
 
@@ -694,6 +701,13 @@ declaration_list    :   declaration_list COMMA ID
 					{
 						$1->symbolInfo->SetIDType("VARIABLE");
 						$1->symbolInfo->SetArray(true);
+
+						std::stringstream ss($3->symbolInfo->GetName());
+						size_t arraySize;
+
+						ss >> arraySize;
+
+						$1->symbolInfo->SetArraySize(arraySize);
 
 						$$ = new ParseTreeNode();
 						*$$ = {"declaration_list", false, {$1, $2, $3, $4}, NULL};
@@ -943,7 +957,7 @@ variable    :   ID
 						{
 							if(GetExpressionDataType($3) == "INT")
 							{
-
+								
 							}
 							else
 							{

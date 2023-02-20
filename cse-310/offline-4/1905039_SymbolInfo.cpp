@@ -126,3 +126,13 @@ size_t SymbolInfo::GetScopeID() const
 {
     return scopeId;
 }
+
+void SymbolInfo::SetArraySize(size_t arraySize)
+{
+    this->arraySize = arraySize;
+}
+
+size_t SymbolInfo::GetArraySize() const
+{
+    return arraySize;
+}
