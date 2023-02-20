@@ -5,15 +5,16 @@ SymbolTable::SymbolTable(size_t numberOfBuckets, std::ostream *output)
     scopeCount = 1;
     maxScopeCount = 1;
     this->numberOfBuckets = numberOfBuckets;
-    currentScope = new ScopeTable(scopeCount, numberOfBuckets, NULL, output);
+    currentScope = new ScopeTable(this, scopeCount, numberOfBuckets, NULL, output);
     this->output = output;
+    globalStackOffset = 0;
 }
 
 void SymbolTable::EnterScope()
 {
     ++scopeCount;
     ++maxScopeCount;
-    ScopeTable *newScope = new ScopeTable(maxScopeCount, numberOfBuckets, currentScope, output);
+    ScopeTable *newScope = new ScopeTable(this, maxScopeCount, numberOfBuckets, currentScope, output);
     currentScope = newScope;
 }
 
@@ -21,6 +22,8 @@ void SymbolTable::ExitScope()
 {
     if(scopeCount != 1)
     {
+        globalStackOffset -= currentScope->GetStackOffset();
+
         ScopeTable *toDelete = currentScope;
         currentScope = currentScope->GetParent();
         --scopeCount;
@@ -153,4 +156,14 @@ void SymbolInfo::SetParam(bool isParam)
 bool SymbolInfo::IsParam() const
 {
     return isParam;
+}
+
+size_t SymbolTable::GetGlobalStackOffset() const
+{
+    return globalStackOffset;
+}
+
+void SymbolTable::SetGlobalStackOffset(size_t stackOffset)
+{
+    globalStackOffset = stackOffset;
 }

@@ -3,8 +3,9 @@
 #include <sstream>
 #include "1905039_ScopeTable.h"
 
-ScopeTable::ScopeTable(size_t id, size_t numberOfBuckets, ScopeTable* parent, std::ostream *output)
+ScopeTable::ScopeTable(SymbolTable *symbolTable, size_t id, size_t numberOfBuckets, ScopeTable* parent, std::ostream *output)
 {
+    this->symbolTable = symbolTable;
     this->id = id;
     this->numberOfBuckets = numberOfBuckets;
     buckets = new SymbolInfo *[numberOfBuckets];
@@ -77,7 +78,12 @@ bool ScopeTable::Insert(SymbolInfo *symbol)
         {
             currentStackOffset += 2;
 
-            symbol->SetStackOffset(currentStackOffset);
+            if(id > 1)
+            {
+                symbolTable->SetGlobalStackOffset(symbolTable->GetGlobalStackOffset() + 2);
+            }
+            
+            symbol->SetStackOffset(symbolTable->GetGlobalStackOffset());
         }
     }
 
@@ -249,4 +255,9 @@ ScopeTable::~ScopeTable()
 {
     delete[] buckets;
     delete[] bucketSizes;
+}
+
+size_t ScopeTable::GetStackOffset() const
+{
+    return currentStackOffset;
 }

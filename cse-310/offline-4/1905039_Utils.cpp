@@ -5,6 +5,7 @@ extern size_t errorCount;
 extern std::ofstream icgStream;
 std::string functionName;
 size_t functionStartLabel;
+std::vector<ParseTreeNode *> params;
 
 void PrintParseTree(ParseTreeNode *root, size_t depth)
 {
@@ -1286,7 +1287,7 @@ void GenerateICG(ParseTreeNode *root)
 
 		st->EnterScope();
 
-		std::vector<ParseTreeNode *> params;
+		params.clear();
 		ParseTreeNode *compoundStatementNode;
 
 		if(functionDefinition->children.size() == 6)
@@ -1318,7 +1319,15 @@ void GenerateICG(ParseTreeNode *root)
 		{
 			icgStream << "L" << statementId << ":" << std::endl;
 			icgStream << "\tPOP BP" << std::endl;
-			icgStream << "\tRET" << std::endl;
+
+			if(params.size() > 0)
+			{
+				icgStream << "\tRET " << params.size() * 2 << std::endl;
+			}
+			else
+			{
+				icgStream << "\tRET" << std::endl;
+			}
 		}
 
 		icgStream << functionName << " ENDP" << std::endl;
@@ -1392,8 +1401,8 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 		{
 			ExecuteExpression(root->children[1], statementId);
 
-			icgStream << "\tJMP L" << statementId + 1 << std::endl;
-			icgStream << "L" << statementId + 1 << ":" << std::endl;
+			icgStream << "\tJMP L" << ++statementId << std::endl;
+			icgStream << "L" << statementId << ":" << std::endl;
 
 			if(variableCount > 0)
 			{
@@ -1409,11 +1418,17 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 			}
 			else
 			{
-				icgStream << "\tRET" << std::endl;
+				if(params.size() > 0)
+				{
+					icgStream << "\tRET " << params.size() * 2 << std::endl;
+				}
+				else
+				{
+					icgStream << "\tRET" << std::endl;
+				}
 			}
 
-			statementId += 1;
-			toReturn = true;
+			++statementId;
 		}
 		else if(statement->name == "IF")
 		{
@@ -1570,7 +1585,14 @@ void ExecuteExpression(ParseTreeNode *root, size_t &statementId)
 		}
 		else
 		{
-			icgStream << "\tMOV [BP-" << idInfo->GetStackOffset() << "], AX" << std::endl;
+			if(idInfo->IsParam())
+			{
+				icgStream << "\tMOV [BP+" << idInfo->GetStackOffset() << "], AX" << std::endl;
+			}
+			else
+			{
+				icgStream << "\tMOV [BP-" << idInfo->GetStackOffset() << "], AX" << std::endl;
+			}
 		}
 
 		icgStream << "\tPUSH AX" << std::endl;
@@ -1794,14 +1816,13 @@ void ExecuteSimpleExpression(ParseTreeNode *root, size_t &statementId)
 	}
 	else // size 3
 	{
+		icgStream << "\tPUSH DX" << std::endl;
+
 		ExecuteSimpleExpression(root->children[0], statementId);		
 
 		icgStream << "\tMOV DX, AX" << std::endl;
-		icgStream << "\tPUSH DX" << std::endl;
 
 		ExecuteTerm(root->children[2], statementId);
-
-		icgStream << "\tPOP DX" << std::endl;
 
 		std::string opName = root->children[1]->symbolInfo->GetName();
 
@@ -1816,6 +1837,7 @@ void ExecuteSimpleExpression(ParseTreeNode *root, size_t &statementId)
 
 		icgStream << "\tPUSH DX" << std::endl;
 		icgStream << "\tPOP AX" << std::endl;
+		icgStream << "\tPOP DX" << std::endl;
 	}
 }
 
@@ -1827,6 +1849,8 @@ void ExecuteTerm(ParseTreeNode *root, size_t &statementId)
 	}
 	else // size 3
 	{
+		icgStream << "\tPUSH DX" << std::endl;
+
 		ExecuteUnaryExpression(root->children[2], statementId);
 
 		icgStream << "\tMOV CX, AX" << std::endl;
@@ -1855,6 +1879,8 @@ void ExecuteTerm(ParseTreeNode *root, size_t &statementId)
 			icgStream << "\tPUSH DX" << std::endl;
 			icgStream << "\tPOP AX" << std::endl;
 		}
+
+		icgStream << "\tPOP DX" << std::endl;
 	}
 }
 
@@ -1941,11 +1967,11 @@ void ExecuteFactor(ParseTreeNode *root, size_t &statementId)
 		{
 			if(idSymbol->IsParam())
 			{
-				icgStream << "\tMOV AX, [BP+" << idSymbol->GetStackOffset() << "]" << std::endl;
+				icgStream << "\tMOV [BP+" << idSymbol->GetStackOffset() << "], AX" << std::endl;
 			}
 			else
 			{
-				icgStream << "\tMOV AX, [BP-" << idSymbol->GetStackOffset() << "]" << std::endl;
+				icgStream << "\tMOV [BP-" << idSymbol->GetStackOffset() << "], AX" << std::endl;
 			}
 		}
 
@@ -2118,7 +2144,7 @@ void ExecuteCompoundStatement(ParseTreeNode *root, size_t &statementId)
 	{
 		if(ExecuteStatement(statements[i], statementId, variableCount))
 		{
-			break;;
+			break;
 		}
 	}
 }

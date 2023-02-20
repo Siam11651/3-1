@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include "1905039_ClassDeclarations.h"
 #include "1905039_ScopeTable.h"
 
 class SymbolTable
@@ -11,6 +12,7 @@ private:
     size_t numberOfBuckets;
     ScopeTable *currentScope;
     std::ostream *output;
+    size_t globalStackOffset;
 
     void PrintScope(ScopeTable *scope, size_t &start);
 public:
@@ -28,5 +30,7 @@ public:
     void PrintAllScope();
     size_t GetScopeCount();
     void FalseScope();
+    size_t GetGlobalStackOffset() const;
+    void SetGlobalStackOffset(size_t stackOffset);
     ~SymbolTable();
 };

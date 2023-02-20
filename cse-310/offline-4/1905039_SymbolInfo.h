@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include "1905039_ClassDeclarations.h"
 
 class SymbolInfo
 {
