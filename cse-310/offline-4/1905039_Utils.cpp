@@ -1365,30 +1365,35 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 
 		if(statement->name == "var_declaration")
 		{
+			icgStream << "; Variable declaration, line " << statement->startLine << std::endl;
+
 			std::vector<ParseTreeNode *> variables = GetDeclaredVariables(statement->children[1]);
+			size_t total = 0;
 
 			for(size_t j = 0; j < variables.size(); ++j)
 			{
+				variables[j]->symbolInfo->SetDataType(root->children[0]->children[0]->name);
 				st->Insert(variables[j]->symbolInfo);
 
 				if(variables[j]->symbolInfo->IsArray())
 				{
-					icgStream << "\tSUB SP, " << 2 * variables[j]->symbolInfo->GetArraySize() << std::endl;
-
-					variableCountStack.top() += 2 * variables[j]->symbolInfo->GetArraySize();
+					total += 2 * variables[j]->symbolInfo->GetArraySize();
 				}
 				else
 				{
-					icgStream << "\tSUB SP, 2" << std::endl;
-
-					variableCountStack.top() += 2;
+					total += 2;
 				}
 			}
 
+			icgStream << "\tSUB SP, " << total << std::endl;
+
+			variableCountStack.top() += total;
 			++statementId;
 		}
 		else if(statement->name == "expression_statement")
 		{
+			icgStream << "; Expression statement on line " << root->children[0]->startLine << std::endl;
+
 			ExecuteExpressionStatement(statement, statementId);
 		}
 		else if(statement->name == "PRINTLN")
@@ -1402,15 +1407,12 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 				{	
 					ExecuteExpression(root->children[2]->children[2], statementId);
 
-					icgStream << "\tPUSH BX" << std::endl;
 					icgStream << "\tAdd AX, AX" << std::endl;
 					icgStream << "\tMOV BX, AX" << std::endl;
 					icgStream << "\tMOV AX, " << idSymbol->GetName() << "[BX]" << std::endl;
-					icgStream << "\tPOP BX" << std::endl;
 				}
 				else
 				{
-					icgStream << "\tPUSH BX" << std::endl;
 					icgStream << "\tMOV BX, BP" << std::endl;
 					icgStream << "\tSUB BX, " << idSymbol->GetStackOffset() << std::endl;
 
@@ -1419,14 +1421,13 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 					icgStream << "\tAdd BX, AX" << std::endl;
 					icgStream << "\tAdd BX, AX" << std::endl;
 					icgStream << "\tMOV AX, WORD PTR [BX]" << std::endl;
-					icgStream << "\tPOP BX" << std::endl;
 				}
 			}
 			else
 			{
 				if(idSymbol->GetScopeID() == 1)
 				{
-					icgStream << "\tMOV AX, " << idSymbol->GetName() << "[AX]" << std::endl;
+					icgStream << "\tMOV AX, " << idSymbol->GetName() << std::endl;
 				}
 				else
 				{
@@ -1493,10 +1494,13 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 		{
 			if(root->children.size() == 5) // if
 			{
+				icgStream << "; If start on line " << root->children[0]->startLine << std::endl;
+
 				size_t falseStatementId;
 				falseStatementId = ++statementId;
 
 				st->EnterScope();
+				variableCountStack.push(0);
 				ExecuteExpression(root->children[2], statementId);
 				
 				icgStream << "\tCMP AX, 0" << std::endl;
@@ -1504,7 +1508,8 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 
 				++statementId;
 
-				variableCountStack.push(0);
+				icgStream << "; If main statement" << std::endl;
+
 				ExecuteStatement(root->children[4], statementId, variableCount);
 
 
@@ -1517,14 +1522,18 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 				st->ExitScope();
 
 				icgStream << "L" << falseStatementId << ":" << std::endl;
+				icgStream << "; If on line " << root->children[0]->startLine << " end" << std::endl;
 			}
 			else // if-else
 			{
+				icgStream << "; If start on line " << root->children[0]->startLine << std::endl;
+
 				size_t falseStatementId, doneStatementId;
 				falseStatementId = ++statementId;
 				doneStatementId = ++statementId;
 
 				st->EnterScope();
+				variableCountStack.push(0);
 				ExecuteExpression(root->children[2], statementId);
 
 				icgStream << "\tCMP AX, 0" << std::endl;
@@ -1532,7 +1541,6 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 
 				++statementId;
 
-				variableCountStack.push(0);
 				ExecuteStatement(root->children[4], statementId, variableCount);
 
 				if(variableCountStack.top() > 0)
@@ -1541,9 +1549,16 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 				}
 
 				icgStream << "\tJMP L" << doneStatementId << std::endl;
+				icgStream << "; If on line " << root->children[0]->startLine << " end" << std::endl;
+
+				variableCountStack.pop();
+				st->ExitScope();
+				st->EnterScope();
+
+				icgStream << "; Else start on line " << root->children[5]->startLine << std::endl;
 				icgStream << "L" << falseStatementId << ":" << std::endl;
 
-				variableCountStack.top() = 0;
+				variableCountStack.push(0);
 
 				ExecuteStatement(root->children[6], statementId, variableCount);
 
@@ -1554,17 +1569,25 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 
 				variableCountStack.pop();
 				st->ExitScope();
-
+ 
 				icgStream << "L" << doneStatementId << ":" << std::endl;
+				icgStream << "; Else on line " << root->children[5]->startLine << " end" << std::endl;
 			}
 		}
 		else if(statement->name == "FOR")
 		{
+			icgStream << "; For start on line " << root->children[0]->startLine << std::endl;
+
+			st->EnterScope();
+			variableCountStack.push(0);
+
 			ExecuteExpressionStatement(root->children[2], statementId);
 
 			size_t checkStatementId, doneStatementId;
 			checkStatementId = ++statementId;
 			doneStatementId = ++statementId;
+
+			icgStream << "; For check statement" << std::endl;
 
 			icgStream << "L" << checkStatementId << ":" << std::endl;
 
@@ -1572,9 +1595,12 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 
 			icgStream << "\tCMP AX, 0" << std::endl;
 			icgStream << "\tJE L" << doneStatementId << std::endl;
+			icgStream << "; For main statements" << std::endl;
 
-			variableCountStack.push(0);
 			ExecuteStatement(root->children[6], statementId, variableCount);
+			ExecuteExpression(root->children[4], statementId);
+
+			icgStream << "\tJMP L" << checkStatementId << std::endl;
 
 			if(variableCountStack.top() > 0)
 			{
@@ -1582,10 +1608,9 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 			}
 
 			variableCountStack.pop();
-			ExecuteExpression(root->children[4], statementId);
 
-			icgStream << "\tJMP L" << checkStatementId << std::endl;
 			icgStream << "L" << doneStatementId << ":" << std::endl;
+			icgStream << "; For on line " << root->children[0]->startLine << " ended" << std::endl;
 		}
 		else if(statement->name == "WHILE")
 		{
@@ -1593,16 +1618,20 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 			checkStatementId = ++statementId;
 			doneStatementId = ++statementId;
 
+			icgStream << "; While started on line " << root->children[0]->startLine << std::endl;
 			icgStream << "L" << checkStatementId << ":" << std::endl;
 
+			st->EnterScope();
+			variableCountStack.push(0);
 			ExecuteExpression(root->children[2], statementId);
 
 			icgStream << "\tCMP AX, 0" << std::endl;
 			icgStream << "\tJE L" << doneStatementId << std::endl;
 
+			icgStream << "; While main statements" << std::endl;
+
 			++statementId;
 
-			variableCountStack.push(0);
 			ExecuteStatement(root->children[4], statementId, variableCount);
 
 			if(variableCountStack.top() > 0)
@@ -1614,6 +1643,7 @@ bool ExecuteStatement(ParseTreeNode *root, size_t &statementId, size_t &variable
 
 			icgStream << "\tJMP L" << checkStatementId << std::endl;
 			icgStream << "L" << doneStatementId << ":" << std::endl;
+			icgStream << "; While on line " << root->children[0]->startLine << " ended" << std::endl;
 		}
 	}
 
@@ -1653,7 +1683,6 @@ void ExecuteExpression(ParseTreeNode *root, size_t &statementId)
 		{
 			if(lhsScopeId == 1)
 			{	
-				icgStream << "\tPUSH BX" << std::endl;
 				icgStream << "\tPUSH AX" << std::endl;
 
 				ExecuteExpression(root->children[0]->children[2], statementId);
@@ -1662,11 +1691,9 @@ void ExecuteExpression(ParseTreeNode *root, size_t &statementId)
 				icgStream << "\tMOV BX, AX" << std::endl;
 				icgStream << "\tPOP AX" << std::endl;
 				icgStream << "\tMOV " << idInfo->GetName() << "[BX], AX" << std::endl;
-				icgStream << "\tPOP BX" << std::endl;
 			}
 			else
 			{
-				icgStream << "\tPUSH BX" << std::endl;
 				icgStream << "\tMOV BX, BP" << std::endl;
 				icgStream << "\tSUB BX, " << idInfo->GetStackOffset() << std::endl;
 				icgStream << "\tPUSH AX" << std::endl;
@@ -1677,7 +1704,6 @@ void ExecuteExpression(ParseTreeNode *root, size_t &statementId)
 				icgStream << "\tAdd BX, AX" << std::endl;
 				icgStream << "\tPOP AX" << std::endl;
 				icgStream << "\tMOV WORD PTR [BX], AX" << std::endl;
-				icgStream << "\tPOP BX" << std::endl;
 			}
 		}
 		else
@@ -1856,8 +1882,7 @@ void ExecuteSimpleExpression(ParseTreeNode *root, size_t &statementId)
 			icgStream << "\tSUB DX, AX" << std::endl;
 		}
 
-		icgStream << "\tPUSH DX" << std::endl;
-		icgStream << "\tPOP AX" << std::endl;
+		icgStream << "\tMOV AX, DX" << std::endl;
 		icgStream << "\tPOP DX" << std::endl;
 	}
 }
@@ -1927,9 +1952,6 @@ void ExecuteUnaryExpression(ParseTreeNode *root, size_t &statementId)
 
 			icgStream << "\tNOT AX" << std::endl;
 		}
-
-		icgStream << "\tPUSH AX" << std::endl;
-		icgStream << "\tPOP AX" << std::endl;
 	}
 }
 
@@ -2002,9 +2024,7 @@ void ExecuteFactor(ParseTreeNode *root, size_t &statementId)
 	{
 		if(root->children[0]->name == "ID")
 		{
-			icgStream << "\tCALL " << root->children[0]->symbolInfo->GetName() << std::endl;
-			icgStream << "\tPUSH AX" << std::endl;
-			icgStream << "\tPOP AX" << std::endl;	
+			icgStream << "\tCALL " << root->children[0]->symbolInfo->GetName() << std::endl;	
 		}
 		else
 		{
@@ -2023,8 +2043,6 @@ void ExecuteFactor(ParseTreeNode *root, size_t &statementId)
 		}
 
 		icgStream << "\tCALL " << root->children[0]->symbolInfo->GetName() << std::endl;
-		icgStream << "\tPUSH AX" << std::endl;
-		icgStream << "\tPOP AX" << std::endl;
 	}
 }
 
@@ -2060,15 +2078,12 @@ void ExecuteVariable(ParseTreeNode *root, size_t &statementId)
 		{
 			ExecuteExpression(root->children[2], statementId);
 
-			icgStream << "\tPUSH BX" << std::endl;
 			icgStream << "\tAdd AX, AX" << std::endl;
 			icgStream << "\tMOV BX, AX" << std::endl;
 			icgStream << "\tMOV AX, " << idSymbol->GetName() << "[BX]" << std::endl;
-			icgStream << "\tPOP BX" << std::endl;
 		}
 		else
 		{
-			icgStream << "\tPUSH BX" << std::endl;
 			icgStream << "\tMOV BX, BP" << std::endl;
 			icgStream << "\tSUB BX, " << idSymbol->GetStackOffset() << std::endl;
 			
@@ -2077,7 +2092,7 @@ void ExecuteVariable(ParseTreeNode *root, size_t &statementId)
 			icgStream << "\tAdd BX, AX" << std::endl;
 			icgStream << "\tAdd BX, AX" << std::endl;
 			icgStream << "\tMOV AX, WORD PTR [BX]" << std::endl;
-			icgStream << "\tPOP BX" << std::endl;
+
 		}
 	}
 }
@@ -2179,6 +2194,9 @@ std::vector<ParseTreeNode *> GetFunctionDefinitions(ParseTreeNode *root)
 
 void ExecuteCompoundStatement(ParseTreeNode *root, size_t &statementId, size_t &variableCount)
 {
+	st->EnterScope();
+	variableCountStack.push(0);
+
 	std::vector<ParseTreeNode *> statements;
 
 	if(root->children.size() == 3)
@@ -2195,6 +2213,15 @@ void ExecuteCompoundStatement(ParseTreeNode *root, size_t &statementId, size_t &
 	{
 		ExecuteStatement(statements[i], statementId, variableCount);
 	}
+
+	st->ExitScope();
+
+	if(variableCountStack.top() > 0)
+	{
+		icgStream << "\tADD SP, " << variableCountStack.top() << std::endl;
+	}
+
+	variableCountStack.pop();
 }
 
 std::vector<ParseTreeNode *> GetArguments(ParseTreeNode *root)

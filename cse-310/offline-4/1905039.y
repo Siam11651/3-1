@@ -66,10 +66,12 @@ start   :   program
 
 			SetLine($$);
 
-			if(errorCount == 0)
-			{
-				GenerateICG($$);	
-			}
+			// if(errorCount == 0)
+			// {
+			// 	GenerateICG($$);
+			// }
+
+			GenerateICG($$);
 		}
 	    ;
 
@@ -389,6 +391,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					inVoidFunction = false;
 					function = NULL;
 					present = NULL;
+
+					st->ExitScope();
 				}
 				|	type_specifier ID LPAREN error RPAREN
 				{
@@ -477,6 +481,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					inVoidFunction = false;
 					function = NULL;
 					present = NULL;
+
+					st->ExitScope();
 				}
 				|	type_specifier ID LPAREN RPAREN
 				{
@@ -568,6 +574,8 @@ func_definition	:	type_specifier ID LPAREN parameter_list RPAREN
 					inVoidFunction = false;
 					function = NULL;
 					present = NULL;
+
+					st->ExitScope();
 				}
  				;
 
@@ -613,14 +621,7 @@ lcurl	:	LCURL
 		{
 			$$ = $1;
 
-			if(newScope)
-			{
-				newScope = false;
-			}
-			else
-			{
-				st->EnterScope(); 
-			}
+			st->EnterScope();
 		}
 
 compound_statement	:	lcurl statements RCURL
@@ -629,10 +630,7 @@ compound_statement	:	lcurl statements RCURL
 						*$$ = {"compound_statement", false, {$1, $2, $3}};
 
 						SetLine($$);
-						st->PrintAllScope();
 						st->ExitScope();
-
-						endCompoundStatement = true;
 					}
 					|	lcurl error RCURL
 					{
@@ -648,10 +646,7 @@ compound_statement	:	lcurl statements RCURL
 						std::cerr << "Line " << $3->symbolInfo->GetSymbolStart() << ": Invalid compund statement" << std::endl;
 
 						SetLine($$);
-						st->PrintAllScope();
 						st->ExitScope();
-
-						endCompoundStatement = true;
 					}
  		            |	lcurl RCURL
 					{
@@ -659,10 +654,7 @@ compound_statement	:	lcurl statements RCURL
 						*$$ = {"compound_statement", false, {$1, $2}, NULL};
 
 						SetLine($$);
-						st->PrintAllScope();
 						st->ExitScope();
-
-						endCompoundStatement = true;
 					}
  		            ;
  		    
@@ -673,7 +665,21 @@ var_declaration :   type_specifier declaration_list SEMICOLON
 
 					SetLine($$);
 
-					InsertID($2, $1->children[0]->name, st);
+					// InsertID($2, $1->children[0]->name, st);
+
+					std::vector<ParseTreeNode *> variables = GetDeclaredVariables($2);
+
+					for(size_t i = 0; i < variables.size(); ++i)
+					{
+						variables[i]->symbolInfo->SetDataType($1->children[0]->name);
+
+						if(!st->Insert(variables[i]->symbolInfo))
+						{
+							++errorCount;
+
+							std::cout << "Line " << $3->symbolInfo->GetSymbolStart() << ": Identifier with same name already exists" << std::endl;
+						}
+					}
 				}
 				|	type_specifier error SEMICOLON
 				{					
@@ -698,7 +704,7 @@ type_specifier  :   INT
 					$$ = new ParseTreeNode();
 					*$$ = {"type_specifier", false, {$1}, NULL};
 					
-					// SetLine($$);
+					SetLine($$);
 				}
  		        |   FLOAT
 				{
@@ -771,6 +777,13 @@ declaration_list    :   declaration_list COMMA ID
 						SetLine($$);
 					}
  		            ;
+
+if_	: IF
+	{
+		$$ = $1;
+
+		st->EnterScope();
+	};
  		  
 statements  :   statement
 			{
@@ -824,10 +837,12 @@ statement	:   var_declaration
 
 				SetLine($$);
 
-				if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
-				{
-					st->ExitScope();
-				}
+				// if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
+				// {
+				// 	st->ExitScope();
+				// }
+
+				st->ExitScope();
 			}
 			|   WHILE
 			{
@@ -844,16 +859,19 @@ statement	:   var_declaration
 
 				SetLine($$);
 
-				if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
-				{
-					st->ExitScope();
-				}
+				// if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
+				// {
+				// 	st->ExitScope();
+				// }
+				st->ExitScope();
 			}
 			|   RETURN expression SEMICOLON
 			{
 				if(inVoidFunction)
 				{
 					++errorCount;
+
+					std::cerr << "Line " << $1->symbolInfo->GetSymbolStart() << ": Void function can have no return statement" << std::endl;
 				}
 
 				functionReturns = true;
@@ -862,27 +880,30 @@ statement	:   var_declaration
 
 				SetLine($$);
 			}
-			| IF LPAREN expression RPAREN statement
+			| if_ LPAREN expression RPAREN statement
 			{
 				$$ = new ParseTreeNode();
 				*$$ = {"statement", false, {$1, $2, $3, $4, $5}, NULL};
 
 				SetLine($$);
 
-				if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
-				{
-					st->ExitScope();
-				}
+				// if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
+				// {
+				// 	st->ExitScope();
+				// }
+
+				st->ExitScope();
 			}
-	  		| IF LPAREN expression RPAREN statement ELSE
+	  		| if_ LPAREN expression RPAREN statement ELSE
 			{
 				newScope = true;
 
-				if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
-				{
-					st->ExitScope();
-				}
+				// if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
+				// {
+				// 	st->ExitScope();
+				// }
 
+				st->ExitScope();
 				st->EnterScope();
 			}
 			statement
@@ -892,10 +913,12 @@ statement	:   var_declaration
 
 				SetLine($$);
 
-				if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
-				{
-					st->ExitScope();
-				}
+				// if(st->GetCurrentScope()->GetID() != $1->symbolInfo->GetScopeID())
+				// {
+				// 	st->ExitScope();
+				// }
+
+				st->ExitScope();
 			}
 			|	PRINTLN LPAREN variable RPAREN SEMICOLON
 			{
@@ -904,6 +927,8 @@ statement	:   var_declaration
 				if(variablePtr == NULL)
 				{
 					++errorCount;
+
+					std::cerr << "Line " << $1->symbolInfo->GetSymbolStart() << ": Variable not declared" << std::endl;
 				}
 
 				$$ = new ParseTreeNode();

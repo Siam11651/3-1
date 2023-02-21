@@ -146,8 +146,6 @@ UNFINISHED_COMMENT \/\*([^\*]|\*[^\/])*
             symbolInfo->SetSymbolStart(lineCount);
             symbolInfo->SetSymbolEnd(lineCount);
 
-            st->EnterScope();
-
             ParseTreeNode *parseTreeNode = new ParseTreeNode();
 
             parseTreeNode->name = "IF";
