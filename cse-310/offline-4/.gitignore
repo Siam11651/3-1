@@ -5,3 +5,4 @@ sample_input/
 lex.yy.c
 main
 *.asm
+out.txt
